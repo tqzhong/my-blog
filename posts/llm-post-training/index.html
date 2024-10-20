@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en" dir="auto">
-<a href="https://yourpersonalwebsite.com" target="_blank">
+<script src="/my-blog/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=my-blog/livereload" data-no-instant defer></script><a href="https://yourpersonalwebsite.com" target="_blank">
 
 <head>
     <script src="https://cdn.jsdelivr.net/npm/fuse.js/dist/fuse.min.js"></script>
@@ -10,7 +10,7 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<meta name="robots" content="index, follow">
+<meta name="robots" content="noindex, nofollow">
 <title>大模型post-training方法 | Rs&#39; Log</title>
 <meta name="keywords" content="AI, LLMs, NLP, post-training">
 <meta name="description" content="1. DPO
@@ -47,7 +47,7 @@ v(z,z_{ref};\alpha,\lambda) = \begin{cases}
 $$
 价值函数$v:z\rightarrow R$将一个输出$z$想对一个参考值$z_{ref}$映射到其感知价值，反映人类相比起相同大小回报，对损失的敏感性更大，其中$\alpha$控制价值变化速度，$\lambda$反应对损失的敏感程度。">
 <meta name="author" content="Rs">
-<link rel="canonical" href="https://tqzhong.github.io/my-blog/posts/llm-post-training/">
+<link rel="canonical" href="http://localhost:1313/my-blog/posts/llm-post-training/">
 
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
@@ -62,10 +62,10 @@ $$
 <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
 <link rel="icon" sizes="512x512" href="images/android-chrome-512x512.png" type="image/png">
 <link rel="icon" sizes="192x192" href="images/android-chrome-192x192.png" type="image/png">
-<link rel="mask-icon" href="https://tqzhong.github.io/my-blog/safari-pinned-tab.svg">
+<link rel="mask-icon" href="http://localhost:1313/my-blog/safari-pinned-tab.svg">
 <meta name="theme-color" content="#2e2e33">
 <meta name="msapplication-TileColor" content="#2e2e33">
-<link rel="alternate" hreflang="en" href="https://tqzhong.github.io/my-blog/posts/llm-post-training/">
+<link rel="alternate" hreflang="en" href="http://localhost:1313/my-blog/posts/llm-post-training/">
 <noscript>
     <style>
         #theme-toggle,
@@ -103,135 +103,7 @@ $$
 
     </style>
 </noscript>
-<link rel="stylesheet" href="/my-blog/css/custom.css?v=1.4"><meta property="og:title" content="大模型post-training方法" />
-<meta property="og:description" content="1. DPO
-Rafailov et al. (2023)基于RLHF中PPO的优化式推导出最优奖励函数表达式：$r(x, y)=\beta log\frac{\pi_\theta(y|x)}{\pi_{ref}(y|x)}&#43;\beta logZ(x)$，将该奖励函数表达式带入BT-model得到DPO的损失函数表达式：
-$$
-\mathcal L_{DPO}(\pi_\theta;\pi_{ref})=-\mathbb E_{(x, y_w, y_l)\sim\mathcal D}[log\ \sigma(\beta log\frac{\pi_\theta(y_w|x)}{\pi_{ref}(y_w|x)}-\beta log\frac{\pi_\theta(y_l|x)}{\pi_{ref}(y_l|x)})]
-$$
-2. Simple-DPO
-Meng et al. (2024)考虑到DPO的奖励函数有一下两个缺点：1）训练DPO时需要一个额外的reference 模型，增大训练开销；2）DPO的优化式和inference阶段存在差异。具体来讲，inference阶段时需要优化最大平均对数似然：
-$$
-p_\theta(y|x)=\frac{1}{|y|}log\ \pi_\theta(y|x)=\frac{1}{|y|}\sum_{i=1}^{|y|}log\ \pi_\theta(y_i|x,y_{&lt;i})
-$$
-因此Simple-DPO考虑将奖励函数表达式改为：
-$$
-r_{SimPO}(x, y)=\frac{\beta}{|y|}log\ \pi_\theta(y|x)=\frac{\beta}{|y|}\sum_{i=1}^{|y|}log\ \pi_\theta(y_i|x,y_{&lt;i})
-$$
-此外，为了进一步强化模型对winning response的拟合，弱化对losing response的拟合，作者在BT公式中引入超参数$\gamma \ (\gamma&gt;0)$，表达式如下：
-$$
-p(y_w&gt;y_l|x)=\sigma(r(x,y_w)-r(x,y_l)-\gamma)
-$$
-从而，Simple-DPO的优化函数：
-$$
-\mathcal L_{SimPO}(\pi_\theta)=-\mathbb E_{(x,y_w,y_l)\sim\mathcal D}[log\ \sigma(\frac{\beta}{|y_w|}log\ \pi_\theta(y_w|x)-\frac{\beta}{|y_l|}log\ \pi_\theta(y_l|x)-\gamma)]
-$$
-3. KTO
-KTO loss (Ethayarajh et al. (2024))与DPO相比，不需要为每个prompt配对提供偏好回答和拒绝回答。它仅需要一个答案，并给出这个答案一个标签来指示该答案的质量是正面还是负面的。KTO不需要偏好回答的数量与拒绝回答的数量相同，简化数据的准备流程。
-前景理论（prospect theory），Tversky &amp; Kahneman用下面方程建模人类价值：
-$$
-v(z,z_{ref};\alpha,\lambda) = \begin{cases}
-(z-z_{ref})^\alpha &amp; \text{if } z \ge z_{ref}
-\\
--\lambda(z_{ref}-z)^\alpha &amp; \text{if } z &lt; z_{ref}
-\end{cases}
-$$
-价值函数$v:z\rightarrow R$将一个输出$z$想对一个参考值$z_{ref}$映射到其感知价值，反映人类相比起相同大小回报，对损失的敏感性更大，其中$\alpha$控制价值变化速度，$\lambda$反应对损失的敏感程度。" />
-<meta property="og:type" content="article" />
-<meta property="og:url" content="https://tqzhong.github.io/my-blog/posts/llm-post-training/" /><meta property="article:section" content="posts" />
-<meta property="article:published_time" content="2024-10-09T00:00:00+00:00" />
-<meta property="article:modified_time" content="2024-10-09T00:00:00+00:00" />
-
-<meta name="twitter:card" content="summary"/>
-<meta name="twitter:title" content="大模型post-training方法"/>
-<meta name="twitter:description" content="1. DPO
-Rafailov et al. (2023)基于RLHF中PPO的优化式推导出最优奖励函数表达式：$r(x, y)=\beta log\frac{\pi_\theta(y|x)}{\pi_{ref}(y|x)}&#43;\beta logZ(x)$，将该奖励函数表达式带入BT-model得到DPO的损失函数表达式：
-$$
-\mathcal L_{DPO}(\pi_\theta;\pi_{ref})=-\mathbb E_{(x, y_w, y_l)\sim\mathcal D}[log\ \sigma(\beta log\frac{\pi_\theta(y_w|x)}{\pi_{ref}(y_w|x)}-\beta log\frac{\pi_\theta(y_l|x)}{\pi_{ref}(y_l|x)})]
-$$
-2. Simple-DPO
-Meng et al. (2024)考虑到DPO的奖励函数有一下两个缺点：1）训练DPO时需要一个额外的reference 模型，增大训练开销；2）DPO的优化式和inference阶段存在差异。具体来讲，inference阶段时需要优化最大平均对数似然：
-$$
-p_\theta(y|x)=\frac{1}{|y|}log\ \pi_\theta(y|x)=\frac{1}{|y|}\sum_{i=1}^{|y|}log\ \pi_\theta(y_i|x,y_{&lt;i})
-$$
-因此Simple-DPO考虑将奖励函数表达式改为：
-$$
-r_{SimPO}(x, y)=\frac{\beta}{|y|}log\ \pi_\theta(y|x)=\frac{\beta}{|y|}\sum_{i=1}^{|y|}log\ \pi_\theta(y_i|x,y_{&lt;i})
-$$
-此外，为了进一步强化模型对winning response的拟合，弱化对losing response的拟合，作者在BT公式中引入超参数$\gamma \ (\gamma&gt;0)$，表达式如下：
-$$
-p(y_w&gt;y_l|x)=\sigma(r(x,y_w)-r(x,y_l)-\gamma)
-$$
-从而，Simple-DPO的优化函数：
-$$
-\mathcal L_{SimPO}(\pi_\theta)=-\mathbb E_{(x,y_w,y_l)\sim\mathcal D}[log\ \sigma(\frac{\beta}{|y_w|}log\ \pi_\theta(y_w|x)-\frac{\beta}{|y_l|}log\ \pi_\theta(y_l|x)-\gamma)]
-$$
-3. KTO
-KTO loss (Ethayarajh et al. (2024))与DPO相比，不需要为每个prompt配对提供偏好回答和拒绝回答。它仅需要一个答案，并给出这个答案一个标签来指示该答案的质量是正面还是负面的。KTO不需要偏好回答的数量与拒绝回答的数量相同，简化数据的准备流程。
-前景理论（prospect theory），Tversky &amp; Kahneman用下面方程建模人类价值：
-$$
-v(z,z_{ref};\alpha,\lambda) = \begin{cases}
-(z-z_{ref})^\alpha &amp; \text{if } z \ge z_{ref}
-\\
--\lambda(z_{ref}-z)^\alpha &amp; \text{if } z &lt; z_{ref}
-\end{cases}
-$$
-价值函数$v:z\rightarrow R$将一个输出$z$想对一个参考值$z_{ref}$映射到其感知价值，反映人类相比起相同大小回报，对损失的敏感性更大，其中$\alpha$控制价值变化速度，$\lambda$反应对损失的敏感程度。"/>
-
-
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "BreadcrumbList",
-  "itemListElement": [
-    {
-      "@type": "ListItem",
-      "position":  1 ,
-      "name": "Posts",
-      "item": "https://tqzhong.github.io/my-blog/posts/"
-    }, 
-    {
-      "@type": "ListItem",
-      "position":  2 ,
-      "name": "大模型post-training方法",
-      "item": "https://tqzhong.github.io/my-blog/posts/llm-post-training/"
-    }
-  ]
-}
-</script>
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "BlogPosting",
-  "headline": "大模型post-training方法",
-  "name": "大模型post-training方法",
-  "description": "1. DPO Rafailov et al. (2023)基于RLHF中PPO的优化式推导出最优奖励函数表达式：$r(x, y)=\\beta log\\frac{\\pi_\\theta(y|x)}{\\pi_{ref}(y|x)}+\\beta logZ(x)$，将该奖励函数表达式带入BT-model得到DPO的损失函数表达式：\n$$ \\mathcal L_{DPO}(\\pi_\\theta;\\pi_{ref})=-\\mathbb E_{(x, y_w, y_l)\\sim\\mathcal D}[log\\ \\sigma(\\beta log\\frac{\\pi_\\theta(y_w|x)}{\\pi_{ref}(y_w|x)}-\\beta log\\frac{\\pi_\\theta(y_l|x)}{\\pi_{ref}(y_l|x)})] $$\n2. Simple-DPO Meng et al. (2024)考虑到DPO的奖励函数有一下两个缺点：1）训练DPO时需要一个额外的reference 模型，增大训练开销；2）DPO的优化式和inference阶段存在差异。具体来讲，inference阶段时需要优化最大平均对数似然： $$ p_\\theta(y|x)=\\frac{1}{|y|}log\\ \\pi_\\theta(y|x)=\\frac{1}{|y|}\\sum_{i=1}^{|y|}log\\ \\pi_\\theta(y_i|x,y_{\u0026lt;i}) $$ 因此Simple-DPO考虑将奖励函数表达式改为： $$ r_{SimPO}(x, y)=\\frac{\\beta}{|y|}log\\ \\pi_\\theta(y|x)=\\frac{\\beta}{|y|}\\sum_{i=1}^{|y|}log\\ \\pi_\\theta(y_i|x,y_{\u0026lt;i}) $$ 此外，为了进一步强化模型对winning response的拟合，弱化对losing response的拟合，作者在BT公式中引入超参数$\\gamma \\ (\\gamma\u0026gt;0)$，表达式如下： $$ p(y_w\u0026gt;y_l|x)=\\sigma(r(x,y_w)-r(x,y_l)-\\gamma) $$ 从而，Simple-DPO的优化函数： $$ \\mathcal L_{SimPO}(\\pi_\\theta)=-\\mathbb E_{(x,y_w,y_l)\\sim\\mathcal D}[log\\ \\sigma(\\frac{\\beta}{|y_w|}log\\ \\pi_\\theta(y_w|x)-\\frac{\\beta}{|y_l|}log\\ \\pi_\\theta(y_l|x)-\\gamma)] $$\n3. KTO KTO loss (Ethayarajh et al. (2024))与DPO相比，不需要为每个prompt配对提供偏好回答和拒绝回答。它仅需要一个答案，并给出这个答案一个标签来指示该答案的质量是正面还是负面的。KTO不需要偏好回答的数量与拒绝回答的数量相同，简化数据的准备流程。\n前景理论（prospect theory），Tversky \u0026amp; Kahneman用下面方程建模人类价值： $$ v(z,z_{ref};\\alpha,\\lambda) = \\begin{cases} (z-z_{ref})^\\alpha \u0026amp; \\text{if } z \\ge z_{ref} \\\\ -\\lambda(z_{ref}-z)^\\alpha \u0026amp; \\text{if } z \u0026lt; z_{ref} \\end{cases} $$ 价值函数$v:z\\rightarrow R$将一个输出$z$想对一个参考值$z_{ref}$映射到其感知价值，反映人类相比起相同大小回报，对损失的敏感性更大，其中$\\alpha$控制价值变化速度，$\\lambda$反应对损失的敏感程度。\n",
-  "keywords": [
-    "AI", "LLMs", "NLP", "post-training"
-  ],
-  "articleBody": "1. DPO Rafailov et al. (2023)基于RLHF中PPO的优化式推导出最优奖励函数表达式：$r(x, y)=\\beta log\\frac{\\pi_\\theta(y|x)}{\\pi_{ref}(y|x)}+\\beta logZ(x)$，将该奖励函数表达式带入BT-model得到DPO的损失函数表达式：\n$$ \\mathcal L_{DPO}(\\pi_\\theta;\\pi_{ref})=-\\mathbb E_{(x, y_w, y_l)\\sim\\mathcal D}[log\\ \\sigma(\\beta log\\frac{\\pi_\\theta(y_w|x)}{\\pi_{ref}(y_w|x)}-\\beta log\\frac{\\pi_\\theta(y_l|x)}{\\pi_{ref}(y_l|x)})] $$\n2. Simple-DPO Meng et al. (2024)考虑到DPO的奖励函数有一下两个缺点：1）训练DPO时需要一个额外的reference 模型，增大训练开销；2）DPO的优化式和inference阶段存在差异。具体来讲，inference阶段时需要优化最大平均对数似然： $$ p_\\theta(y|x)=\\frac{1}{|y|}log\\ \\pi_\\theta(y|x)=\\frac{1}{|y|}\\sum_{i=1}^{|y|}log\\ \\pi_\\theta(y_i|x,y_{",
-  "wordCount" : "365",
-  "inLanguage": "en",
-  "datePublished": "2024-10-09T00:00:00Z",
-  "dateModified": "2024-10-09T00:00:00Z",
-  "author":{
-    "@type": "Person",
-    "name": "Rs"
-  },
-  "mainEntityOfPage": {
-    "@type": "WebPage",
-    "@id": "https://tqzhong.github.io/my-blog/posts/llm-post-training/"
-  },
-  "publisher": {
-    "@type": "Organization",
-    "name": "Rs' Log",
-    "logo": {
-      "@type": "ImageObject",
-      "url": "https://tqzhong.github.io/my-blog/favicon.ico"
-    }
-  }
-}
-</script>
+<link rel="stylesheet" href="/my-blog/css/custom.css?v=1.5">
 </head>
 
 <body class="" id="top">
@@ -265,7 +137,7 @@ $$
     <nav class="nav">
         <div class="logo-logo-switches">
         <div class="logo">
-            <a href="https://tqzhong.github.io/my-blog/" accesskey="h" title="Rs&#39; Log (Alt + H)">Rs&#39; Log</a>
+            <a href="http://localhost:1313/my-blog/" accesskey="h" title="Rs&#39; Log (Alt + H)">Rs&#39; Log</a>
 
             <div class="logo-switches">
                 <button id="theme-toggle" accesskey="t" title="(Alt + T)">
@@ -293,32 +165,32 @@ $$
         </div>
         <ul id="menu">
             <li>
-                <a href="https://tqzhong.github.io/my-blog/" title="Posts">
+                <a href="http://localhost:1313/my-blog/" title="Posts">
                     <span>Posts</span>
                 </a>
             </li>
             <li>
-                <a href="https://tqzhong.github.io/my-blog/archive/" title="Archive">
+                <a href="http://localhost:1313/my-blog/archive/" title="Archive">
                     <span>Archive</span>
                 </a>
             </li>
             <li>
-                <a href="https://tqzhong.github.io/my-blog/search/" title="Search (Alt &#43; /)" accesskey=/>
+                <a href="http://localhost:1313/my-blog/search/" title="Search (Alt &#43; /)" accesskey=/>
                     <span>Search</span>
                 </a>
             </li>
             <li>
-                <a href="https://tqzhong.github.io/my-blog/tags/" title="Tags">
+                <a href="http://localhost:1313/my-blog/tags/" title="Tags">
                     <span>Tags</span>
                 </a>
             </li>
             <li>
-                <a href="https://tqzhong.github.io/my-blog/categories/" title="Categories">
+                <a href="http://localhost:1313/my-blog/categories/" title="Categories">
                     <span>Categories</span>
                 </a>
             </li>
             <li>
-                <a href="https://tqzhong.github.io/my-blog/faq/" title="FAQ">
+                <a href="http://localhost:1313/my-blog/faq/" title="FAQ">
                     <span>FAQ</span>
                 </a>
             </li>
@@ -487,13 +359,13 @@ $$</p>
 
   <footer class="post-footer">
     <ul class="post-tags">
-      <li><a href="https://tqzhong.github.io/my-blog/tags/ai/">AI</a></li>
-      <li><a href="https://tqzhong.github.io/my-blog/tags/llms/">LLMs</a></li>
-      <li><a href="https://tqzhong.github.io/my-blog/tags/nlp/">NLP</a></li>
-      <li><a href="https://tqzhong.github.io/my-blog/tags/post-training/">Post-Training</a></li>
+      <li><a href="http://localhost:1313/my-blog/tags/ai/">AI</a></li>
+      <li><a href="http://localhost:1313/my-blog/tags/llms/">LLMs</a></li>
+      <li><a href="http://localhost:1313/my-blog/tags/nlp/">NLP</a></li>
+      <li><a href="http://localhost:1313/my-blog/tags/post-training/">Post-Training</a></li>
     </ul>
 <nav class="paginav">
-  <a class="prev" href="https://tqzhong.github.io/my-blog/posts/2024-10-15-business-model/">
+  <a class="prev" href="http://localhost:1313/my-blog/posts/2024-10-15-business-model/">
     <span class="title">« Prev</span>
     <br>
     <span>商业模型分类</span>
@@ -553,7 +425,7 @@ $$</p>
     </main>
     
 <footer class="footer">
-    <span>&copy; 2024 <a href="https://tqzhong.github.io/my-blog/">Rs&#39; Log</a></span>
+    <span>&copy; 2024 <a href="http://localhost:1313/my-blog/">Rs&#39; Log</a></span>
     <span>
         Powered by
         <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
