@@ -56,25 +56,27 @@
       <pubDate>Wed, 09 Oct 2024 00:00:00 +0000</pubDate>
       
       <guid>https://tqzhong.github.io/my-blog/posts/llm-post-training/</guid>
-      <description>&lt;h2 id=&#34;这是一条测试样例&#34;&gt;这是一条测试样例&lt;/h2&gt;
-&lt;h3 id=&#34;bradley-terry-model&#34;&gt;Bradley-Terry model&lt;/h3&gt;
-&lt;p&gt;奖励模型一般基于BT model实现，$h_t$
+      <description>&lt;h3 id=&#34;1-dpo&#34;&gt;1. DPO&lt;/h3&gt;
+&lt;p&gt;&lt;a href=&#34;https://proceedings.neurips.cc/paper_files/paper/2023/hash/a85b405ed65c6477a4fe8302b5e06ce7-Abstract-Conference.html&#34; style=&#34;color: inherit; text-decoration: underline; text-decoration-color: rgba(128, 128, 128, 0.5);&#34;&gt;Rafailov et al. (2023)&lt;/a&gt;基于RLHF中PPO的优化式推导出最优奖励函数表达式：$r(x, y)=\beta log\frac{\pi_\theta(y|x)}{\pi_{ref}(y|x)}+\beta logZ(x)$，将该奖励函数表达式带入BT-model得到DPO的损失函数表达式：
 $$
-P(i &amp;gt; j) = \frac{e^{\beta_i}}{e^{\beta_i} + e^{\beta_j}}
+\mathcal L_{DPO}(\pi_\theta;\pi_{ref})=-\mathbb E_{(x, y_w, y_l)\sim\mathcal D}[log\ \sigma(\beta log\frac{\pi_\theta(y_w|x)}{\pi_{ref}(y_w|x)}-\beta log\frac{\pi_\theta(y_l|x)}{\pi_{ref}(y_l|x)})]
 $$&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;kn&#34;&gt;import&lt;/span&gt; &lt;span class=&#34;nn&#34;&gt;torch&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;nb&#34;&gt;print&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;torch&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;rand&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;mi&#34;&gt;2&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;mi&#34;&gt;3&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;))&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;shape&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;ul&gt;
-&lt;li&gt;你好&lt;/li&gt;
-&lt;/ul&gt;
-&lt;ol&gt;
-&lt;li&gt;你好
-&lt;img loading=&#34;lazy&#34; src=&#34;https://tqzhong.github.io/my-blog/my-blog/images/2024-10-09-llm-post-training/image1.png&#34; alt=&#34;alt text&#34;  /&gt;
-&lt;/li&gt;
-&lt;/ol&gt;
-&lt;h3 id=&#34;rlhf&#34;&gt;RLHF&lt;/h3&gt;
-&lt;p&gt;$$
-\min_{\theta} \mathbb{E}\left[ \text{Loss}(\theta) \right]
+&lt;h3 id=&#34;2-simple-dpo&#34;&gt;2. Simple-DPO&lt;/h3&gt;
+&lt;p&gt;&lt;a href=&#34;https://arxiv.org/abs/2405.14734&#34; style=&#34;color: inherit; text-decoration: underline; text-decoration-color: rgba(128, 128, 128, 0.5);&#34;&gt;Meng et al. (2024)&lt;/a&gt;考虑到DPO的奖励函数有一下两个缺点：1）训练DPO时需要一个额外的reference 模型，增大训练开销；2）DPO的优化式和inference阶段存在差异。具体来讲，inference阶段时需要优化最大平均对数似然：
+$$
+p_\theta(y|x)=\frac{1}{|y|}log\ \pi_\theta(y|x)=\frac{1}{|y|}\sum_{i=1}^{|y|}log\ \pi_\theta(y_i|x,y_{&amp;lt;i})
+$$
+因此Simple-DPO考虑将奖励函数表达式改为：
+$$
+r_{SimPO}(x, y)=\frac{\beta}{|y|}log\ \pi_\theta(y|x)=\frac{\beta}{|y|}\sum_{i=1}^{|y|}log\ \pi_\theta(y_i|x,y_{&amp;lt;i})
+$$
+此外，为了进一步强化模型对winning response的拟合，弱化对losing response的拟合，作者在BT公式中引入超参数$\gamma \ (\gamma&amp;gt;0)$，表达式如下：
+$$
+p(y_w&amp;gt;y_l|x)=\sigma(r(x,y_w)-r(x,y_l)-\gamma)
+$$
+从而，Simple-DPO的优化函数：
+$$
+\mathcal L_{SimPO}(\pi_\theta)=-\mathbb E_{(x,y_w,y_l)\sim\mathcal D}[log\ \sigma(\frac{\beta}{|y_w|}log\ \pi_\theta(y_w|x)-\frac{\beta}{|y_l|}log\ \pi_\theta(y_l|x)-\gamma)]
 $$&lt;/p&gt;</description>
     </item>
     

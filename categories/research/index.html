@@ -187,14 +187,14 @@
           </h2>
         </header>
           <div class="entry-content">
-            <p>这是一条测试样例 Bradley-Terry model 奖励模型一般基于BT model实现，$h_t$ $$ P(i &gt; j) = \frac{e^{\beta_i}}{e^{\beta_i} &#43; e^{\beta_j}} $$
-import torch print(torch.rand(2, 3)).shape 你好 你好 RLHF $$ \min_{\theta} \mathbb{E}\left[ \text{Loss}(\theta) \right] $$
-</p>
+            <p>1. DPO Rafailov et al. (2023)基于RLHF中PPO的优化式推导出最优奖励函数表达式：$r(x, y)=\beta log\frac{\pi_\theta(y|x)}{\pi_{ref}(y|x)}&#43;\beta logZ(x)$，将该奖励函数表达式带入BT-model得到DPO的损失函数表达式： $$ \mathcal L_{DPO}(\pi_\theta;\pi_{ref})=-\mathbb E_{(x, y_w, y_l)\sim\mathcal D}[log\ \sigma(\beta log\frac{\pi_\theta(y_w|x)}{\pi_{ref}(y_w|x)}-\beta log\frac{\pi_\theta(y_l|x)}{\pi_{ref}(y_l|x)})] $$
+2. Simple-DPO Meng et al. (2024)考虑到DPO的奖励函数有一下两个缺点：1）训练DPO时需要一个额外的reference 模型，增大训练开销；2）DPO的优化式和inference阶段存在差异。具体来讲，inference阶段时需要优化最大平均对数似然： $$ p_\theta(y|x)=\frac{1}{|y|}log\ \pi_\theta(y|x)=\frac{1}{|y|}\sum_{i=1}^{|y|}log\ \pi_\theta(y_i|x,y_{&lt;i}) $$ 因此Simple-DPO考虑将奖励函数表达式改为： $$ r_{SimPO}(x, y)=\frac{\beta}{|y|}log\ \pi_\theta(y|x)=\frac{\beta}{|y|}\sum_{i=1}^{|y|}log\ \pi_\theta(y_i|x,y_{&lt;i}) $$ 此外，为了进一步强化模型对winning response的拟合，弱化对losing response的拟合，作者在BT公式中引入超参数$\gamma \ (\gamma&gt;0)$，表达式如下： $$ p(y_w&gt;y_l|x)=\sigma(r(x,y_w)-r(x,y_l)-\gamma) $$ 从而，Simple-DPO的优化函数： $$ \mathcal L_{SimPO}(\pi_\theta)=-\mathbb E_{(x,y_w,y_l)\sim\mathcal D}[log\ \sigma(\frac{\beta}{|y_w|}log\ \pi_\theta(y_w|x)-\frac{\beta}{|y_l|}log\ \pi_\theta(y_l|x)-\gamma)] $$
+...</p>
           </div>
           <footer class="entry-footer">
 
 
-<i class="fas fa-calendar-alt blog-meta-icon"></i>&nbsp;2024-10-09 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <i class="fas fa-clock blog-meta-icon"></i>&nbsp;1 min &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <i class="fas fa-user blog-meta-icon"></i>&nbsp;Rs
+<i class="fas fa-calendar-alt blog-meta-icon"></i>&nbsp;2024-10-09 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <i class="fas fa-clock blog-meta-icon"></i>&nbsp;2 min &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <i class="fas fa-user blog-meta-icon"></i>&nbsp;Rs
 
 
           </footer>
