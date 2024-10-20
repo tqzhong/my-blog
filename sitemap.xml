@@ -2,52 +2,52 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
-    <loc>http://localhost:1313/my-blog/</loc>
+    <loc>https://tqzhong.github.io/my-blog/</loc>
     <lastmod>2024-10-15T11:08:09+08:00</lastmod>
   </url><url>
-    <loc>http://localhost:1313/my-blog/tags/business/</loc>
+    <loc>https://tqzhong.github.io/my-blog/tags/business/</loc>
     <lastmod>2024-10-15T11:08:09+08:00</lastmod>
   </url><url>
-    <loc>http://localhost:1313/my-blog/categories/business/</loc>
+    <loc>https://tqzhong.github.io/my-blog/categories/business/</loc>
     <lastmod>2024-10-15T11:08:09+08:00</lastmod>
   </url><url>
-    <loc>http://localhost:1313/my-blog/tags/business-model/</loc>
+    <loc>https://tqzhong.github.io/my-blog/tags/business-model/</loc>
     <lastmod>2024-10-15T11:08:09+08:00</lastmod>
   </url><url>
-    <loc>http://localhost:1313/my-blog/categories/</loc>
+    <loc>https://tqzhong.github.io/my-blog/categories/</loc>
     <lastmod>2024-10-15T11:08:09+08:00</lastmod>
   </url><url>
-    <loc>http://localhost:1313/my-blog/posts/</loc>
+    <loc>https://tqzhong.github.io/my-blog/posts/</loc>
     <lastmod>2024-10-15T11:08:09+08:00</lastmod>
   </url><url>
-    <loc>http://localhost:1313/my-blog/tags/</loc>
+    <loc>https://tqzhong.github.io/my-blog/tags/</loc>
     <lastmod>2024-10-15T11:08:09+08:00</lastmod>
   </url><url>
-    <loc>http://localhost:1313/my-blog/posts/2024-10-15-business-model/</loc>
+    <loc>https://tqzhong.github.io/my-blog/posts/2024-10-15-business-model/</loc>
     <lastmod>2024-10-15T11:08:09+08:00</lastmod>
   </url><url>
-    <loc>http://localhost:1313/my-blog/tags/ai/</loc>
+    <loc>https://tqzhong.github.io/my-blog/tags/ai/</loc>
     <lastmod>2024-10-09T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>http://localhost:1313/my-blog/tags/llms/</loc>
+    <loc>https://tqzhong.github.io/my-blog/tags/llms/</loc>
     <lastmod>2024-10-09T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>http://localhost:1313/my-blog/tags/nlp/</loc>
+    <loc>https://tqzhong.github.io/my-blog/tags/nlp/</loc>
     <lastmod>2024-10-09T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>http://localhost:1313/my-blog/tags/post-training/</loc>
+    <loc>https://tqzhong.github.io/my-blog/tags/post-training/</loc>
     <lastmod>2024-10-09T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>http://localhost:1313/my-blog/categories/research/</loc>
+    <loc>https://tqzhong.github.io/my-blog/categories/research/</loc>
     <lastmod>2024-10-09T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>http://localhost:1313/my-blog/posts/llm-post-training/</loc>
+    <loc>https://tqzhong.github.io/my-blog/posts/llm-post-training/</loc>
     <lastmod>2024-10-09T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>http://localhost:1313/my-blog/archive/</loc>
+    <loc>https://tqzhong.github.io/my-blog/archive/</loc>
   </url><url>
-    <loc>http://localhost:1313/my-blog/faq/</loc>
+    <loc>https://tqzhong.github.io/my-blog/faq/</loc>
   </url><url>
-    <loc>http://localhost:1313/my-blog/search/</loc>
+    <loc>https://tqzhong.github.io/my-blog/search/</loc>
   </url>
 </urlset>
