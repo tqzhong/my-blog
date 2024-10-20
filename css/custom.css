@@ -203,3 +203,9 @@ a.entityLink:hover {
 .post-content {
     font-size: 0.9em
 }
+
+.scroll-container {
+    overflow-x: auto; /* 允许水平滚动 */
+    -webkit-overflow-scrolling: touch; /* 启用惯性滚动效果，针对移动设备 */
+    white-space: nowrap; /* 确保内容不会自动换行 */
+}

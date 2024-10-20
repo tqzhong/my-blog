@@ -15,37 +15,33 @@
 <meta name="keywords" content="AI, LLMs, NLP, post-training">
 <meta name="description" content="1. DPO
 Rafailov et al. (2023)基于RLHF中PPO的优化式推导出最优奖励函数表达式：$r(x, y)=\beta log\frac{\pi_\theta(y|x)}{\pi_{ref}(y|x)}&#43;\beta logZ(x)$，将该奖励函数表达式带入BT-model得到DPO的损失函数表达式：
+
 $$
 \mathcal L_{DPO}(\pi_\theta;\pi_{ref})=-\mathbb E_{(x, y_w, y_l)\sim\mathcal D}[log\ \sigma(\beta log\frac{\pi_\theta(y_w|x)}{\pi_{ref}(y_w|x)}-\beta log\frac{\pi_\theta(y_l|x)}{\pi_{ref}(y_l|x)})]
 $$
+
 2. Simple-DPO
 Meng et al. (2024)考虑到DPO的奖励函数有一下两个缺点：1）训练DPO时需要一个额外的reference 模型，增大训练开销；2）DPO的优化式和inference阶段存在差异。具体来讲，inference阶段时需要优化最大平均对数似然：
+
 $$
-p_\theta(y|x)=\frac{1}{|y|}log\ \pi_\theta(y|x)=\frac{1}{|y|}\sum_{i=1}^{|y|}log\ \pi_\theta(y_i|x,y_{&lt;i})
-$$
+p_\theta(y|x)=\frac{1}{|y|}log\ \pi_\theta(y|x)=\frac{1}{|y|}\sum_{i=1}^{|y|}log\ \pi_\theta(y_i|x,y_{&lt;i})$$
 因此Simple-DPO考虑将奖励函数表达式改为：
+
 $$
 r_{SimPO}(x, y)=\frac{\beta}{|y|}log\ \pi_\theta(y|x)=\frac{\beta}{|y|}\sum_{i=1}^{|y|}log\ \pi_\theta(y_i|x,y_{&lt;i})
 $$
 此外，为了进一步强化模型对winning response的拟合，弱化对losing response的拟合，作者在BT公式中引入超参数$\gamma \ (\gamma&gt;0)$，表达式如下：
+
 $$
 p(y_w&gt;y_l|x)=\sigma(r(x,y_w)-r(x,y_l)-\gamma)
 $$
 从而，Simple-DPO的优化函数：
+
 $$
 \mathcal L_{SimPO}(\pi_\theta)=-\mathbb E_{(x,y_w,y_l)\sim\mathcal D}[log\ \sigma(\frac{\beta}{|y_w|}log\ \pi_\theta(y_w|x)-\frac{\beta}{|y_l|}log\ \pi_\theta(y_l|x)-\gamma)]
 $$
 3. KTO
-KTO loss (Ethayarajh et al. (2024))与DPO相比，不需要为每个prompt配对提供偏好回答和拒绝回答。它仅需要一个答案，并给出这个答案一个标签来指示该答案的质量是正面还是负面的。KTO不需要偏好回答的数量与拒绝回答的数量相同，简化数据的准备流程。
-前景理论（prospect theory），Tversky &amp; Kahneman用下面方程建模人类价值：
-$$
-v(z,z_{ref};\alpha,\lambda) = \begin{cases}
-(z-z_{ref})^\alpha &amp; \text{if } z \ge z_{ref}
-\\
--\lambda(z_{ref}-z)^\alpha &amp; \text{if } z &lt; z_{ref}
-\end{cases}
-$$
-价值函数$v:z\rightarrow R$将一个输出$z$想对一个参考值$z_{ref}$映射到其感知价值，反映人类相比起相同大小回报，对损失的敏感性更大，其中$\alpha$控制价值变化速度，$\lambda$反应对损失的敏感程度。">
+KTO loss (Ethayarajh et al. (2024))与DPO相比，不需要为每个prompt配对提供偏好回答和拒绝回答。它仅需要一个答案，并给出这个答案一个标签来指示该答案的质量是正面还是负面的。KTO不需要偏好回答的数量与拒绝回答的数量相同，简化数据的准备流程。">
 <meta name="author" content="Rs">
 <link rel="canonical" href="https://tqzhong.github.io/my-blog/posts/llm-post-training/">
 
@@ -106,37 +102,33 @@ $$
 <link rel="stylesheet" href="/my-blog/css/custom.css?v=1.5"><meta property="og:title" content="大模型post-training方法" />
 <meta property="og:description" content="1. DPO
 Rafailov et al. (2023)基于RLHF中PPO的优化式推导出最优奖励函数表达式：$r(x, y)=\beta log\frac{\pi_\theta(y|x)}{\pi_{ref}(y|x)}&#43;\beta logZ(x)$，将该奖励函数表达式带入BT-model得到DPO的损失函数表达式：
+
 $$
 \mathcal L_{DPO}(\pi_\theta;\pi_{ref})=-\mathbb E_{(x, y_w, y_l)\sim\mathcal D}[log\ \sigma(\beta log\frac{\pi_\theta(y_w|x)}{\pi_{ref}(y_w|x)}-\beta log\frac{\pi_\theta(y_l|x)}{\pi_{ref}(y_l|x)})]
 $$
+
 2. Simple-DPO
 Meng et al. (2024)考虑到DPO的奖励函数有一下两个缺点：1）训练DPO时需要一个额外的reference 模型，增大训练开销；2）DPO的优化式和inference阶段存在差异。具体来讲，inference阶段时需要优化最大平均对数似然：
+
 $$
-p_\theta(y|x)=\frac{1}{|y|}log\ \pi_\theta(y|x)=\frac{1}{|y|}\sum_{i=1}^{|y|}log\ \pi_\theta(y_i|x,y_{&lt;i})
-$$
+p_\theta(y|x)=\frac{1}{|y|}log\ \pi_\theta(y|x)=\frac{1}{|y|}\sum_{i=1}^{|y|}log\ \pi_\theta(y_i|x,y_{&lt;i})$$
 因此Simple-DPO考虑将奖励函数表达式改为：
+
 $$
 r_{SimPO}(x, y)=\frac{\beta}{|y|}log\ \pi_\theta(y|x)=\frac{\beta}{|y|}\sum_{i=1}^{|y|}log\ \pi_\theta(y_i|x,y_{&lt;i})
 $$
 此外，为了进一步强化模型对winning response的拟合，弱化对losing response的拟合，作者在BT公式中引入超参数$\gamma \ (\gamma&gt;0)$，表达式如下：
+
 $$
 p(y_w&gt;y_l|x)=\sigma(r(x,y_w)-r(x,y_l)-\gamma)
 $$
 从而，Simple-DPO的优化函数：
+
 $$
 \mathcal L_{SimPO}(\pi_\theta)=-\mathbb E_{(x,y_w,y_l)\sim\mathcal D}[log\ \sigma(\frac{\beta}{|y_w|}log\ \pi_\theta(y_w|x)-\frac{\beta}{|y_l|}log\ \pi_\theta(y_l|x)-\gamma)]
 $$
 3. KTO
-KTO loss (Ethayarajh et al. (2024))与DPO相比，不需要为每个prompt配对提供偏好回答和拒绝回答。它仅需要一个答案，并给出这个答案一个标签来指示该答案的质量是正面还是负面的。KTO不需要偏好回答的数量与拒绝回答的数量相同，简化数据的准备流程。
-前景理论（prospect theory），Tversky &amp; Kahneman用下面方程建模人类价值：
-$$
-v(z,z_{ref};\alpha,\lambda) = \begin{cases}
-(z-z_{ref})^\alpha &amp; \text{if } z \ge z_{ref}
-\\
--\lambda(z_{ref}-z)^\alpha &amp; \text{if } z &lt; z_{ref}
-\end{cases}
-$$
-价值函数$v:z\rightarrow R$将一个输出$z$想对一个参考值$z_{ref}$映射到其感知价值，反映人类相比起相同大小回报，对损失的敏感性更大，其中$\alpha$控制价值变化速度，$\lambda$反应对损失的敏感程度。" />
+KTO loss (Ethayarajh et al. (2024))与DPO相比，不需要为每个prompt配对提供偏好回答和拒绝回答。它仅需要一个答案，并给出这个答案一个标签来指示该答案的质量是正面还是负面的。KTO不需要偏好回答的数量与拒绝回答的数量相同，简化数据的准备流程。" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://tqzhong.github.io/my-blog/posts/llm-post-training/" /><meta property="article:section" content="posts" />
 <meta property="article:published_time" content="2024-10-09T00:00:00+00:00" />
@@ -146,37 +138,33 @@ $$
 <meta name="twitter:title" content="大模型post-training方法"/>
 <meta name="twitter:description" content="1. DPO
 Rafailov et al. (2023)基于RLHF中PPO的优化式推导出最优奖励函数表达式：$r(x, y)=\beta log\frac{\pi_\theta(y|x)}{\pi_{ref}(y|x)}&#43;\beta logZ(x)$，将该奖励函数表达式带入BT-model得到DPO的损失函数表达式：
+
 $$
 \mathcal L_{DPO}(\pi_\theta;\pi_{ref})=-\mathbb E_{(x, y_w, y_l)\sim\mathcal D}[log\ \sigma(\beta log\frac{\pi_\theta(y_w|x)}{\pi_{ref}(y_w|x)}-\beta log\frac{\pi_\theta(y_l|x)}{\pi_{ref}(y_l|x)})]
 $$
+
 2. Simple-DPO
 Meng et al. (2024)考虑到DPO的奖励函数有一下两个缺点：1）训练DPO时需要一个额外的reference 模型，增大训练开销；2）DPO的优化式和inference阶段存在差异。具体来讲，inference阶段时需要优化最大平均对数似然：
+
 $$
-p_\theta(y|x)=\frac{1}{|y|}log\ \pi_\theta(y|x)=\frac{1}{|y|}\sum_{i=1}^{|y|}log\ \pi_\theta(y_i|x,y_{&lt;i})
-$$
+p_\theta(y|x)=\frac{1}{|y|}log\ \pi_\theta(y|x)=\frac{1}{|y|}\sum_{i=1}^{|y|}log\ \pi_\theta(y_i|x,y_{&lt;i})$$
 因此Simple-DPO考虑将奖励函数表达式改为：
+
 $$
 r_{SimPO}(x, y)=\frac{\beta}{|y|}log\ \pi_\theta(y|x)=\frac{\beta}{|y|}\sum_{i=1}^{|y|}log\ \pi_\theta(y_i|x,y_{&lt;i})
 $$
 此外，为了进一步强化模型对winning response的拟合，弱化对losing response的拟合，作者在BT公式中引入超参数$\gamma \ (\gamma&gt;0)$，表达式如下：
+
 $$
 p(y_w&gt;y_l|x)=\sigma(r(x,y_w)-r(x,y_l)-\gamma)
 $$
 从而，Simple-DPO的优化函数：
+
 $$
 \mathcal L_{SimPO}(\pi_\theta)=-\mathbb E_{(x,y_w,y_l)\sim\mathcal D}[log\ \sigma(\frac{\beta}{|y_w|}log\ \pi_\theta(y_w|x)-\frac{\beta}{|y_l|}log\ \pi_\theta(y_l|x)-\gamma)]
 $$
 3. KTO
-KTO loss (Ethayarajh et al. (2024))与DPO相比，不需要为每个prompt配对提供偏好回答和拒绝回答。它仅需要一个答案，并给出这个答案一个标签来指示该答案的质量是正面还是负面的。KTO不需要偏好回答的数量与拒绝回答的数量相同，简化数据的准备流程。
-前景理论（prospect theory），Tversky &amp; Kahneman用下面方程建模人类价值：
-$$
-v(z,z_{ref};\alpha,\lambda) = \begin{cases}
-(z-z_{ref})^\alpha &amp; \text{if } z \ge z_{ref}
-\\
--\lambda(z_{ref}-z)^\alpha &amp; \text{if } z &lt; z_{ref}
-\end{cases}
-$$
-价值函数$v:z\rightarrow R$将一个输出$z$想对一个参考值$z_{ref}$映射到其感知价值，反映人类相比起相同大小回报，对损失的敏感性更大，其中$\alpha$控制价值变化速度，$\lambda$反应对损失的敏感程度。"/>
+KTO loss (Ethayarajh et al. (2024))与DPO相比，不需要为每个prompt配对提供偏好回答和拒绝回答。它仅需要一个答案，并给出这个答案一个标签来指示该答案的质量是正面还是负面的。KTO不需要偏好回答的数量与拒绝回答的数量相同，简化数据的准备流程。"/>
 
 
 <script type="application/ld+json">
@@ -205,12 +193,12 @@ $$
   "@type": "BlogPosting",
   "headline": "大模型post-training方法",
   "name": "大模型post-training方法",
-  "description": "1. DPO Rafailov et al. (2023)基于RLHF中PPO的优化式推导出最优奖励函数表达式：$r(x, y)=\\beta log\\frac{\\pi_\\theta(y|x)}{\\pi_{ref}(y|x)}+\\beta logZ(x)$，将该奖励函数表达式带入BT-model得到DPO的损失函数表达式：\n$$ \\mathcal L_{DPO}(\\pi_\\theta;\\pi_{ref})=-\\mathbb E_{(x, y_w, y_l)\\sim\\mathcal D}[log\\ \\sigma(\\beta log\\frac{\\pi_\\theta(y_w|x)}{\\pi_{ref}(y_w|x)}-\\beta log\\frac{\\pi_\\theta(y_l|x)}{\\pi_{ref}(y_l|x)})] $$\n2. Simple-DPO Meng et al. (2024)考虑到DPO的奖励函数有一下两个缺点：1）训练DPO时需要一个额外的reference 模型，增大训练开销；2）DPO的优化式和inference阶段存在差异。具体来讲，inference阶段时需要优化最大平均对数似然： $$ p_\\theta(y|x)=\\frac{1}{|y|}log\\ \\pi_\\theta(y|x)=\\frac{1}{|y|}\\sum_{i=1}^{|y|}log\\ \\pi_\\theta(y_i|x,y_{\u0026lt;i}) $$ 因此Simple-DPO考虑将奖励函数表达式改为： $$ r_{SimPO}(x, y)=\\frac{\\beta}{|y|}log\\ \\pi_\\theta(y|x)=\\frac{\\beta}{|y|}\\sum_{i=1}^{|y|}log\\ \\pi_\\theta(y_i|x,y_{\u0026lt;i}) $$ 此外，为了进一步强化模型对winning response的拟合，弱化对losing response的拟合，作者在BT公式中引入超参数$\\gamma \\ (\\gamma\u0026gt;0)$，表达式如下： $$ p(y_w\u0026gt;y_l|x)=\\sigma(r(x,y_w)-r(x,y_l)-\\gamma) $$ 从而，Simple-DPO的优化函数： $$ \\mathcal L_{SimPO}(\\pi_\\theta)=-\\mathbb E_{(x,y_w,y_l)\\sim\\mathcal D}[log\\ \\sigma(\\frac{\\beta}{|y_w|}log\\ \\pi_\\theta(y_w|x)-\\frac{\\beta}{|y_l|}log\\ \\pi_\\theta(y_l|x)-\\gamma)] $$\n3. KTO KTO loss (Ethayarajh et al. (2024))与DPO相比，不需要为每个prompt配对提供偏好回答和拒绝回答。它仅需要一个答案，并给出这个答案一个标签来指示该答案的质量是正面还是负面的。KTO不需要偏好回答的数量与拒绝回答的数量相同，简化数据的准备流程。\n前景理论（prospect theory），Tversky \u0026amp; Kahneman用下面方程建模人类价值： $$ v(z,z_{ref};\\alpha,\\lambda) = \\begin{cases} (z-z_{ref})^\\alpha \u0026amp; \\text{if } z \\ge z_{ref} \\\\ -\\lambda(z_{ref}-z)^\\alpha \u0026amp; \\text{if } z \u0026lt; z_{ref} \\end{cases} $$ 价值函数$v:z\\rightarrow R$将一个输出$z$想对一个参考值$z_{ref}$映射到其感知价值，反映人类相比起相同大小回报，对损失的敏感性更大，其中$\\alpha$控制价值变化速度，$\\lambda$反应对损失的敏感程度。\n",
+  "description": "1. DPO Rafailov et al. (2023)基于RLHF中PPO的优化式推导出最优奖励函数表达式：$r(x, y)=\\beta log\\frac{\\pi_\\theta(y|x)}{\\pi_{ref}(y|x)}+\\beta logZ(x)$，将该奖励函数表达式带入BT-model得到DPO的损失函数表达式：\n$$ \\mathcal L_{DPO}(\\pi_\\theta;\\pi_{ref})=-\\mathbb E_{(x, y_w, y_l)\\sim\\mathcal D}[log\\ \\sigma(\\beta log\\frac{\\pi_\\theta(y_w|x)}{\\pi_{ref}(y_w|x)}-\\beta log\\frac{\\pi_\\theta(y_l|x)}{\\pi_{ref}(y_l|x)})] $$ 2. Simple-DPO Meng et al. (2024)考虑到DPO的奖励函数有一下两个缺点：1）训练DPO时需要一个额外的reference 模型，增大训练开销；2）DPO的优化式和inference阶段存在差异。具体来讲，inference阶段时需要优化最大平均对数似然：\n$$ p_\\theta(y|x)=\\frac{1}{|y|}log\\ \\pi_\\theta(y|x)=\\frac{1}{|y|}\\sum_{i=1}^{|y|}log\\ \\pi_\\theta(y_i|x,y_{\u0026lt;i})$$\n因此Simple-DPO考虑将奖励函数表达式改为：\n$$ r_{SimPO}(x, y)=\\frac{\\beta}{|y|}log\\ \\pi_\\theta(y|x)=\\frac{\\beta}{|y|}\\sum_{i=1}^{|y|}log\\ \\pi_\\theta(y_i|x,y_{\u0026lt;i}) $$\n此外，为了进一步强化模型对winning response的拟合，弱化对losing response的拟合，作者在BT公式中引入超参数$\\gamma \\ (\\gamma\u0026gt;0)$，表达式如下：\n$$ p(y_w\u0026gt;y_l|x)=\\sigma(r(x,y_w)-r(x,y_l)-\\gamma) $$ 从而，Simple-DPO的优化函数：\n$$ \\mathcal L_{SimPO}(\\pi_\\theta)=-\\mathbb E_{(x,y_w,y_l)\\sim\\mathcal D}[log\\ \\sigma(\\frac{\\beta}{|y_w|}log\\ \\pi_\\theta(y_w|x)-\\frac{\\beta}{|y_l|}log\\ \\pi_\\theta(y_l|x)-\\gamma)] $$\n3. KTO KTO loss (Ethayarajh et al. (2024))与DPO相比，不需要为每个prompt配对提供偏好回答和拒绝回答。它仅需要一个答案，并给出这个答案一个标签来指示该答案的质量是正面还是负面的。KTO不需要偏好回答的数量与拒绝回答的数量相同，简化数据的准备流程。\n",
   "keywords": [
     "AI", "LLMs", "NLP", "post-training"
   ],
-  "articleBody": "1. DPO Rafailov et al. (2023)基于RLHF中PPO的优化式推导出最优奖励函数表达式：$r(x, y)=\\beta log\\frac{\\pi_\\theta(y|x)}{\\pi_{ref}(y|x)}+\\beta logZ(x)$，将该奖励函数表达式带入BT-model得到DPO的损失函数表达式：\n$$ \\mathcal L_{DPO}(\\pi_\\theta;\\pi_{ref})=-\\mathbb E_{(x, y_w, y_l)\\sim\\mathcal D}[log\\ \\sigma(\\beta log\\frac{\\pi_\\theta(y_w|x)}{\\pi_{ref}(y_w|x)}-\\beta log\\frac{\\pi_\\theta(y_l|x)}{\\pi_{ref}(y_l|x)})] $$\n2. Simple-DPO Meng et al. (2024)考虑到DPO的奖励函数有一下两个缺点：1）训练DPO时需要一个额外的reference 模型，增大训练开销；2）DPO的优化式和inference阶段存在差异。具体来讲，inference阶段时需要优化最大平均对数似然： $$ p_\\theta(y|x)=\\frac{1}{|y|}log\\ \\pi_\\theta(y|x)=\\frac{1}{|y|}\\sum_{i=1}^{|y|}log\\ \\pi_\\theta(y_i|x,y_{",
-  "wordCount" : "365",
+  "articleBody": "1. DPO Rafailov et al. (2023)基于RLHF中PPO的优化式推导出最优奖励函数表达式：$r(x, y)=\\beta log\\frac{\\pi_\\theta(y|x)}{\\pi_{ref}(y|x)}+\\beta logZ(x)$，将该奖励函数表达式带入BT-model得到DPO的损失函数表达式：\n$$ \\mathcal L_{DPO}(\\pi_\\theta;\\pi_{ref})=-\\mathbb E_{(x, y_w, y_l)\\sim\\mathcal D}[log\\ \\sigma(\\beta log\\frac{\\pi_\\theta(y_w|x)}{\\pi_{ref}(y_w|x)}-\\beta log\\frac{\\pi_\\theta(y_l|x)}{\\pi_{ref}(y_l|x)})] $$ 2. Simple-DPO Meng et al. (2024)考虑到DPO的奖励函数有一下两个缺点：1）训练DPO时需要一个额外的reference 模型，增大训练开销；2）DPO的优化式和inference阶段存在差异。具体来讲，inference阶段时需要优化最大平均对数似然：\n$$ p_\\theta(y|x)=\\frac{1}{|y|}log\\ \\pi_\\theta(y|x)=\\frac{1}{|y|}\\sum_{i=1}^{|y|}log\\ \\pi_\\theta(y_i|x,y_{",
+  "wordCount" : "364",
   "inLanguage": "en",
   "datePublished": "2024-10-09T00:00:00Z",
   "dateModified": "2024-10-09T00:00:00Z",
@@ -374,24 +362,29 @@ $$
 
   <div class="post-content"><h3 id="1-dpo">1. DPO<a hidden class="anchor" aria-hidden="true" href="#1-dpo">#</a></h3>
 <p><a href="https://proceedings.neurips.cc/paper_files/paper/2023/hash/a85b405ed65c6477a4fe8302b5e06ce7-Abstract-Conference.html" class="entityLink">Rafailov et al. (2023)</a>基于RLHF中PPO的优化式推导出最优奖励函数表达式：$r(x, y)=\beta log\frac{\pi_\theta(y|x)}{\pi_{ref}(y|x)}+\beta logZ(x)$，将该奖励函数表达式带入BT-model得到DPO的损失函数表达式：</p>
-<p>$$
+<div class="scroll-container">
+$$
 \mathcal L_{DPO}(\pi_\theta;\pi_{ref})=-\mathbb E_{(x, y_w, y_l)\sim\mathcal D}[log\ \sigma(\beta log\frac{\pi_\theta(y_w|x)}{\pi_{ref}(y_w|x)}-\beta log\frac{\pi_\theta(y_l|x)}{\pi_{ref}(y_l|x)})]
-$$</p>
+$$
+</div>
 <h3 id="2-simple-dpo">2. Simple-DPO<a hidden class="anchor" aria-hidden="true" href="#2-simple-dpo">#</a></h3>
-<p><a href="https://arxiv.org/abs/2405.14734" class="entityLink">Meng et al. (2024)</a>考虑到DPO的奖励函数有一下两个缺点：1）训练DPO时需要一个额外的reference 模型，增大训练开销；2）DPO的优化式和inference阶段存在差异。具体来讲，inference阶段时需要优化最大平均对数似然：
-$$
-p_\theta(y|x)=\frac{1}{|y|}log\ \pi_\theta(y|x)=\frac{1}{|y|}\sum_{i=1}^{|y|}log\ \pi_\theta(y_i|x,y_{&lt;i})
-$$
-因此Simple-DPO考虑将奖励函数表达式改为：
-$$
+<p><a href="https://arxiv.org/abs/2405.14734" class="entityLink">Meng et al. (2024)</a>考虑到DPO的奖励函数有一下两个缺点：1）训练DPO时需要一个额外的reference 模型，增大训练开销；2）DPO的优化式和inference阶段存在差异。具体来讲，inference阶段时需要优化最大平均对数似然：</p>
+<!-- <div class="scroll-container"> -->
+<p>$$
+p_\theta(y|x)=\frac{1}{|y|}log\ \pi_\theta(y|x)=\frac{1}{|y|}\sum_{i=1}^{|y|}log\ \pi_\theta(y_i|x,y_{&lt;i})$$</p>
+<p>因此Simple-DPO考虑将奖励函数表达式改为：</p>
+<!-- <div class="scroll-container"> -->
+<p>$$
 r_{SimPO}(x, y)=\frac{\beta}{|y|}log\ \pi_\theta(y|x)=\frac{\beta}{|y|}\sum_{i=1}^{|y|}log\ \pi_\theta(y_i|x,y_{&lt;i})
-$$
-此外，为了进一步强化模型对winning response的拟合，弱化对losing response的拟合，作者在BT公式中引入超参数$\gamma \ (\gamma&gt;0)$，表达式如下：
-$$
+$$</p>
+<p>此外，为了进一步强化模型对winning response的拟合，弱化对losing response的拟合，作者在BT公式中引入超参数$\gamma \ (\gamma&gt;0)$，表达式如下：</p>
+<!-- <div class="scroll-container"> -->
+<p>$$
 p(y_w&gt;y_l|x)=\sigma(r(x,y_w)-r(x,y_l)-\gamma)
 $$
-从而，Simple-DPO的优化函数：
-$$
+从而，Simple-DPO的优化函数：</p>
+<!-- <div class="scroll-container"> -->
+<p>$$
 \mathcal L_{SimPO}(\pi_\theta)=-\mathbb E_{(x,y_w,y_l)\sim\mathcal D}[log\ \sigma(\frac{\beta}{|y_w|}log\ \pi_\theta(y_w|x)-\frac{\beta}{|y_l|}log\ \pi_\theta(y_l|x)-\gamma)]
 $$</p>
 <h3 id="3-kto">3. KTO<a hidden class="anchor" aria-hidden="true" href="#3-kto">#</a></h3>
@@ -405,12 +398,14 @@ v(z,z_{ref};\alpha,\lambda) = \begin{cases}
 \end{cases}
 $$
 价值函数$v:z\rightarrow R$将一个输出$z$想对一个参考值$z_{ref}$映射到其感知价值，反映人类相比起相同大小回报，对损失的敏感性更大，其中$\alpha$控制价值变化速度，$\lambda$反应对损失的敏感程度。</p>
-<p>基于上述效用方程，作者做了一定修改使其更适合模型训练，损失函数如下：
-$$
+<p>基于上述效用方程，作者做了一定修改使其更适合模型训练，损失函数如下：</p>
+<!-- <div class="scroll-container"> -->
+<p>$$
 \mathcal L_{KTO}(\pi_\theta,\pi_{ref})=\mathbb E_{x,y\sim\mathcal D}[w(y)(1-v_{KTO}(x, y;\beta))]
 $$
-其中
-$$
+其中</p>
+<!-- <div class="scroll-container"> -->
+<p>$$
 r_{KTO}(x,y)=\beta log\frac{\pi_\theta(y|x)}{\pi_{ref}(y|x)}\\
 z_{ref}=\mathbb E_{x^\prime\sim\mathcal D}[\beta KL(\pi_\theta(y^\prime|x^\prime)||\pi_{ref}(y^\prime|x^\prime))]\\
 v_{KTO}(x)=\begin{cases}
@@ -424,7 +419,7 @@ w(y)=\begin{cases}
 $$</p>
 <h3 id="4-step-dpo">4. Step-DPO<a hidden class="anchor" aria-hidden="true" href="#4-step-dpo">#</a></h3>
 <p>Step-DPO (<a href="https://arxiv.org/abs/2406.18629" class="entityLink">Lai et al. (2024)</a>)主要解决大模型处理数学这类需要较长reasoning过程效果不佳的问题，作者指出用传统DPO训练数学类偏好数据存在一定缺陷，即数学类问题的reasoning过程往往是在中间的一些step开始出现错误，而前面的step推理是正确的，因此直接将整条数据归类为win或者lose都不合适。基于此，作者提出Step-DPO方法，即在initial steps之后对数据划分成win和lose，具体损失函数如下：</p>
-<div style="overflow-x:auto;">
+<div class="scroll-container">
 $$
 \mathcal L_{Step-DPO}(\theta)=-\mathbb E_{x,s_{1\sim k-1},s_{win},s_{lose}\sim\mathcal D}[log\ \sigma(\beta log\frac{\pi_\theta(s_{win}|x;s_{1\sim k-1})}{\pi_{ref}(s_{win}|x;s_{1\sim k-1})})-\beta log\frac{\pi_\theta(s_{lose}|x;s_{1\sim k-1})}{\pi_{ref}(s_{lose}|x;s_{1\sim k-1})}]
 $$
@@ -448,29 +443,32 @@ $$
 <p>需要注意的一点是，在Step3中，可能出现最终答案正确但是中间推理步骤错误的情况，因此这里需要人工或者GPT4对$s_{win}$做筛选。</p>
 <h3 id="5-orpo">5. ORPO<a hidden class="anchor" aria-hidden="true" href="#5-orpo">#</a></h3>
 <p><a href="https://arxiv.org/abs/2403.07691" class="entityLink">Hong et al. (2024)</a>考虑到SFT不能预防模型生成lose response，同时考虑使用偏好对齐如DPO等方法需要reference model开销较大且流程繁琐，因此本文提出了一种在SFT方法上增加一个能兼顾DPO这类偏好对齐的损失，具体做法：</p>
-<p>对于一条训练数据${x, y}$，其对数似然概率：
-$$
+<p>对于一条训练数据${x, y}$，其对数似然概率：</p>
+<!-- <div class="scroll-container"> -->
+<p>$$
 logP_\theta(y|x)=\frac{1}{m}\sum_{t=1}^mlog\ P_\theta(y_t|x,y_{&lt;t})
 $$
-定义Odds Ratio $odds_\theta(y|x)=\frac{P_\theta(y|x)}{1-P_\theta(y|x)}$表示模型生成$y$相比不生成$y$的概率倍数，基于此定义$OR_\theta(y_w, y_l)$：
-$$
+定义Odds Ratio $odds_\theta(y|x)=\frac{P_\theta(y|x)}{1-P_\theta(y|x)}$表示模型生成$y$相比不生成$y$的概率倍数，基于此定义$OR_\theta(y_w, y_l)$：</p>
+<!-- <div class="scroll-container"> -->
+<p>$$
 OR_\theta(y_w,y_l)=\frac{odds_\theta(y_w|x)}{odds_\theta(y_l|x)}
 $$
-表示模型在给定$x$条件下相比于生成$y_l$，更可能生成$y_w$的程度。最终改良后的SFT损失函数：
-$$
+表示模型在给定$x$条件下相比于生成$y_l$，更可能生成$y_w$的程度。最终改良后的SFT损失函数：</p>
+<!-- <div class="scroll-container"> -->
+<p>$$
 \mathcal L_{ORPO}=\mathbb E_{(x,y_w,y_l)\sim\mathcal D}[\mathcal L_{SFT}+\lambda\cdot\mathcal L_{OR}]\\
 \mathcal L_{OR}=-log\ \sigma(log\frac{odds_\theta(y_w|x)}{odds_\theta(y_l|x)})
 $$</p>
 <h3 id="6-r-dpo">6. R-DPO<a hidden class="anchor" aria-hidden="true" href="#6-r-dpo">#</a></h3>
 <p><a href="https://arxiv.org/abs/2403.19159" class="entityLink">Park et al. (2024)</a>考虑DPO在长度控制上的不足：容易生成过长啰嗦的文本，考虑在DPO的损失中引入对长度的约束，具体损失函数如下：</p>
-<div style="overflow-x:auto;">
-$$
+<!-- <div class="scroll-container"> -->
+<p>$$
 \mathcal L_{R-DPO}(\pi_\theta;\pi_{ref})=-\mathbb E_{(x,y_w,y_l)\sim\mathcal D}[log\ \sigma (\beta log\frac{\pi_\theta(y_w|x)}{\pi_{ref}(y_w|x)}-\beta log\frac{\pi_\theta(y_l|x)}{\pi_{ref}(y_l|x)})+\alpha|y_w|-\alpha|y_l|]
-$$
-</div>
+$$</p>
 <h3 id="7-cpo">7. CPO<a hidden class="anchor" aria-hidden="true" href="#7-cpo">#</a></h3>
-<p><a href="https://arxiv.org/abs/2401.08417" class="entityLink">Xu et al. (2024)</a>简化DPO (<a href="https://proceedings.neurips.cc/paper_files/paper/2023/hash/a85b405ed65c6477a4fe8302b5e06ce7-Abstract-Conference.html" class="entityLink">Rafailov et al. (2023)</a>)损失函数，将$\pi_{ref}$用均匀分布替代，并在偏好对齐中再次引入SFT损失约束，具体损失函数如下：
-$$
+<p><a href="https://arxiv.org/abs/2401.08417" class="entityLink">Xu et al. (2024)</a>简化DPO (<a href="https://proceedings.neurips.cc/paper_files/paper/2023/hash/a85b405ed65c6477a4fe8302b5e06ce7-Abstract-Conference.html" class="entityLink">Rafailov et al. (2023)</a>)损失函数，将$\pi_{ref}$用均匀分布替代，并在偏好对齐中再次引入SFT损失约束，具体损失函数如下：</p>
+<!-- <div class="scroll-container"> -->
+<p>$$
 \mathcal L_{CPO}=-\mathbb E_{(x,y_w,y_l)\sim\mathcal D}[ log\ \sigma(\beta log\ \pi_\theta(y_w|x)-\beta log\ \pi_\theta(y_l|x))+\lambda\ log\ \pi_\theta(y_w|x)]
 $$</p>
 <h3 id="references">References<a hidden class="anchor" aria-hidden="true" href="#references">#</a></h3>
