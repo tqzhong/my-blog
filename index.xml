@@ -56,7 +56,7 @@
       <pubDate>Wed, 09 Oct 2024 00:00:00 +0000</pubDate>
       
       <guid>https://tqzhong.github.io/my-blog/posts/llm-post-training/</guid>
-      <description>&lt;!--&gt;公式块里，如果加了class=scroll-container(滚轮滑块防止单行公式太长)，大小于号注意要与后面的字符隔开一个空格，否则无法正常编译&lt;--&gt;
+      <description>&lt;!--公式块里，如果加了class=scroll-container(滚轮滑块防止单行公式太长)，大小于号注意要与后面的字符隔开一个空格，否则无法正常编译--&gt;
 &lt;h3 id=&#34;1-dpo&#34;&gt;1. DPO&lt;/h3&gt;
 &lt;p&gt;&lt;a href=&#34;https://proceedings.neurips.cc/paper_files/paper/2023/hash/a85b405ed65c6477a4fe8302b5e06ce7-Abstract-Conference.html&#34; class=&#34;entityLink&#34;&gt;Rafailov et al. (2023)&lt;/a&gt;基于RLHF中PPO的优化式推导出最优奖励函数表达式：$r(x, y)=\beta log\frac{\pi_\theta(y|x)}{\pi_{ref}(y|x)}+\beta logZ(x)$，将该奖励函数表达式带入BT-model得到DPO的损失函数表达式：&lt;/p&gt;
 &lt;div class=&#34;scroll-container&#34;&gt;
