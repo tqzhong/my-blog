@@ -3,6 +3,9 @@
 <a href="https://yourpersonalwebsite.com" target="_blank">
 
 <head>
+    <script src="https://cdn.jsdelivr.net/npm/fuse.js/dist/fuse.min.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/@waline/client@v3/dist/waline.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.13.0/dist/katex.min.css">
 
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -76,8 +79,6 @@
 <meta name="twitter:title" content="Post-Training"/>
 <meta name="twitter:description" content=""/>
 
-    <script src="https://cdn.jsdelivr.net/npm/fuse.js/dist/fuse.min.js"></script>
-    <link rel="stylesheet" href="https://unpkg.com/@waline/client@v3/dist/waline.css">
 </head>
 
 <body class="list" id="top">
@@ -105,7 +106,9 @@
           }
         };
     </script>
-    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+    
+    
+    
     <nav class="nav">
         <div class="logo-logo-switches">
         <div class="logo">
@@ -187,8 +190,11 @@
           </h2>
         </header>
           <div class="entry-content">
-            <p>1. DPO Rafailov et al. (2023)基于RLHF中PPO的优化式推导出最优奖励函数表达式：$r(x, y)=\beta log\frac{\pi_\theta(y|x)}{\pi_{ref}(y|x)}&#43;\beta logZ(x)$，将该奖励函数表达式带入BT-model得到DPO的损失函数表达式： $$ \mathcal L_{DPO}(\pi_\theta;\pi_{ref})=-\mathbb E_{(x, y_w, y_l)\sim\mathcal D}[log\ \sigma(\beta log\frac{\pi_\theta(y_w|x)}{\pi_{ref}(y_w|x)}-\beta log\frac{\pi_\theta(y_l|x)}{\pi_{ref}(y_l|x)})] $$
+            <p>1. DPO Rafailov et al. (2023)基于RLHF中PPO的优化式推导出最优奖励函数表达式：$r(x, y)=\beta log\frac{\pi_\theta(y|x)}{\pi_{ref}(y|x)}&#43;\beta logZ(x)$，将该奖励函数表达式带入BT-model得到DPO的损失函数表达式：
+$$ \mathcal L_{DPO}(\pi_\theta;\pi_{ref})=-\mathbb E_{(x, y_w, y_l)\sim\mathcal D}[log\ \sigma(\beta log\frac{\pi_\theta(y_w|x)}{\pi_{ref}(y_w|x)}-\beta log\frac{\pi_\theta(y_l|x)}{\pi_{ref}(y_l|x)})] $$
 2. Simple-DPO Meng et al. (2024)考虑到DPO的奖励函数有一下两个缺点：1）训练DPO时需要一个额外的reference 模型，增大训练开销；2）DPO的优化式和inference阶段存在差异。具体来讲，inference阶段时需要优化最大平均对数似然： $$ p_\theta(y|x)=\frac{1}{|y|}log\ \pi_\theta(y|x)=\frac{1}{|y|}\sum_{i=1}^{|y|}log\ \pi_\theta(y_i|x,y_{&lt;i}) $$ 因此Simple-DPO考虑将奖励函数表达式改为： $$ r_{SimPO}(x, y)=\frac{\beta}{|y|}log\ \pi_\theta(y|x)=\frac{\beta}{|y|}\sum_{i=1}^{|y|}log\ \pi_\theta(y_i|x,y_{&lt;i}) $$ 此外，为了进一步强化模型对winning response的拟合，弱化对losing response的拟合，作者在BT公式中引入超参数$\gamma \ (\gamma&gt;0)$，表达式如下： $$ p(y_w&gt;y_l|x)=\sigma(r(x,y_w)-r(x,y_l)-\gamma) $$ 从而，Simple-DPO的优化函数： $$ \mathcal L_{SimPO}(\pi_\theta)=-\mathbb E_{(x,y_w,y_l)\sim\mathcal D}[log\ \sigma(\frac{\beta}{|y_w|}log\ \pi_\theta(y_w|x)-\frac{\beta}{|y_l|}log\ \pi_\theta(y_l|x)-\gamma)] $$
+3. KTO KTO loss (Ethayarajh et al. (2024))与DPO相比，不需要为每个prompt配对提供偏好回答和拒绝回答。它仅需要一个答案，并给出这个答案一个标签来指示该答案的质量是正面还是负面的。KTO不需要偏好回答的数量与拒绝回答的数量相同，简化数据的准备流程。
+前景理论（prospect theory），Tversky &amp; Kahneman用下面方程建模人类价值： $$ v(z,z_{ref};\alpha,\lambda) = \begin{cases} (z-z_{ref})^\alpha &amp; \text{if } z \ge z_{ref} \\ -\lambda(z_{ref}-z)^\alpha &amp; \text{if } z &lt; z_{ref} \end{cases} $$ 价值函数$v:z\rightarrow R$将一个输出$z$想对一个参考值$z_{ref}$映射到其感知价值，反映人类相比起相同大小回报，对损失的敏感性更大，其中$\alpha$控制价值变化速度，$\lambda$反应对损失的敏感程度。
 ...</p>
           </div>
           <footer class="entry-footer">
@@ -276,6 +282,20 @@
     })
 
 </script>
+<script src="https://cdn.jsdelivr.net/npm/katex@0.13.0/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.13.0/dist/contrib/auto-render.min.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            renderMathInElement(document.body, {
+                delimiters: [
+                    {left: "$$", right: "$$", display: true},
+                    {left: "\\(", right: "\\)", display: false},
+                    {left: "$", right: "$", display: false}
+                ]
+            });
+        });
+    </script>    
+
 </body>
 
 </html>

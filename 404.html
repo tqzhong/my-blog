@@ -3,6 +3,9 @@
 <a href="https://yourpersonalwebsite.com" target="_blank">
 
 <head>
+    <script src="https://cdn.jsdelivr.net/npm/fuse.js/dist/fuse.min.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/@waline/client@v3/dist/waline.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.13.0/dist/katex.min.css">
 
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -75,8 +78,6 @@
 <meta name="twitter:title" content="404 Page not found"/>
 <meta name="twitter:description" content=""/>
 
-    <script src="https://cdn.jsdelivr.net/npm/fuse.js/dist/fuse.min.js"></script>
-    <link rel="stylesheet" href="https://unpkg.com/@waline/client@v3/dist/waline.css">
 </head>
 
 <body class="list" id="top">
@@ -104,7 +105,9 @@
           }
         };
     </script>
-    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+    
+    
+    
     <nav class="nav">
         <div class="logo-logo-switches">
         <div class="logo">
@@ -242,6 +245,20 @@
     })
 
 </script>
+<script src="https://cdn.jsdelivr.net/npm/katex@0.13.0/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.13.0/dist/contrib/auto-render.min.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            renderMathInElement(document.body, {
+                delimiters: [
+                    {left: "$$", right: "$$", display: true},
+                    {left: "\\(", right: "\\)", display: false},
+                    {left: "$", right: "$", display: false}
+                ]
+            });
+        });
+    </script>    
+
 </body>
 
 </html>
