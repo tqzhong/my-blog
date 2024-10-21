@@ -67,7 +67,7 @@ $$
 $$
 &lt;/div&gt;
 &lt;h3 id=&#34;2-simple-dpo&#34;&gt;2. Simple-DPO&lt;/h3&gt;
-&lt;p&gt;&lt;a href=&#34;https://arxiv.org/abs/2405.14734&#34; class=&#34;entityLink&#34;&gt;Meng et al. (2024)&lt;/a&gt;考虑到DPO的奖励函数有一下两个缺点：1）训练DPO时需要一个额外的reference 模型，增大训练开销；2）DPO的优化式和inference阶段存在差异。具体来讲，inference阶段时需要优化最大平均对数似然：&lt;/p&gt;
+&lt;p&gt;&lt;a href=&#34;https://arxiv.org/abs/2405.14734&#34; class=&#34;entityLink&#34;&gt;Meng et al. (2024)&lt;/a&gt;考虑到DPO的奖励函数有以下两个缺点：1）训练DPO时需要一个额外的reference 模型，增大训练开销；2）DPO的优化式和inference阶段存在差异。具体来讲，inference阶段时需要优化最大平均对数似然：&lt;/p&gt;
 &lt;div class=&#34;scroll-container&#34;&gt;
 $$
 p_\theta(y|x)=\frac{1}{|y|}log\ \pi_\theta(y|x)=\frac{1}{|y|}\sum_{i=1}^{|y|}log\ \pi_\theta(y_i|x,y_{&lt; i})
