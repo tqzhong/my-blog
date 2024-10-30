@@ -209,3 +209,12 @@ a.entityLink:hover {
     -webkit-overflow-scrolling: touch; 
     white-space: nowrap;
 }
+
+pre code {
+    max-height: 500px;  /* 设置最大高度，可根据需要调整 */
+    overflow-y: auto;   /* 垂直方向滚动 */
+    white-space: pre-wrap; /* 自动换行 */
+    word-wrap: break-word; /* 单词在需要时断行 */
+    overflow-x: hidden; /* 禁止水平滚动 */
+}
+
