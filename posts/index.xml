@@ -15,7 +15,7 @@
       <guid>https://tqzhong.github.io/my-blog/posts/2024-10-30-deepspeed/</guid>
       <description>&lt;p&gt;前段时间实验室下来了64张1080Ti空着，想着找人跑一下多机多卡方便大家可以训练更大的模型，正好比较有空就接了这个活。之前用过的多机多卡训练框架是deepspeed但是是基于现成写好的，自己并没过多了解，这次就还是采用deepspeed这个框架来试试。&lt;/p&gt;
 &lt;h3 id=&#34;supervised-finetuning&#34;&gt;Supervised finetuning&lt;/h3&gt;
-&lt;p&gt;首先在主节点克隆&lt;a href=&#34;https://github.com/microsoft/DeepSpeedExamples&#34;&gt;deepspeed-chat&lt;/a&gt;仓库。&lt;/p&gt;
+&lt;p&gt;首先在主节点克隆&lt;a href=&#34;https://github.com/microsoft/DeepSpeedExamples&#34; class=&#34;entityLink&#34;&gt;deepspeed-chat&lt;/a&gt;仓库。&lt;/p&gt;
 &lt;p&gt;使用的主要环境：&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;pip install &lt;span class=&#34;nv&#34;&gt;torch&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;==&lt;/span&gt;1.13.0
 &lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;pip install datasets
