@@ -8,7 +8,7 @@
     <language>en-us</language>
     <lastBuildDate>Wed, 30 Oct 2024 00:00:00 +0000</lastBuildDate><atom:link href="https://tqzhong.github.io/my-blog/tags/deepspeed/index.xml" rel="self" type="application/rss+xml" />
     <item>
-      <title>Deepspeed多机多卡训练踩坑记录</title>
+      <title>Deepspeed多机多卡训练&amp;代码细节</title>
       <link>https://tqzhong.github.io/my-blog/posts/2024-10-30-deepspeed/</link>
       <pubDate>Wed, 30 Oct 2024 00:00:00 +0000</pubDate>
       
@@ -16,7 +16,7 @@
       <description>&lt;p&gt;前段时间实验室下来了64张1080Ti空着，想着找人跑一下多机多卡方便大家可以训练更大的模型，正好比较有空就接了这个活。之前用过的多机多卡训练框架是deepspeed但是是基于现成写好的，自己并没过多了解，这次就还是采用deepspeed这个框架来试试。&lt;/p&gt;
 &lt;h3 id=&#34;supervised-finetuning&#34;&gt;Supervised finetuning&lt;/h3&gt;
 &lt;p&gt;首先在主节点克隆&lt;a href=&#34;https://github.com/microsoft/DeepSpeedExamples&#34; class=&#34;entityLink&#34;&gt;deepspeed-chat&lt;/a&gt;仓库。&lt;/p&gt;
-&lt;p&gt;使用的主要环境：
+&lt;p&gt;使用的主要环境：&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;pip install &lt;span class=&#34;nv&#34;&gt;torch&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;==&lt;/span&gt;1.13.0
 &lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;pip install datasets
 &lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;pip install sentencepiece
@@ -25,17 +25,17 @@
 &lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;pip install &lt;span class=&#34;nv&#34;&gt;deepspeed&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;==&lt;/span&gt;0.10.0
 &lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;pip install &lt;span class=&#34;nv&#34;&gt;transformers&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;==&lt;/span&gt;4.44.2
 &lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;pip install tensorboard
-&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;pip install &lt;span class=&#34;nv&#34;&gt;numpy&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;==&lt;/span&gt;1.26.4&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/p&gt;
-&lt;p&gt;deepspeed安装需要有nvcc，开始这些1080Ti服务器没有nvcc，所以先装了这个：
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;pip install &lt;span class=&#34;nv&#34;&gt;numpy&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;==&lt;/span&gt;1.26.4
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;deepspeed安装需要有nvcc，开始这些1080Ti服务器没有nvcc，所以先装了这个：&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;sudo apt update
-&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;sudo apt install nvidia-cuda-toolkit&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/p&gt;
-&lt;p&gt;之后先跑通单节点，我用的是&lt;code&gt;step1_supervised_finetuning/training_scripts/opt/single_node/run_1.3b.sh&lt;/code&gt;，因为当时考虑1080Ti显存较小，不过后来发现原仓库里的bash脚本都差不多，就是改了模型路径。&lt;/p&gt;
-&lt;p&gt;跑通单节点也花了不少时间，最开始是模型和数据集的问题，因为服务器本地连接不到hf，所以下载了opt-1.3b模型到主节点，数据集部分也无法访问hf，是从hf上下载了&lt;code&gt;synthetic-instruct-gptj-pairwise&lt;/code&gt;数据集，两个文件保存在主节点：
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;sudo apt install nvidia-cuda-toolkit
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;之后先跑通单节点，我用的是&lt;code&gt;step1_supervised_finetuning/training_scripts/opt/single_node/run_1.3b.sh&lt;/code&gt;，因为当时考虑1080Ti显存较小，不过后来发现原仓库里的bash脚本都差不多，就是改了模型路径。&lt;/p&gt;
+&lt;p&gt;跑通单节点也花了不少时间，最开始是模型和数据集的问题，因为服务器本地连接不到hf，所以下载了opt-1.3b模型到主节点，数据集部分也无法访问hf，是从hf上下载了&lt;code&gt;synthetic-instruct-gptj-pairwise&lt;/code&gt;数据集，两个文件保存在主节点：&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;datasets
 &lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;    └── synthetic-instruct-gptj-pairwise
 &lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;        ├── dataset_infos.json
-&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;        └── train-00000-of-00001-1e5d57b93c448e7a.parquet&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-在&lt;code&gt;dschat/utils/data/raw_datasets.py&lt;/code&gt;的数据集类&lt;code&gt;PromptRawDataset&lt;/code&gt;上也做了对应修改:
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;        └── train-00000-of-00001-1e5d57b93c448e7a.parquet
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;在&lt;code&gt;dschat/utils/data/raw_datasets.py&lt;/code&gt;的数据集类&lt;code&gt;PromptRawDataset&lt;/code&gt;上也做了对应修改:&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;k&#34;&gt;class&lt;/span&gt; &lt;span class=&#34;nc&#34;&gt;PromptRawDataset&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;nb&#34;&gt;object&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;):&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;    &lt;span class=&#34;k&#34;&gt;def&lt;/span&gt; &lt;span class=&#34;fm&#34;&gt;__init__&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;bp&#34;&gt;self&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;output_path&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;seed&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;local_rank&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;dataset_name&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;):&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;        &lt;span class=&#34;bp&#34;&gt;self&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;output_path&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;output_path&lt;/span&gt;
@@ -44,17 +44,17 @@
 &lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;        &lt;span class=&#34;s1&#34;&gt;&amp;#39;&amp;#39;&amp;#39;原始数据的读取，这里根据自己数据集作相应修改&amp;#39;&amp;#39;&amp;#39;&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;        &lt;span class=&#34;bp&#34;&gt;self&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;raw_datasets&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;load_dataset&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;s1&#34;&gt;&amp;#39;parquet&amp;#39;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;data_files&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;dataset_name&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;    &lt;span class=&#34;o&#34;&gt;...&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/p&gt;
-&lt;p&gt;到这里，数据集模型以及环境都差不多了，在单节点上启动训练脚本，发现optimizer有报错，原因是原训练主函数使用的是&lt;code&gt;FusedAdam&lt;/code&gt;，可能是g++环境匹配存在问题，这个最终没解决就没管了，直接把optimizer换成&lt;code&gt;AdamW&lt;/code&gt;就跑通了。查了一下&lt;code&gt;FusedAdam&lt;/code&gt;在需要大量计算资源的场景下有一定优势。&lt;/p&gt;
-&lt;p&gt;单节点跑通之后就开始多节点训练，多节点训练首先每个节点需要安装pdsh工具：
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;sudo apt install pdsh&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-其次多节点需要在deepspeed启动命令添加&lt;code&gt;--hostfile&lt;/code&gt;参数以及配置NCCL参数，hostfile文件形式如下：
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;    &lt;span class=&#34;o&#34;&gt;...&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;到这里，数据集模型以及环境都差不多了，在单节点上启动训练脚本，发现optimizer有报错，原因是原训练主函数使用的是&lt;code&gt;FusedAdam&lt;/code&gt;，可能是g++环境匹配存在问题，这个最终没解决就没管了，直接把optimizer换成&lt;code&gt;AdamW&lt;/code&gt;就跑通了。查了一下&lt;code&gt;FusedAdam&lt;/code&gt;在需要大量计算资源的场景下有一定优势。&lt;/p&gt;
+&lt;p&gt;单节点跑通之后就开始多节点训练，多节点训练首先每个节点需要安装pdsh工具：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;sudo apt install pdsh
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;其次多节点需要在deepspeed启动命令添加&lt;code&gt;--hostfile&lt;/code&gt;参数以及配置NCCL参数，hostfile文件形式如下：&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;1.2.3.4 &lt;span class=&#34;nv&#34;&gt;slots&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;m&#34;&gt;8&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;1.2.3.5 &lt;span class=&#34;nv&#34;&gt;slots&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;m&#34;&gt;8&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;...&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-第一列是节点ip，第二列是该节点的gpu数量。NCCL参数配置如下：
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;nv&#34;&gt;OPTIONS_NCCL&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;NCCL_DEBUG=warn NCCL_SOCKET_IFNAME=enp59s0f0 NCCL_IB_GID_INDEX=3 NCCL_IB_HCA=mlx5_2:1,mlx5_2:1 NCCL_IB_SL=3 NCCL_CHECKS_DISABLE=1 NCCL_P2P_DISABLE=0 NCCL_LL_THRESHOLD=16384 NCCL_IB_CUDA_SUPPORT=1&amp;#34;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-其中NCCL_SOCKET_IFNAME是服务器上可用的网络接口，可以通过&lt;code&gt;ip addr show&lt;/code&gt;命令查看。&lt;/p&gt;</description>
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;...
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;第一列是节点ip，第二列是该节点的gpu数量。NCCL参数配置如下：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;nv&#34;&gt;OPTIONS_NCCL&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;s2&#34;&gt;&amp;#34;NCCL_DEBUG=warn NCCL_SOCKET_IFNAME=enp59s0f0 NCCL_IB_GID_INDEX=3 NCCL_IB_HCA=mlx5_2:1,mlx5_2:1 NCCL_IB_SL=3 NCCL_CHECKS_DISABLE=1 NCCL_P2P_DISABLE=0 NCCL_LL_THRESHOLD=16384 NCCL_IB_CUDA_SUPPORT=1&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;其中NCCL_SOCKET_IFNAME是服务器上可用的网络接口，可以通过&lt;code&gt;ip addr show&lt;/code&gt;命令查看。&lt;/p&gt;</description>
     </item>
     
   </channel>
