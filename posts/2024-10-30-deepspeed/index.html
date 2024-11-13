@@ -371,10 +371,37 @@ OPTIONS_NCCL=&#34;NCCL_DEBUG=warn NCCL_SOCKET_IFNAME=enp59s0f0 NCCL_IB_GID_INDEX
 <script>
     
     AV.initialize("AokLJzaIvwVNJW0b2F0YTLLy-MdYXbMMI", "fwZpRfBG259O3LscJFPW3ViH");
+
     loadViewCount(location.pathname, "view-counter");
 
     
+    
+    
+        
+    
+    
+    
+    
+    
+    
+    
+    
+    
+                
+    
+    
+    
+    
+    
+
+
+    var hasViewCounted = false;
+
+    
     function loadViewCount(pageUrl, elementId) {
+        if (hasViewCounted) return;
+        hasViewCounted = true;       
+
         var counter = document.getElementById(elementId);
         var cachedViews = localStorage.getItem("view-count-" + pageUrl);
 
@@ -407,9 +434,10 @@ OPTIONS_NCCL=&#34;NCCL_DEBUG=warn NCCL_SOCKET_IFNAME=enp59s0f0 NCCL_IB_GID_INDEX
                 });
             }
         }).catch(function(error) {
-            console.error("获取浏览量时出错：", error);
+            console.error("error:", error);
         });
     }
+    
 </script>
 
 

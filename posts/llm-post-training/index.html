@@ -356,10 +356,37 @@ KTO loss (Ethayarajh et al. (2024))与DPO相比，不需要为每个prompt配对
 <script>
     
     AV.initialize("AokLJzaIvwVNJW0b2F0YTLLy-MdYXbMMI", "fwZpRfBG259O3LscJFPW3ViH");
+
     loadViewCount(location.pathname, "view-counter");
 
     
+    
+    
+        
+    
+    
+    
+    
+    
+    
+    
+    
+    
+                
+    
+    
+    
+    
+    
+
+
+    var hasViewCounted = false;
+
+    
     function loadViewCount(pageUrl, elementId) {
+        if (hasViewCounted) return;
+        hasViewCounted = true;       
+
         var counter = document.getElementById(elementId);
         var cachedViews = localStorage.getItem("view-count-" + pageUrl);
 
@@ -392,9 +419,10 @@ KTO loss (Ethayarajh et al. (2024))与DPO相比，不需要为每个prompt配对
                 });
             }
         }).catch(function(error) {
-            console.error("获取浏览量时出错：", error);
+            console.error("error:", error);
         });
     }
+    
 </script>
 
 

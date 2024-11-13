@@ -207,54 +207,21 @@ OPTIONS_NCCL=&#34;NCCL_DEBUG=warn NCCL_SOCKET_IFNAME=enp59s0f0 NCCL_IB_GID_INDEX
           <footer class="entry-footer">
 
 
-<i class="fas fa-calendar-alt blog-meta-icon"></i>&nbsp;2024-10-30 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <i class="fas fa-clock blog-meta-icon"></i>&nbsp;7 min &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <i class="fas fa-user blog-meta-icon"></i>&nbsp;Rs &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <i class="fas fa-eye blog-meta-icon"></i>&nbsp;<span id="view-counter"></span>
+<i class="fas fa-calendar-alt blog-meta-icon"></i>&nbsp;2024-10-30 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <i class="fas fa-clock blog-meta-icon"></i>&nbsp;7 min &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <i class="fas fa-user blog-meta-icon"></i>&nbsp;Rs &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <i class="fas fa-eye blog-meta-icon"></i>&nbsp;<span class="view-counter" data-url="https://tqzhong.github.io/my-blog/posts/2024-10-30-deepspeed/"></span>
 
-<script src="https://cdn.jsdelivr.net/npm/leancloud-storage@4.12.0/dist/av-min.js"></script>
 <script>
-    
-    AV.initialize("AokLJzaIvwVNJW0b2F0YTLLy-MdYXbMMI", "fwZpRfBG259O3LscJFPW3ViH");
-    loadViewCount(location.pathname, "view-counter");
-
-    
-    function loadViewCount(pageUrl, elementId) {
-        var counter = document.getElementById(elementId);
-        var cachedViews = localStorage.getItem("view-count-" + pageUrl);
-
+    document.addEventListener("DOMContentLoaded", function() {
         
-        if (cachedViews) {
-            counter.innerText = cachedViews;
-        } else {
-            counter.innerText = "0"; 
+        var viewCounterElement = document.querySelector(".view-counter[data-url='https:\/\/tqzhong.github.io\/my-blog\/posts\/2024-10-30-deepspeed\/']");
+        if (viewCounterElement) {
+            
+            var cachedViews = localStorage.getItem("view-count-\/my-blog\/posts\/2024-10-30-deepspeed\/");
+            
+            viewCounterElement.innerText = cachedViews || "0";
         }
-
-        
-        var query = new AV.Query('Counter');
-        query.equalTo("url", pageUrl);
-        query.find().then(results => {
-            if (results.length > 0) {
-                var counterObj = results[0];
-                counterObj.increment("views", 1);
-                counterObj.save();
-                var views = counterObj.get("views");
-                counter.innerText = views;
-                localStorage.setItem("view-count-" + pageUrl, views); 
-            } else {
-                var Counter = AV.Object.extend("Counter");
-                var newCounter = new Counter();
-                newCounter.set("url", pageUrl);
-                newCounter.set("views", 1);
-                newCounter.save().then(() => {
-                    counter.innerText = "1";
-                    localStorage.setItem("view-count-" + pageUrl, 1); 
-                });
-            }
-        }).catch(function(error) {
-            console.error("获取浏览量时出错：", error);
-        });
-    }
-</script>
-
-
+    });
+  </script>
+  
           </footer>
         <a class="entry-link" aria-label="post link to Deepspeed多机多卡训练&代码细节" href="https://tqzhong.github.io/my-blog/posts/2024-10-30-deepspeed/"></a>
       </article>
