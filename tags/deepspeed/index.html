@@ -194,7 +194,7 @@
           </h2>
         </header>
           <div class="entry-content">
-            <p>前段时间实验室下来了64张1080Ti空着，想着找人跑一下多机多卡方便大家可以训练更大的模型，正好比较有空就接了这个活。之前用过的多机多卡训练框架是deepspeed但是是基于现成写好的，自己并没过多了解，这次就还是采用deepspeed这个框架来试试。
+            <p>本次使用的是多台8卡1080Ti服务器进行DeepSpeed多机多卡实验。
 Supervised finetuning 首先在主节点克隆deepspeed-chat仓库。
 使用的主要环境：
 1 2 3 4 5 6 7 8 9 pip install torch==1.13.0 pip install datasets pip install sentencepiece pip install protobuf==3.20.3 pip install accelerate pip install deepspeed==0.10.0 pip install transformers==4.44.2 pip install tensorboard pip install numpy==1.26.4 deepspeed安装需要有nvcc，开始这些1080Ti服务器没有nvcc，所以先装了这个：
