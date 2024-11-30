@@ -3,13 +3,28 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
     <loc>https://tqzhong.github.io/my-blog/</loc>
-    <lastmod>2024-10-30T00:00:00+00:00</lastmod>
+    <lastmod>2024-11-21T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://tqzhong.github.io/my-blog/tags/ai/</loc>
-    <lastmod>2024-10-30T00:00:00+00:00</lastmod>
+    <lastmod>2024-11-21T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://tqzhong.github.io/my-blog/categories/</loc>
-    <lastmod>2024-10-30T00:00:00+00:00</lastmod>
+    <lastmod>2024-11-21T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://tqzhong.github.io/my-blog/posts/</loc>
+    <lastmod>2024-11-21T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://tqzhong.github.io/my-blog/categories/research/</loc>
+    <lastmod>2024-11-21T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://tqzhong.github.io/my-blog/tags/rl/</loc>
+    <lastmod>2024-11-21T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://tqzhong.github.io/my-blog/tags/</loc>
+    <lastmod>2024-11-21T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://tqzhong.github.io/my-blog/posts/2024-11-21-reinforcement-learning/</loc>
+    <lastmod>2024-11-21T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://tqzhong.github.io/my-blog/tags/deepspeed/</loc>
     <lastmod>2024-10-30T00:00:00+00:00</lastmod>
@@ -21,15 +36,6 @@
     <lastmod>2024-10-30T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://tqzhong.github.io/my-blog/tags/nlp/</loc>
-    <lastmod>2024-10-30T00:00:00+00:00</lastmod>
-  </url><url>
-    <loc>https://tqzhong.github.io/my-blog/posts/</loc>
-    <lastmod>2024-10-30T00:00:00+00:00</lastmod>
-  </url><url>
-    <loc>https://tqzhong.github.io/my-blog/categories/research/</loc>
-    <lastmod>2024-10-30T00:00:00+00:00</lastmod>
-  </url><url>
-    <loc>https://tqzhong.github.io/my-blog/tags/</loc>
     <lastmod>2024-10-30T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://tqzhong.github.io/my-blog/tags/business/</loc>
