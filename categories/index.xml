@@ -25,5 +25,14 @@
       <description></description>
     </item>
     
+    <item>
+      <title>Books</title>
+      <link>https://tqzhong.github.io/my-blog/categories/books/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://tqzhong.github.io/my-blog/categories/books/</guid>
+      <description></description>
+    </item>
+    
   </channel>
 </rss>
