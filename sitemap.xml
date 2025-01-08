@@ -3,31 +3,40 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
     <loc>https://tqzhong.github.io/my-blog/</loc>
-    <lastmod>2024-12-22T00:00:00+00:00</lastmod>
+    <lastmod>2025-01-08T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>https://tqzhong.github.io/my-blog/categories/books/</loc>
-    <lastmod>2024-12-22T00:00:00+00:00</lastmod>
+    <loc>https://tqzhong.github.io/my-blog/tags/ai/</loc>
+    <lastmod>2025-01-08T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://tqzhong.github.io/my-blog/categories/</loc>
-    <lastmod>2024-12-22T00:00:00+00:00</lastmod>
+    <lastmod>2025-01-08T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://tqzhong.github.io/my-blog/tags/nlp/</loc>
+    <lastmod>2025-01-08T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://tqzhong.github.io/my-blog/posts/</loc>
+    <lastmod>2025-01-08T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://tqzhong.github.io/my-blog/tags/rag/</loc>
+    <lastmod>2025-01-08T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://tqzhong.github.io/my-blog/posts/2025-01-08-retrieval-augmented-generation/</loc>
+    <lastmod>2025-01-08T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://tqzhong.github.io/my-blog/categories/research/</loc>
+    <lastmod>2025-01-08T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://tqzhong.github.io/my-blog/tags/</loc>
+    <lastmod>2025-01-08T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://tqzhong.github.io/my-blog/categories/books/</loc>
     <lastmod>2024-12-22T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://tqzhong.github.io/my-blog/tags/reading/</loc>
     <lastmod>2024-12-22T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>https://tqzhong.github.io/my-blog/tags/</loc>
-    <lastmod>2024-12-22T00:00:00+00:00</lastmod>
-  </url><url>
     <loc>https://tqzhong.github.io/my-blog/posts/2024-12-22-readings/</loc>
     <lastmod>2024-12-22T00:00:00+00:00</lastmod>
-  </url><url>
-    <loc>https://tqzhong.github.io/my-blog/tags/ai/</loc>
-    <lastmod>2024-11-21T00:00:00+00:00</lastmod>
-  </url><url>
-    <loc>https://tqzhong.github.io/my-blog/categories/research/</loc>
-    <lastmod>2024-11-21T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://tqzhong.github.io/my-blog/tags/rl/</loc>
     <lastmod>2024-11-21T00:00:00+00:00</lastmod>
@@ -42,9 +51,6 @@
     <lastmod>2024-10-30T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://tqzhong.github.io/my-blog/tags/llms/</loc>
-    <lastmod>2024-10-30T00:00:00+00:00</lastmod>
-  </url><url>
-    <loc>https://tqzhong.github.io/my-blog/tags/nlp/</loc>
     <lastmod>2024-10-30T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://tqzhong.github.io/my-blog/tags/business/</loc>
