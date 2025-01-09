@@ -21,7 +21,56 @@
 1. Overview of RAG
 典型的RAG模型如图1所示
 
-">
+
+图1: 经典RAG模型
+1.1 Naive RAG
+Naive RAG为传统的RAG方法，主要流程包括：索引，检索，生成。
+
+索引（Indexing）：将文档（PDF，HTML，Word，Markdown）切分成chunks，每个chunk为一段文本，使用一个词向量模型将每个chunk编码成向量表征存储在向量数据库中。这一步是为了高校地搜索查找待检索片段。
+检索（Retrieval）：基于用户的一条query，RAG系统使用相同的编码模型将query编码成对应向量表征，用query向量表征与向量数据库中的所有向量计算相似度，选择相似度最高的K个chunks，这些chunks将被用于扩充query的prompt。
+生成（Generation）：用户的query和被选择的chunks被整合成连贯的prompt输入给LLM，LLM基于扩充后的prompt生成结果。
+
+1.2 Advanced RAG
+Advanced RAG引入一些改进来解决Navie RAG存在的一些问题，主要聚焦在提升检索质量，一般使用pre-retrieval和post-retrieval两种策略。
+
+pre-retrieval：在这个阶段，主要目标是优化索引结构以及初始query。
+
+优化索引：常用的策略有增强数据细粒度，优化索引结构，添加元数据，对齐优化，混合检索。
+优化初始query：常用的策略有query transformation，query expansion等。
+
+
+post-retrieval：当相关内容已经被检索后，将其与初始query有效结合是至关重要的一步。post-retrieval过程中主要的方法包括：chunks重排，chunks内容压缩。
+
+chunks重排：调整被检索到的内容（chunks）在最终prompt中的位置，让更相关的chunks排在prompt的边缘（非中间，中间更容易被llm忽略），这个策略在LlamaIndex，LangChain，HayStack中均有使用。
+chunks内容压缩：将所有检索到的内容（chunks）全部输入llm容易导致信息过载（因为会包含很多无关或者冗余的信息），对此，chunks内容压缩主要聚焦在选择重要信息，缩短检索内容。
+
+
+
+1.3 Modular RAG
+模块化RAG相比前两种范式提供更好的适应性和多功能性。其往往结合不同的策略来优化其组成部分，比如：添加一个搜索模块，通过微调精进检索器等。
+
+引入新模块：搜索模块（Search Module）可以用于搜索外部资源（搜索引擎、数据库、知识图谱），使用LLM生成的搜索指令和查询语句处理；RAG-Fusion用于处理传统搜索的限制问题，使用multi-query策略将用户query从不同角度扩充；记忆模块（Memory Module）用于提升LLM的记忆来指导检索；路由模块（Routing）等等
+引入新模式：Rewrite-Retrieve-Read模型通过引入rewriting module和一个语言模型反馈机制来更新rewriting model，提升性能；Generate-Read，Recite-Read等等。
+
+
+
+图2: 三类不同RAG模型流程示意图
+2. Retrieval Part
+2.1 检索资源
+从检索内容的数据上来看包含以下几种：
+
+无结构化数据：文本，语料库，例如Wikipedia Dump，HotpotQA，DRP；多语种文本，特别领域文本等
+半结构化数据：PDF，这种数据包含文本和表格，对于RAG系统而言处理起来更具挑战，一般会用到LLM生成Text-2-SQL指令查询表格中的数据，工作如TableGPT等。
+结构化数据：知识图谱，工作如KnowledGPT，G-Retriever等。
+LLMs生成内容
+
+从检索的粒度来看，包含以下几种：
+
+对于文本，检索粒度涵盖：Token，短语，句子，Chunks，文章
+对于知识图谱，检索粒度包含：实体，三元组，子图
+
+2.2 索引的优化
+在索引这一环节，文章将被处理，分割并转变成向量表征被存储在向量数据库中。索引结构的质量决定着在检索过程中能否获取正确的内容。">
 <meta name="author" content="Rs">
 <link rel="canonical" href="https://tqzhong.github.io/my-blog/posts/2025-01-08-retrieval-augmented-generation/">
 
@@ -84,7 +133,56 @@
 1. Overview of RAG
 典型的RAG模型如图1所示
 
-" />
+
+图1: 经典RAG模型
+1.1 Naive RAG
+Naive RAG为传统的RAG方法，主要流程包括：索引，检索，生成。
+
+索引（Indexing）：将文档（PDF，HTML，Word，Markdown）切分成chunks，每个chunk为一段文本，使用一个词向量模型将每个chunk编码成向量表征存储在向量数据库中。这一步是为了高校地搜索查找待检索片段。
+检索（Retrieval）：基于用户的一条query，RAG系统使用相同的编码模型将query编码成对应向量表征，用query向量表征与向量数据库中的所有向量计算相似度，选择相似度最高的K个chunks，这些chunks将被用于扩充query的prompt。
+生成（Generation）：用户的query和被选择的chunks被整合成连贯的prompt输入给LLM，LLM基于扩充后的prompt生成结果。
+
+1.2 Advanced RAG
+Advanced RAG引入一些改进来解决Navie RAG存在的一些问题，主要聚焦在提升检索质量，一般使用pre-retrieval和post-retrieval两种策略。
+
+pre-retrieval：在这个阶段，主要目标是优化索引结构以及初始query。
+
+优化索引：常用的策略有增强数据细粒度，优化索引结构，添加元数据，对齐优化，混合检索。
+优化初始query：常用的策略有query transformation，query expansion等。
+
+
+post-retrieval：当相关内容已经被检索后，将其与初始query有效结合是至关重要的一步。post-retrieval过程中主要的方法包括：chunks重排，chunks内容压缩。
+
+chunks重排：调整被检索到的内容（chunks）在最终prompt中的位置，让更相关的chunks排在prompt的边缘（非中间，中间更容易被llm忽略），这个策略在LlamaIndex，LangChain，HayStack中均有使用。
+chunks内容压缩：将所有检索到的内容（chunks）全部输入llm容易导致信息过载（因为会包含很多无关或者冗余的信息），对此，chunks内容压缩主要聚焦在选择重要信息，缩短检索内容。
+
+
+
+1.3 Modular RAG
+模块化RAG相比前两种范式提供更好的适应性和多功能性。其往往结合不同的策略来优化其组成部分，比如：添加一个搜索模块，通过微调精进检索器等。
+
+引入新模块：搜索模块（Search Module）可以用于搜索外部资源（搜索引擎、数据库、知识图谱），使用LLM生成的搜索指令和查询语句处理；RAG-Fusion用于处理传统搜索的限制问题，使用multi-query策略将用户query从不同角度扩充；记忆模块（Memory Module）用于提升LLM的记忆来指导检索；路由模块（Routing）等等
+引入新模式：Rewrite-Retrieve-Read模型通过引入rewriting module和一个语言模型反馈机制来更新rewriting model，提升性能；Generate-Read，Recite-Read等等。
+
+
+
+图2: 三类不同RAG模型流程示意图
+2. Retrieval Part
+2.1 检索资源
+从检索内容的数据上来看包含以下几种：
+
+无结构化数据：文本，语料库，例如Wikipedia Dump，HotpotQA，DRP；多语种文本，特别领域文本等
+半结构化数据：PDF，这种数据包含文本和表格，对于RAG系统而言处理起来更具挑战，一般会用到LLM生成Text-2-SQL指令查询表格中的数据，工作如TableGPT等。
+结构化数据：知识图谱，工作如KnowledGPT，G-Retriever等。
+LLMs生成内容
+
+从检索的粒度来看，包含以下几种：
+
+对于文本，检索粒度涵盖：Token，短语，句子，Chunks，文章
+对于知识图谱，检索粒度包含：实体，三元组，子图
+
+2.2 索引的优化
+在索引这一环节，文章将被处理，分割并转变成向量表征被存储在向量数据库中。索引结构的质量决定着在检索过程中能否获取正确的内容。" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://tqzhong.github.io/my-blog/posts/2025-01-08-retrieval-augmented-generation/" /><meta property="article:section" content="posts" />
 <meta property="article:published_time" content="2025-01-08T00:00:00+00:00" />
@@ -96,7 +194,56 @@
 1. Overview of RAG
 典型的RAG模型如图1所示
 
-"/>
+
+图1: 经典RAG模型
+1.1 Naive RAG
+Naive RAG为传统的RAG方法，主要流程包括：索引，检索，生成。
+
+索引（Indexing）：将文档（PDF，HTML，Word，Markdown）切分成chunks，每个chunk为一段文本，使用一个词向量模型将每个chunk编码成向量表征存储在向量数据库中。这一步是为了高校地搜索查找待检索片段。
+检索（Retrieval）：基于用户的一条query，RAG系统使用相同的编码模型将query编码成对应向量表征，用query向量表征与向量数据库中的所有向量计算相似度，选择相似度最高的K个chunks，这些chunks将被用于扩充query的prompt。
+生成（Generation）：用户的query和被选择的chunks被整合成连贯的prompt输入给LLM，LLM基于扩充后的prompt生成结果。
+
+1.2 Advanced RAG
+Advanced RAG引入一些改进来解决Navie RAG存在的一些问题，主要聚焦在提升检索质量，一般使用pre-retrieval和post-retrieval两种策略。
+
+pre-retrieval：在这个阶段，主要目标是优化索引结构以及初始query。
+
+优化索引：常用的策略有增强数据细粒度，优化索引结构，添加元数据，对齐优化，混合检索。
+优化初始query：常用的策略有query transformation，query expansion等。
+
+
+post-retrieval：当相关内容已经被检索后，将其与初始query有效结合是至关重要的一步。post-retrieval过程中主要的方法包括：chunks重排，chunks内容压缩。
+
+chunks重排：调整被检索到的内容（chunks）在最终prompt中的位置，让更相关的chunks排在prompt的边缘（非中间，中间更容易被llm忽略），这个策略在LlamaIndex，LangChain，HayStack中均有使用。
+chunks内容压缩：将所有检索到的内容（chunks）全部输入llm容易导致信息过载（因为会包含很多无关或者冗余的信息），对此，chunks内容压缩主要聚焦在选择重要信息，缩短检索内容。
+
+
+
+1.3 Modular RAG
+模块化RAG相比前两种范式提供更好的适应性和多功能性。其往往结合不同的策略来优化其组成部分，比如：添加一个搜索模块，通过微调精进检索器等。
+
+引入新模块：搜索模块（Search Module）可以用于搜索外部资源（搜索引擎、数据库、知识图谱），使用LLM生成的搜索指令和查询语句处理；RAG-Fusion用于处理传统搜索的限制问题，使用multi-query策略将用户query从不同角度扩充；记忆模块（Memory Module）用于提升LLM的记忆来指导检索；路由模块（Routing）等等
+引入新模式：Rewrite-Retrieve-Read模型通过引入rewriting module和一个语言模型反馈机制来更新rewriting model，提升性能；Generate-Read，Recite-Read等等。
+
+
+
+图2: 三类不同RAG模型流程示意图
+2. Retrieval Part
+2.1 检索资源
+从检索内容的数据上来看包含以下几种：
+
+无结构化数据：文本，语料库，例如Wikipedia Dump，HotpotQA，DRP；多语种文本，特别领域文本等
+半结构化数据：PDF，这种数据包含文本和表格，对于RAG系统而言处理起来更具挑战，一般会用到LLM生成Text-2-SQL指令查询表格中的数据，工作如TableGPT等。
+结构化数据：知识图谱，工作如KnowledGPT，G-Retriever等。
+LLMs生成内容
+
+从检索的粒度来看，包含以下几种：
+
+对于文本，检索粒度涵盖：Token，短语，句子，Chunks，文章
+对于知识图谱，检索粒度包含：实体，三元组，子图
+
+2.2 索引的优化
+在索引这一环节，文章将被处理，分割并转变成向量表征被存储在向量数据库中。索引结构的质量决定着在检索过程中能否获取正确的内容。"/>
 
 
 <script type="application/ld+json">
@@ -125,12 +272,12 @@
   "@type": "BlogPosting",
   "headline": "RAG路线",
   "name": "RAG路线",
-  "description": "Retrieval-Augmented Generation for Large Language Models: A Survey 1. Overview of RAG 典型的RAG模型如图1所示 ",
+  "description": "Retrieval-Augmented Generation for Large Language Models: A Survey 1. Overview of RAG 典型的RAG模型如图1所示 图1: 经典RAG模型 1.1 Naive RAG Naive RAG为传统的RAG方法，主要流程包括：索引，检索，生成。\n索引（Indexing）：将文档（PDF，HTML，Word，Markdown）切分成chunks，每个chunk为一段文本，使用一个词向量模型将每个chunk编码成向量表征存储在向量数据库中。这一步是为了高校地搜索查找待检索片段。 检索（Retrieval）：基于用户的一条query，RAG系统使用相同的编码模型将query编码成对应向量表征，用query向量表征与向量数据库中的所有向量计算相似度，选择相似度最高的K个chunks，这些chunks将被用于扩充query的prompt。 生成（Generation）：用户的query和被选择的chunks被整合成连贯的prompt输入给LLM，LLM基于扩充后的prompt生成结果。 1.2 Advanced RAG Advanced RAG引入一些改进来解决Navie RAG存在的一些问题，主要聚焦在提升检索质量，一般使用pre-retrieval和post-retrieval两种策略。\npre-retrieval：在这个阶段，主要目标是优化索引结构以及初始query。 优化索引：常用的策略有增强数据细粒度，优化索引结构，添加元数据，对齐优化，混合检索。 优化初始query：常用的策略有query transformation，query expansion等。 post-retrieval：当相关内容已经被检索后，将其与初始query有效结合是至关重要的一步。post-retrieval过程中主要的方法包括：chunks重排，chunks内容压缩。 chunks重排：调整被检索到的内容（chunks）在最终prompt中的位置，让更相关的chunks排在prompt的边缘（非中间，中间更容易被llm忽略），这个策略在LlamaIndex，LangChain，HayStack中均有使用。 chunks内容压缩：将所有检索到的内容（chunks）全部输入llm容易导致信息过载（因为会包含很多无关或者冗余的信息），对此，chunks内容压缩主要聚焦在选择重要信息，缩短检索内容。 1.3 Modular RAG 模块化RAG相比前两种范式提供更好的适应性和多功能性。其往往结合不同的策略来优化其组成部分，比如：添加一个搜索模块，通过微调精进检索器等。\n引入新模块：搜索模块（Search Module）可以用于搜索外部资源（搜索引擎、数据库、知识图谱），使用LLM生成的搜索指令和查询语句处理；RAG-Fusion用于处理传统搜索的限制问题，使用multi-query策略将用户query从不同角度扩充；记忆模块（Memory Module）用于提升LLM的记忆来指导检索；路由模块（Routing）等等 引入新模式：Rewrite-Retrieve-Read模型通过引入rewriting module和一个语言模型反馈机制来更新rewriting model，提升性能；Generate-Read，Recite-Read等等。 图2: 三类不同RAG模型流程示意图 2. Retrieval Part 2.1 检索资源 从检索内容的数据上来看包含以下几种：\n无结构化数据：文本，语料库，例如Wikipedia Dump，HotpotQA，DRP；多语种文本，特别领域文本等 半结构化数据：PDF，这种数据包含文本和表格，对于RAG系统而言处理起来更具挑战，一般会用到LLM生成Text-2-SQL指令查询表格中的数据，工作如TableGPT等。 结构化数据：知识图谱，工作如KnowledGPT，G-Retriever等。 LLMs生成内容 从检索的粒度来看，包含以下几种：\n对于文本，检索粒度涵盖：Token，短语，句子，Chunks，文章 对于知识图谱，检索粒度包含：实体，三元组，子图 2.2 索引的优化 在索引这一环节，文章将被处理，分割并转变成向量表征被存储在向量数据库中。索引结构的质量决定着在检索过程中能否获取正确的内容。\n",
   "keywords": [
     "AI", "RAG", "NLP"
   ],
-  "articleBody": "Retrieval-Augmented Generation for Large Language Models: A Survey 1. Overview of RAG 典型的RAG模型如图1所示 ",
-  "wordCount" : "13",
+  "articleBody": "Retrieval-Augmented Generation for Large Language Models: A Survey 1. Overview of RAG 典型的RAG模型如图1所示 图1: 经典RAG模型 1.1 Naive RAG Naive RAG为传统的RAG方法，主要流程包括：索引，检索，生成。\n索引（Indexing）：将文档（PDF，HTML，Word，Markdown）切分成chunks，每个chunk为一段文本，使用一个词向量模型将每个chunk编码成向量表征存储在向量数据库中。这一步是为了高校地搜索查找待检索片段。 检索（Retrieval）：基于用户的一条query，RAG系统使用相同的编码模型将query编码成对应向量表征，用query向量表征与向量数据库中的所有向量计算相似度，选择相似度最高的K个chunks，这些chunks将被用于扩充query的prompt。 生成（Generation）：用户的query和被选择的chunks被整合成连贯的prompt输入给LLM，LLM基于扩充后的prompt生成结果。 1.2 Advanced RAG Advanced RAG引入一些改进来解决Navie RAG存在的一些问题，主要聚焦在提升检索质量，一般使用pre-retrieval和post-retrieval两种策略。\npre-retrieval：在这个阶段，主要目标是优化索引结构以及初始query。 优化索引：常用的策略有增强数据细粒度，优化索引结构，添加元数据，对齐优化，混合检索。 优化初始query：常用的策略有query transformation，query expansion等。 post-retrieval：当相关内容已经被检索后，将其与初始query有效结合是至关重要的一步。post-retrieval过程中主要的方法包括：chunks重排，chunks内容压缩。 chunks重排：调整被检索到的内容（chunks）在最终prompt中的位置，让更相关的chunks排在prompt的边缘（非中间，中间更容易被llm忽略），这个策略在LlamaIndex，LangChain，HayStack中均有使用。 chunks内容压缩：将所有检索到的内容（chunks）全部输入llm容易导致信息过载（因为会包含很多无关或者冗余的信息），对此，chunks内容压缩主要聚焦在选择重要信息，缩短检索内容。 1.3 Modular RAG 模块化RAG相比前两种范式提供更好的适应性和多功能性。其往往结合不同的策略来优化其组成部分，比如：添加一个搜索模块，通过微调精进检索器等。\n引入新模块：搜索模块（Search Module）可以用于搜索外部资源（搜索引擎、数据库、知识图谱），使用LLM生成的搜索指令和查询语句处理；RAG-Fusion用于处理传统搜索的限制问题，使用multi-query策略将用户query从不同角度扩充；记忆模块（Memory Module）用于提升LLM的记忆来指导检索；路由模块（Routing）等等 引入新模式：Rewrite-Retrieve-Read模型通过引入rewriting module和一个语言模型反馈机制来更新rewriting model，提升性能；Generate-Read，Recite-Read等等。 图2: 三类不同RAG模型流程示意图 2. Retrieval Part 2.1 检索资源 从检索内容的数据上来看包含以下几种：\n无结构化数据：文本，语料库，例如Wikipedia Dump，HotpotQA，DRP；多语种文本，特别领域文本等 半结构化数据：PDF，这种数据包含文本和表格，对于RAG系统而言处理起来更具挑战，一般会用到LLM生成Text-2-SQL指令查询表格中的数据，工作如TableGPT等。 结构化数据：知识图谱，工作如KnowledGPT，G-Retriever等。 LLMs生成内容 从检索的粒度来看，包含以下几种：\n对于文本，检索粒度涵盖：Token，短语，句子，Chunks，文章 对于知识图谱，检索粒度包含：实体，三元组，子图 2.2 索引的优化 在索引这一环节，文章将被处理，分割并转变成向量表征被存储在向量数据库中。索引结构的质量决定着在检索过程中能否获取正确的内容。\nChunking Strategy：最常用的方法是将文档切分成固定token数的chunk（100，256，512）。越大的chunk能够捕获更多的内容，但也会带来更多噪音，处理更长时间，成本更高；越小的chunk相反。划分chunk存在破坏完整句子的问题，解决该问题的工作有Small2Big等。 Metadata Attachments：chunk可以由元数据（如：page number，file name，author，category timestamp等）扩充，从而检索过程可以使用元数据进行过滤，缩小检索范围。 Structural Index： 分层索引结构 知识图谱索引 2.3 Query的优化 Query扩充： Multi-Query：通过LLM将query扩充成多个，然后并行处理这些queries Sub-Query：对于复杂问题，可以将问题拆解成系列子问题 Chain-of-Verification（CoVe） Query Transformation： Query Rewrite：有些原始queries对于LLM检索来说并不是最优。因此prompt LLM来重写queries，工作如Rewrite-retrieve-read等 Query Routing 2.4 词向量模型（retriever） 从向量编码器角度分包含sparse encoder和dense encoder\nsparse encoder： TF-IDF BM25 dense retriever： BERT-based PLM 3. Generation Part 在完成检索部分后，把所有检索到的信息直接输入LLM来获取答案往往并不是最合理的方案。在生成阶段，一般会从两个方面引入一些调整：调整检索的内容、调整LLM。\n3.1 Context Curation 冗余信息会影响LLM最终的生成结果，通常，LLM会把注意力倾向长文本的开端和结尾，而容易忘记中间的部分。因此在RAG系统中，我们通常需要进一步处理检索到的信息。\nReranking：重排chunks的顺序 rule-based methods：Diversity，Relevance，MRR model-based methods：BERT series（SpanBERT），Cohere rerank，bge-reranker-large Context Selection/Compression：对检索内容的筛选和压缩 Reducing the number of documents 3.2 LLM Fine-tuning 对生成式LLM进行微调，主要适用特定场景下的生成，一般的PLM可能对这些场景了解程度不够，因此需要微调来辅助LLM生成。\n4. Augmentation Process in RAG 常规的RAG流程通过只包含一次检索步骤，然后接着一步生成步骤，对于复杂任务或多步推理场景这种方式局限性较大，因此有优化的检索过程来解决这些问题。\n4.1 迭代检索（Iterative Retrieval） 迭代检索过程中，知识库会基于初始query以及当前生成的文本被重复搜索，为LLM生成提供更全面的信息。相关工作：ITER-RETGEN等。\n4.2 递归检索（Recursive Retrieval） 递归检索通常用于信息检索来提升检索结果的深度和相关性。该过程会基于过往检索的结果迭代优化检索queries。相关工作：IRCoT，ToC等。\n4.3 适应性检索（Adaptive Retrieval） 适应性检索通过让LLMs能够主动决策最优检索的时刻以及检索的内容来优化RAG系统，提升检索信息的相关度以及效率。相关工作：Flare，Self-RAG，AutoGPT，Toolformer，Graph-Toolformer，WebGPT等。 图3: RAG中三类不同增强过程示意图 References [1] Gao et al. “Retrieval-Augmented Generation for Large Language Models: A Survey” arXiv preprint arXiv:2312.10997 (2023)\n",
+  "wordCount" : "166",
   "inLanguage": "en",
   "datePublished": "2025-01-08T00:00:00Z",
   "dateModified": "2025-01-08T00:00:00Z",
@@ -347,10 +494,49 @@
                     <a href="#retrieval-augmented-generation-for-large-language-models-a-survey" aria-label="Retrieval-Augmented Generation for Large Language Models: A Survey">Retrieval-Augmented Generation for Large Language Models: A Survey</a><ul>
                         
                 <li>
-                    <a href="#1-overview-of-rag" aria-label="1. Overview of RAG">1. Overview of RAG</a>
+                    <a href="#1-overview-of-rag" aria-label="1. Overview of RAG">1. Overview of RAG</a><ul>
+                        
+                <li>
+                    <a href="#11-naive-rag" aria-label="1.1 Naive RAG">1.1 Naive RAG</a></li>
+                <li>
+                    <a href="#12-advanced-rag" aria-label="1.2 Advanced RAG">1.2 Advanced RAG</a></li>
+                <li>
+                    <a href="#13-modular-rag" aria-label="1.3 Modular RAG">1.3 Modular RAG</a></li></ul>
                 </li>
-            </ul>
-            </li>
+                <li>
+                    <a href="#2-retrieval-part" aria-label="2. Retrieval Part">2. Retrieval Part</a><ul>
+                        
+                <li>
+                    <a href="#21-%e6%a3%80%e7%b4%a2%e8%b5%84%e6%ba%90" aria-label="2.1 检索资源">2.1 检索资源</a></li>
+                <li>
+                    <a href="#22-%e7%b4%a2%e5%bc%95%e7%9a%84%e4%bc%98%e5%8c%96" aria-label="2.2 索引的优化">2.2 索引的优化</a></li>
+                <li>
+                    <a href="#23-query%e7%9a%84%e4%bc%98%e5%8c%96" aria-label="2.3 Query的优化">2.3 Query的优化</a></li>
+                <li>
+                    <a href="#24-%e8%af%8d%e5%90%91%e9%87%8f%e6%a8%a1%e5%9e%8bretriever" aria-label="2.4 词向量模型（retriever）">2.4 词向量模型（retriever）</a></li></ul>
+                </li>
+                <li>
+                    <a href="#3-generation-part" aria-label="3. Generation Part">3. Generation Part</a><ul>
+                        
+                <li>
+                    <a href="#31-context-curation" aria-label="3.1 Context Curation">3.1 Context Curation</a></li>
+                <li>
+                    <a href="#32-llm-fine-tuning" aria-label="3.2 LLM Fine-tuning">3.2 LLM Fine-tuning</a></li></ul>
+                </li>
+                <li>
+                    <a href="#4-augmentation-process-in-rag" aria-label="4. Augmentation Process in RAG">4. Augmentation Process in RAG</a><ul>
+                        
+                <li>
+                    <a href="#41-%e8%bf%ad%e4%bb%a3%e6%a3%80%e7%b4%a2iterative-retrieval" aria-label="4.1 迭代检索（Iterative Retrieval）">4.1 迭代检索（Iterative Retrieval）</a></li>
+                <li>
+                    <a href="#42-%e9%80%92%e5%bd%92%e6%a3%80%e7%b4%a2recursive-retrieval" aria-label="4.2 递归检索（Recursive Retrieval）">4.2 递归检索（Recursive Retrieval）</a></li>
+                <li>
+                    <a href="#43-%e9%80%82%e5%ba%94%e6%80%a7%e6%a3%80%e7%b4%a2adaptive-retrieval" aria-label="4.3 适应性检索（Adaptive Retrieval）">4.3 适应性检索（Adaptive Retrieval）</a></li></ul>
+                </li></ul>
+                </li>
+                <li>
+                    <a href="#references" aria-label="References">References</a>
+                </li>
             </ul>
         </div>
     </details>
@@ -359,8 +545,127 @@
   <div class="post-content"><h3 id="retrieval-augmented-generation-for-large-language-models-a-survey">Retrieval-Augmented Generation for Large Language Models: A Survey<a hidden class="anchor" aria-hidden="true" href="#retrieval-augmented-generation-for-large-language-models-a-survey">#</a></h3>
 <h4 id="1-overview-of-rag">1. Overview of RAG<a hidden class="anchor" aria-hidden="true" href="#1-overview-of-rag">#</a></h4>
 <p>典型的RAG模型如图1所示
-<img loading="lazy" src="/images/2025-01-08-retrieval-augmented-generation/2025-01-08-image1.png" alt="typical rag model"  />
+<img loading="lazy" src="/my-blog/images/2025-01-08-retrieval-augmented-generation/2025-01-08-image1.png" alt="typical rag model"  />
 </p>
+<div align='center' style="color: #999999">图1: 经典RAG模型</div>
+<h5 id="11-naive-rag">1.1 Naive RAG<a hidden class="anchor" aria-hidden="true" href="#11-naive-rag">#</a></h5>
+<p>Naive RAG为传统的RAG方法，主要流程包括：索引，检索，生成。</p>
+<ul>
+<li>索引（Indexing）：将文档（PDF，HTML，Word，Markdown）切分成chunks，每个chunk为一段文本，使用一个词向量模型将每个chunk编码成向量表征存储在向量数据库中。这一步是为了高校地搜索查找待检索片段。</li>
+<li>检索（Retrieval）：基于用户的一条query，RAG系统使用相同的编码模型将query编码成对应向量表征，用query向量表征与向量数据库中的所有向量计算相似度，选择相似度最高的K个chunks，这些chunks将被用于扩充query的prompt。</li>
+<li>生成（Generation）：用户的query和被选择的chunks被整合成连贯的prompt输入给LLM，LLM基于扩充后的prompt生成结果。</li>
+</ul>
+<h5 id="12-advanced-rag">1.2 Advanced RAG<a hidden class="anchor" aria-hidden="true" href="#12-advanced-rag">#</a></h5>
+<p>Advanced RAG引入一些改进来解决Navie RAG存在的一些问题，主要聚焦在提升检索质量，一般使用pre-retrieval和post-retrieval两种策略。</p>
+<ul>
+<li>pre-retrieval：在这个阶段，主要目标是优化索引结构以及初始query。
+<ul>
+<li>优化索引：常用的策略有增强数据细粒度，优化索引结构，添加元数据，对齐优化，混合检索。</li>
+<li>优化初始query：常用的策略有query transformation，query expansion等。</li>
+</ul>
+</li>
+<li>post-retrieval：当相关内容已经被检索后，将其与初始query有效结合是至关重要的一步。post-retrieval过程中主要的方法包括：chunks重排，chunks内容压缩。
+<ul>
+<li>chunks重排：调整被检索到的内容（chunks）在最终prompt中的位置，让更相关的chunks排在prompt的边缘（非中间，中间更容易被llm忽略），这个策略在LlamaIndex，LangChain，HayStack中均有使用。</li>
+<li>chunks内容压缩：将所有检索到的内容（chunks）全部输入llm容易导致信息过载（因为会包含很多无关或者冗余的信息），对此，chunks内容压缩主要聚焦在选择重要信息，缩短检索内容。</li>
+</ul>
+</li>
+</ul>
+<h5 id="13-modular-rag">1.3 Modular RAG<a hidden class="anchor" aria-hidden="true" href="#13-modular-rag">#</a></h5>
+<p>模块化RAG相比前两种范式提供更好的适应性和多功能性。其往往结合不同的策略来优化其组成部分，比如：添加一个搜索模块，通过微调精进检索器等。</p>
+<ul>
+<li>引入新模块：搜索模块（Search Module）可以用于搜索外部资源（搜索引擎、数据库、知识图谱），使用LLM生成的搜索指令和查询语句处理；RAG-Fusion用于处理传统搜索的限制问题，使用multi-query策略将用户query从不同角度扩充；记忆模块（Memory Module）用于提升LLM的记忆来指导检索；路由模块（Routing）等等</li>
+<li>引入新模式：Rewrite-Retrieve-Read模型通过引入rewriting module和一个语言模型反馈机制来更新rewriting model，提升性能；Generate-Read，Recite-Read等等。</li>
+</ul>
+<p><img loading="lazy" src="/my-blog/images/2025-01-08-retrieval-augmented-generation/2025-01-08-image2.png" alt="three rag types"  />
+</p>
+<div align='center' style="color: #999999">图2: 三类不同RAG模型流程示意图</div>
+<h4 id="2-retrieval-part">2. Retrieval Part<a hidden class="anchor" aria-hidden="true" href="#2-retrieval-part">#</a></h4>
+<h5 id="21-检索资源">2.1 检索资源<a hidden class="anchor" aria-hidden="true" href="#21-检索资源">#</a></h5>
+<p>从检索内容的数据上来看包含以下几种：</p>
+<ul>
+<li>无结构化数据：文本，语料库，例如Wikipedia Dump，HotpotQA，DRP；多语种文本，特别领域文本等</li>
+<li>半结构化数据：PDF，这种数据包含文本和表格，对于RAG系统而言处理起来更具挑战，一般会用到LLM生成Text-2-SQL指令查询表格中的数据，工作如TableGPT等。</li>
+<li>结构化数据：知识图谱，工作如KnowledGPT，G-Retriever等。</li>
+<li>LLMs生成内容</li>
+</ul>
+<p>从检索的粒度来看，包含以下几种：</p>
+<ul>
+<li>对于文本，检索粒度涵盖：Token，短语，句子，Chunks，文章</li>
+<li>对于知识图谱，检索粒度包含：实体，三元组，子图</li>
+</ul>
+<h5 id="22-索引的优化">2.2 索引的优化<a hidden class="anchor" aria-hidden="true" href="#22-索引的优化">#</a></h5>
+<p>在索引这一环节，文章将被处理，分割并转变成向量表征被存储在向量数据库中。索引结构的质量决定着在检索过程中能否获取正确的内容。</p>
+<ul>
+<li>Chunking Strategy：最常用的方法是将文档切分成固定token数的chunk（100，256，512）。越大的chunk能够捕获更多的内容，但也会带来更多噪音，处理更长时间，成本更高；越小的chunk相反。划分chunk存在破坏完整句子的问题，解决该问题的工作有Small2Big等。</li>
+<li>Metadata Attachments：chunk可以由元数据（如：page number，file name，author，category timestamp等）扩充，从而检索过程可以使用元数据进行过滤，缩小检索范围。</li>
+<li>Structural Index：
+<ul>
+<li>分层索引结构</li>
+<li>知识图谱索引</li>
+</ul>
+</li>
+</ul>
+<h5 id="23-query的优化">2.3 Query的优化<a hidden class="anchor" aria-hidden="true" href="#23-query的优化">#</a></h5>
+<ul>
+<li>Query扩充：
+<ul>
+<li>Multi-Query：通过LLM将query扩充成多个，然后并行处理这些queries</li>
+<li>Sub-Query：对于复杂问题，可以将问题拆解成系列子问题</li>
+<li>Chain-of-Verification（CoVe）</li>
+</ul>
+</li>
+<li>Query Transformation：
+<ul>
+<li>Query Rewrite：有些原始queries对于LLM检索来说并不是最优。因此prompt LLM来重写queries，工作如Rewrite-retrieve-read等</li>
+</ul>
+</li>
+<li>Query Routing</li>
+</ul>
+<h5 id="24-词向量模型retriever">2.4 词向量模型（retriever）<a hidden class="anchor" aria-hidden="true" href="#24-词向量模型retriever">#</a></h5>
+<p>从向量编码器角度分包含sparse encoder和dense encoder</p>
+<ul>
+<li>sparse encoder：
+<ul>
+<li>TF-IDF</li>
+<li>BM25</li>
+</ul>
+</li>
+<li>dense retriever：
+<ul>
+<li>BERT-based PLM</li>
+</ul>
+</li>
+</ul>
+<h4 id="3-generation-part">3. Generation Part<a hidden class="anchor" aria-hidden="true" href="#3-generation-part">#</a></h4>
+<p>在完成检索部分后，把所有检索到的信息直接输入LLM来获取答案往往并不是最合理的方案。在生成阶段，一般会从两个方面引入一些调整：调整检索的内容、调整LLM。</p>
+<h5 id="31-context-curation">3.1 Context Curation<a hidden class="anchor" aria-hidden="true" href="#31-context-curation">#</a></h5>
+<p>冗余信息会影响LLM最终的生成结果，通常，LLM会把注意力倾向长文本的开端和结尾，而容易忘记中间的部分。因此在RAG系统中，我们通常需要进一步处理检索到的信息。</p>
+<ul>
+<li>Reranking：重排chunks的顺序
+<ul>
+<li>rule-based methods：Diversity，Relevance，MRR</li>
+<li>model-based methods：BERT series（SpanBERT），Cohere rerank，bge-reranker-large</li>
+</ul>
+</li>
+<li>Context Selection/Compression：对检索内容的筛选和压缩</li>
+<li>Reducing the number of documents</li>
+</ul>
+<h5 id="32-llm-fine-tuning">3.2 LLM Fine-tuning<a hidden class="anchor" aria-hidden="true" href="#32-llm-fine-tuning">#</a></h5>
+<p>对生成式LLM进行微调，主要适用特定场景下的生成，一般的PLM可能对这些场景了解程度不够，因此需要微调来辅助LLM生成。</p>
+<h4 id="4-augmentation-process-in-rag">4. Augmentation Process in RAG<a hidden class="anchor" aria-hidden="true" href="#4-augmentation-process-in-rag">#</a></h4>
+<p>常规的RAG流程通过只包含一次检索步骤，然后接着一步生成步骤，对于复杂任务或多步推理场景这种方式局限性较大，因此有优化的检索过程来解决这些问题。</p>
+<h5 id="41-迭代检索iterative-retrieval">4.1 迭代检索（Iterative Retrieval）<a hidden class="anchor" aria-hidden="true" href="#41-迭代检索iterative-retrieval">#</a></h5>
+<p>迭代检索过程中，知识库会基于初始query以及当前生成的文本被重复搜索，为LLM生成提供更全面的信息。相关工作：ITER-RETGEN等。</p>
+<h5 id="42-递归检索recursive-retrieval">4.2 递归检索（Recursive Retrieval）<a hidden class="anchor" aria-hidden="true" href="#42-递归检索recursive-retrieval">#</a></h5>
+<p>递归检索通常用于信息检索来提升检索结果的深度和相关性。该过程会基于过往检索的结果迭代优化检索queries。相关工作：IRCoT，ToC等。</p>
+<h5 id="43-适应性检索adaptive-retrieval">4.3 适应性检索（Adaptive Retrieval）<a hidden class="anchor" aria-hidden="true" href="#43-适应性检索adaptive-retrieval">#</a></h5>
+<p>适应性检索通过让LLMs能够主动决策最优检索的时刻以及检索的内容来优化RAG系统，提升检索信息的相关度以及效率。相关工作：Flare，Self-RAG，AutoGPT，Toolformer，Graph-Toolformer，WebGPT等。
+<img loading="lazy" src="/my-blog/images/2025-01-08-retrieval-augmented-generation/2025-01-08-image3.png" alt="three rag types"  />
+</p>
+<div align='center' style="color: #999999">图3: RAG中三类不同增强过程示意图</div>
+<h3 id="references">References<a hidden class="anchor" aria-hidden="true" href="#references">#</a></h3>
+<p>[1] Gao et al. <a href="https://arxiv.org/abs/2312.10997" class="entityLink">“Retrieval-Augmented Generation for Large Language Models: A Survey”</a> arXiv preprint arXiv:2312.10997 (2023)</p>
 
 
   </div>
