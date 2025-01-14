@@ -2,21 +2,21 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
   <channel>
     <title>AI on Rs&#39; Log</title>
-    <link>http://localhost:1313/my-blog/tags/ai/</link>
+    <link>https://tqzhong.github.io/my-blog/tags/ai/</link>
     <description>Recent content in AI on Rs&#39; Log</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Wed, 08 Jan 2025 00:00:00 +0000</lastBuildDate><atom:link href="http://localhost:1313/my-blog/tags/ai/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Wed, 08 Jan 2025 00:00:00 +0000</lastBuildDate><atom:link href="https://tqzhong.github.io/my-blog/tags/ai/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>RAG路线</title>
-      <link>http://localhost:1313/my-blog/posts/2025-01-08-retrieval-augmented-generation/</link>
+      <link>https://tqzhong.github.io/my-blog/posts/2025-01-08-retrieval-augmented-generation/</link>
       <pubDate>Wed, 08 Jan 2025 00:00:00 +0000</pubDate>
       
-      <guid>http://localhost:1313/my-blog/posts/2025-01-08-retrieval-augmented-generation/</guid>
+      <guid>https://tqzhong.github.io/my-blog/posts/2025-01-08-retrieval-augmented-generation/</guid>
       <description>&lt;h3 id=&#34;retrieval-augmented-generation-for-large-language-models-a-survey&#34;&gt;Retrieval-Augmented Generation for Large Language Models: A Survey&lt;/h3&gt;
 &lt;h4 id=&#34;1-overview-of-rag&#34;&gt;1. Overview of RAG&lt;/h4&gt;
 &lt;p&gt;典型的RAG模型如图1所示
-&lt;img loading=&#34;lazy&#34; src=&#34;http://localhost:1313/my-blog/my-blog/images/2025-01-08-retrieval-augmented-generation/2025-01-08-image1.png&#34; alt=&#34;typical rag model&#34;  /&gt;
+&lt;img loading=&#34;lazy&#34; src=&#34;https://tqzhong.github.io/my-blog/my-blog/images/2025-01-08-retrieval-augmented-generation/2025-01-08-image1.png&#34; alt=&#34;typical rag model&#34;  /&gt;
 &lt;/p&gt;
 &lt;div align=&#39;center&#39; style=&#34;color: #999999&#34;&gt;图1: 经典RAG模型&lt;/div&gt;
 &lt;h5 id=&#34;11-naive-rag&#34;&gt;1.1 Naive RAG&lt;/h5&gt;
@@ -48,7 +48,7 @@
 &lt;li&gt;引入新模块：搜索模块（Search Module）可以用于搜索外部资源（搜索引擎、数据库、知识图谱），使用LLM生成的搜索指令和查询语句处理；RAG-Fusion用于处理传统搜索的限制问题，使用multi-query策略将用户query从不同角度扩充；记忆模块（Memory Module）用于提升LLM的记忆来指导检索；路由模块（Routing）等等&lt;/li&gt;
 &lt;li&gt;引入新模式：Rewrite-Retrieve-Read模型通过引入rewriting module和一个语言模型反馈机制来更新rewriting model，提升性能；Generate-Read，Recite-Read等等。&lt;/li&gt;
 &lt;/ul&gt;
-&lt;p&gt;&lt;img loading=&#34;lazy&#34; src=&#34;http://localhost:1313/my-blog/my-blog/images/2025-01-08-retrieval-augmented-generation/2025-01-08-image2.png&#34; alt=&#34;three rag types&#34;  /&gt;
+&lt;p&gt;&lt;img loading=&#34;lazy&#34; src=&#34;https://tqzhong.github.io/my-blog/my-blog/images/2025-01-08-retrieval-augmented-generation/2025-01-08-image2.png&#34; alt=&#34;three rag types&#34;  /&gt;
 &lt;/p&gt;
 &lt;div align=&#39;center&#39; style=&#34;color: #999999&#34;&gt;图2: 三类不同RAG模型流程示意图&lt;/div&gt;
 &lt;h4 id=&#34;2-retrieval-part&#34;&gt;2. Retrieval Part&lt;/h4&gt;
@@ -71,10 +71,10 @@
     
     <item>
       <title>强化学习笔记</title>
-      <link>http://localhost:1313/my-blog/posts/2024-11-21-reinforcement-learning/</link>
+      <link>https://tqzhong.github.io/my-blog/posts/2024-11-21-reinforcement-learning/</link>
       <pubDate>Thu, 21 Nov 2024 00:00:00 +0000</pubDate>
       
-      <guid>http://localhost:1313/my-blog/posts/2024-11-21-reinforcement-learning/</guid>
+      <guid>https://tqzhong.github.io/my-blog/posts/2024-11-21-reinforcement-learning/</guid>
       <description>&lt;h3 id=&#34;1-基本概念公式&#34;&gt;1. 基本概念，公式&lt;/h3&gt;
 &lt;p&gt;策略$\pi$，状态$s\in\mathcal S$，动作$a\in\mathcal A$，奖励$r\in\mathcal R$&lt;/p&gt;
 &lt;p&gt;转移函数$P$给出当采取行动$a$从状态$s$转移到$s^\prime$，同时获得奖励$r$的概率&lt;/p&gt;
@@ -138,10 +138,10 @@ $$\mathbb P[S_{t+1}\vert S_t]=\mathbb P[S_{t+1}\vert S_1,\dots S_t]$$
     
     <item>
       <title>Deepspeed多机多卡训练&amp;代码细节</title>
-      <link>http://localhost:1313/my-blog/posts/2024-10-30-deepspeed/</link>
+      <link>https://tqzhong.github.io/my-blog/posts/2024-10-30-deepspeed/</link>
       <pubDate>Wed, 30 Oct 2024 00:00:00 +0000</pubDate>
       
-      <guid>http://localhost:1313/my-blog/posts/2024-10-30-deepspeed/</guid>
+      <guid>https://tqzhong.github.io/my-blog/posts/2024-10-30-deepspeed/</guid>
       <description>&lt;p&gt;本次使用的是多台8卡1080Ti服务器进行DeepSpeed多机多卡实验。&lt;/p&gt;
 &lt;h3 id=&#34;supervised-finetuning&#34;&gt;Supervised finetuning&lt;/h3&gt;
 &lt;p&gt;首先在主节点克隆&lt;a href=&#34;https://github.com/microsoft/DeepSpeedExamples&#34; class=&#34;entityLink&#34;&gt;deepspeed-chat&lt;/a&gt;仓库。&lt;/p&gt;
@@ -227,10 +227,10 @@ $$\mathbb P[S_{t+1}\vert S_t]=\mathbb P[S_{t+1}\vert S_1,\dots S_t]$$
     
     <item>
       <title>大模型post-training方法</title>
-      <link>http://localhost:1313/my-blog/posts/llm-post-training/</link>
+      <link>https://tqzhong.github.io/my-blog/posts/llm-post-training/</link>
       <pubDate>Wed, 09 Oct 2024 00:00:00 +0000</pubDate>
       
-      <guid>http://localhost:1313/my-blog/posts/llm-post-training/</guid>
+      <guid>https://tqzhong.github.io/my-blog/posts/llm-post-training/</guid>
       <description>&lt;!--tips:--&gt;
 &lt;!--公式块里，如果加了class=scroll-container(滚轮滑块防止单行公式太长)，大小于号注意要与后面的字符隔开一个空格，否则无法正常编译--&gt;
 &lt;!--常规公式块里，换行要用\\\\而不是\\否则无法正常编译，但是在{cases}环境里，换行用\\即可（目前发现这个，后续有其他再补充）--&gt;

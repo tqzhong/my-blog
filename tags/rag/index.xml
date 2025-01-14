@@ -2,21 +2,21 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
   <channel>
     <title>RAG on Rs&#39; Log</title>
-    <link>http://localhost:1313/my-blog/tags/rag/</link>
+    <link>https://tqzhong.github.io/my-blog/tags/rag/</link>
     <description>Recent content in RAG on Rs&#39; Log</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Wed, 08 Jan 2025 00:00:00 +0000</lastBuildDate><atom:link href="http://localhost:1313/my-blog/tags/rag/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Wed, 08 Jan 2025 00:00:00 +0000</lastBuildDate><atom:link href="https://tqzhong.github.io/my-blog/tags/rag/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>RAG路线</title>
-      <link>http://localhost:1313/my-blog/posts/2025-01-08-retrieval-augmented-generation/</link>
+      <link>https://tqzhong.github.io/my-blog/posts/2025-01-08-retrieval-augmented-generation/</link>
       <pubDate>Wed, 08 Jan 2025 00:00:00 +0000</pubDate>
       
-      <guid>http://localhost:1313/my-blog/posts/2025-01-08-retrieval-augmented-generation/</guid>
+      <guid>https://tqzhong.github.io/my-blog/posts/2025-01-08-retrieval-augmented-generation/</guid>
       <description>&lt;h3 id=&#34;retrieval-augmented-generation-for-large-language-models-a-survey&#34;&gt;Retrieval-Augmented Generation for Large Language Models: A Survey&lt;/h3&gt;
 &lt;h4 id=&#34;1-overview-of-rag&#34;&gt;1. Overview of RAG&lt;/h4&gt;
 &lt;p&gt;典型的RAG模型如图1所示
-&lt;img loading=&#34;lazy&#34; src=&#34;http://localhost:1313/my-blog/my-blog/images/2025-01-08-retrieval-augmented-generation/2025-01-08-image1.png&#34; alt=&#34;typical rag model&#34;  /&gt;
+&lt;img loading=&#34;lazy&#34; src=&#34;https://tqzhong.github.io/my-blog/my-blog/images/2025-01-08-retrieval-augmented-generation/2025-01-08-image1.png&#34; alt=&#34;typical rag model&#34;  /&gt;
 &lt;/p&gt;
 &lt;div align=&#39;center&#39; style=&#34;color: #999999&#34;&gt;图1: 经典RAG模型&lt;/div&gt;
 &lt;h5 id=&#34;11-naive-rag&#34;&gt;1.1 Naive RAG&lt;/h5&gt;
@@ -48,7 +48,7 @@
 &lt;li&gt;引入新模块：搜索模块（Search Module）可以用于搜索外部资源（搜索引擎、数据库、知识图谱），使用LLM生成的搜索指令和查询语句处理；RAG-Fusion用于处理传统搜索的限制问题，使用multi-query策略将用户query从不同角度扩充；记忆模块（Memory Module）用于提升LLM的记忆来指导检索；路由模块（Routing）等等&lt;/li&gt;
 &lt;li&gt;引入新模式：Rewrite-Retrieve-Read模型通过引入rewriting module和一个语言模型反馈机制来更新rewriting model，提升性能；Generate-Read，Recite-Read等等。&lt;/li&gt;
 &lt;/ul&gt;
-&lt;p&gt;&lt;img loading=&#34;lazy&#34; src=&#34;http://localhost:1313/my-blog/my-blog/images/2025-01-08-retrieval-augmented-generation/2025-01-08-image2.png&#34; alt=&#34;three rag types&#34;  /&gt;
+&lt;p&gt;&lt;img loading=&#34;lazy&#34; src=&#34;https://tqzhong.github.io/my-blog/my-blog/images/2025-01-08-retrieval-augmented-generation/2025-01-08-image2.png&#34; alt=&#34;three rag types&#34;  /&gt;
 &lt;/p&gt;
 &lt;div align=&#39;center&#39; style=&#34;color: #999999&#34;&gt;图2: 三类不同RAG模型流程示意图&lt;/div&gt;
 &lt;h4 id=&#34;2-retrieval-part&#34;&gt;2. Retrieval Part&lt;/h4&gt;
