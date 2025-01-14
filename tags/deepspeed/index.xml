@@ -2,17 +2,17 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
   <channel>
     <title>Deepspeed on Rs&#39; Log</title>
-    <link>https://tqzhong.github.io/my-blog/tags/deepspeed/</link>
+    <link>http://localhost:1313/my-blog/tags/deepspeed/</link>
     <description>Recent content in Deepspeed on Rs&#39; Log</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Wed, 30 Oct 2024 00:00:00 +0000</lastBuildDate><atom:link href="https://tqzhong.github.io/my-blog/tags/deepspeed/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Wed, 30 Oct 2024 00:00:00 +0000</lastBuildDate><atom:link href="http://localhost:1313/my-blog/tags/deepspeed/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Deepspeed多机多卡训练&amp;代码细节</title>
-      <link>https://tqzhong.github.io/my-blog/posts/2024-10-30-deepspeed/</link>
+      <link>http://localhost:1313/my-blog/posts/2024-10-30-deepspeed/</link>
       <pubDate>Wed, 30 Oct 2024 00:00:00 +0000</pubDate>
       
-      <guid>https://tqzhong.github.io/my-blog/posts/2024-10-30-deepspeed/</guid>
+      <guid>http://localhost:1313/my-blog/posts/2024-10-30-deepspeed/</guid>
       <description>&lt;p&gt;本次使用的是多台8卡1080Ti服务器进行DeepSpeed多机多卡实验。&lt;/p&gt;
 &lt;h3 id=&#34;supervised-finetuning&#34;&gt;Supervised finetuning&lt;/h3&gt;
 &lt;p&gt;首先在主节点克隆&lt;a href=&#34;https://github.com/microsoft/DeepSpeedExamples&#34; class=&#34;entityLink&#34;&gt;deepspeed-chat&lt;/a&gt;仓库。&lt;/p&gt;
