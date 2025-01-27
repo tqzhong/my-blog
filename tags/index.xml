@@ -6,22 +6,49 @@
     <description>Recent content in Tags on Rs&#39; Log</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Wed, 08 Jan 2025 00:00:00 +0000</lastBuildDate><atom:link href="https://tqzhong.github.io/my-blog/tags/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Mon, 27 Jan 2025 00:00:00 +0000</lastBuildDate><atom:link href="https://tqzhong.github.io/my-blog/tags/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>AI</title>
       <link>https://tqzhong.github.io/my-blog/tags/ai/</link>
-      <pubDate>Wed, 08 Jan 2025 00:00:00 +0000</pubDate>
+      <pubDate>Mon, 27 Jan 2025 00:00:00 +0000</pubDate>
       
       <guid>https://tqzhong.github.io/my-blog/tags/ai/</guid>
       <description></description>
     </item>
     
     <item>
+      <title>LLM</title>
+      <link>https://tqzhong.github.io/my-blog/tags/llm/</link>
+      <pubDate>Mon, 27 Jan 2025 00:00:00 +0000</pubDate>
+      
+      <guid>https://tqzhong.github.io/my-blog/tags/llm/</guid>
+      <description></description>
+    </item>
+    
+    <item>
       <title>NLP</title>
       <link>https://tqzhong.github.io/my-blog/tags/nlp/</link>
-      <pubDate>Wed, 08 Jan 2025 00:00:00 +0000</pubDate>
+      <pubDate>Mon, 27 Jan 2025 00:00:00 +0000</pubDate>
       
       <guid>https://tqzhong.github.io/my-blog/tags/nlp/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Paper Reading</title>
+      <link>https://tqzhong.github.io/my-blog/tags/paper-reading/</link>
+      <pubDate>Mon, 27 Jan 2025 00:00:00 +0000</pubDate>
+      
+      <guid>https://tqzhong.github.io/my-blog/tags/paper-reading/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Reasoning</title>
+      <link>https://tqzhong.github.io/my-blog/tags/reasoning/</link>
+      <pubDate>Mon, 27 Jan 2025 00:00:00 +0000</pubDate>
+      
+      <guid>https://tqzhong.github.io/my-blog/tags/reasoning/</guid>
       <description></description>
     </item>
     

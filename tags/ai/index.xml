@@ -6,7 +6,59 @@
     <description>Recent content in AI on Rs&#39; Log</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Wed, 08 Jan 2025 00:00:00 +0000</lastBuildDate><atom:link href="https://tqzhong.github.io/my-blog/tags/ai/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Mon, 27 Jan 2025 00:00:00 +0000</lastBuildDate><atom:link href="https://tqzhong.github.io/my-blog/tags/ai/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>DeepSeek-R1技术报告解读</title>
+      <link>https://tqzhong.github.io/my-blog/posts/2025-01-27-deepseek-r1/</link>
+      <pubDate>Mon, 27 Jan 2025 00:00:00 +0000</pubDate>
+      
+      <guid>https://tqzhong.github.io/my-blog/posts/2025-01-27-deepseek-r1/</guid>
+      <description>&lt;h3 id=&#34;1-摘要&#34;&gt;1. 摘要&lt;/h3&gt;
+&lt;p&gt;本次更新开源了DeepSeek-R1-Zero和DeepSeek-R1两个新旗舰reasoning模型，主要使用large-scale reinforcement learning且不需要SFT即完成训练，为开源社区给出了一个完全新颖且行之有效的reasoning LLM训练方案。其中DeepSeek-R1在reasoning任务上和OpenAI-o1-1217性能相当。除此之外，团队还开源了不同size的稠密模型（1.5B,7B,8B,14B,32B,70B），这些小模型是基于Qwen和Llama开源模型通过蒸馏DeepSeek-R1得到。&lt;/p&gt;
+&lt;h3 id=&#34;2-主要贡献&#34;&gt;2. 主要贡献&lt;/h3&gt;
+&lt;p&gt;新的后训练范式：在Base Model上直接使用Large-Scale RL&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;不使用SFT而直接基于base model做RL，让模型能够探索CoT来解决复杂问题。其中得到的DeepSeek-R1-Zero模型展现出了&lt;strong&gt;自我验证，反思，生成长的CoT&lt;/strong&gt;的能力。&lt;/li&gt;
+&lt;li&gt;团队给出了DeepSeek-R1的详细训练pipeline，该pipeline包含两段RL阶段，分别用于提升reasoning能力和用于提升通用能力；以及包含两段SFT阶段，分别为模型获取reasoning和non-reasoning能力提供冷启动。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;蒸馏：小模型也可以很强大&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;开源了多个size的基于Qwen2.5和Llama3系列模型使用DeepSeek-R1蒸馏得到的小模型，并且均在reasoning任务上展现了比同size最强开源模型更强的能力。在AIME2024、MATH-500、LiveCodeBench等基准上取得很高成绩。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;3-方法&#34;&gt;3. 方法&lt;/h3&gt;
+&lt;h4 id=&#34;31-deepseek-r1-zero-reinforcement-learning-on-the-base-model&#34;&gt;3.1 DeepSeek-R1-Zero: Reinforcement Learning on the Base Model&lt;/h4&gt;
+&lt;p&gt;DeepSeek-R1-Zero模型不实用任何有监督数据，不做SFT，仅使用纯粹的强化学习过程让模型自我进化。&lt;/p&gt;
+&lt;h5 id=&#34;311-reinforcement-learning-algorithm&#34;&gt;3.1.1 Reinforcement Learning Algorithm&lt;/h5&gt;
+&lt;p&gt;团队采用Croup Relative Policy Optimization（GRPO）强化学习算法。使critic model和policy model具有相同模型大小，具体来说，对每个问题$q$，GRPO从旧策略$\pi_{\theta_{old}}$采样一组输出${o_1,o_2,\cdots,o_G}$，然后使用如下优化目标优化策略模型$\pi_\theta$：&lt;/p&gt;
+&lt;div class=&#34;scroll-container&#34;&gt;
+$$
+\begin{align*}
+\mathcal{J}_{\text{GRPO}}(\theta) &amp;= \mathbb{E}\left[q \sim P(Q), \{o_i\}_{i=1}^G \sim \pi_{\theta_{\text{old}}}(O|q)\right]\\
+&amp;=\frac{1}{G} \sum_{i=1}^G \left( 
+\min \left( 
+\frac{\pi_{\theta}(o_i | q)}{\pi_{\theta_{\text{old}}}(o_i | q)} A_i, 
+\text{clip}\left( \frac{\pi_{\theta}(o_i | q)}{\pi_{\theta_{\text{old}}}(o_i | q)}, 1 - \epsilon, 1 + \epsilon \right) A_i 
+\right) 
+- \beta D_{\text{KL}}(\pi_{\theta} \| \pi_{\text{ref}})
+\right),
+\end{align*}
+$$
+&lt;/div&gt;
+&lt;div class=&#34;scroll-container&#34;&gt;
+$$
+D_{\text{KL}}(\pi_{\theta} \| \pi_{\text{ref}}) = 
+\frac{\pi_{\text{ref}}(o_i | q)}{\pi_{\theta}(o_i | q)} 
+- \log \frac{\pi_{\text{ref}}(o_i | q)}{\pi_{\theta}(o_i | q)} - 1,
+$$
+&lt;/div&gt;
+&lt;div class=&#34;scroll-container&#34;&gt;
+$$
+A_i = \frac{r_i - \text{mean}(\{r_1, r_2, \cdots, r_G\})}{\text{std}(\{r_1, r_2, \cdots, r_G\})}.
+$$
+&lt;/div&gt;
+&lt;p&gt;其中$\epsilon$和$\beta$为超参数，$A_i$为advantage，使用每个输出对应的奖励${r_1,r_2,\cdots,r_G}$计算得到。&lt;/p&gt;</description>
+    </item>
+    
     <item>
       <title>RAG路线</title>
       <link>https://tqzhong.github.io/my-blog/posts/2025-01-08-retrieval-augmented-generation/</link>
