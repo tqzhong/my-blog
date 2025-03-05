@@ -16,23 +16,5 @@
       <description></description>
     </item>
     
-    <item>
-      <title>Books</title>
-      <link>https://tqzhong.github.io/my-blog/categories/books/</link>
-      <pubDate>Sun, 22 Dec 2024 00:00:00 +0000</pubDate>
-      
-      <guid>https://tqzhong.github.io/my-blog/categories/books/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>Business</title>
-      <link>https://tqzhong.github.io/my-blog/categories/business/</link>
-      <pubDate>Tue, 15 Oct 2024 11:08:09 +0800</pubDate>
-      
-      <guid>https://tqzhong.github.io/my-blog/categories/business/</guid>
-      <description></description>
-    </item>
-    
   </channel>
 </rss>
