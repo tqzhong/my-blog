@@ -6,11 +6,11 @@
     <description>Recent content in Tags on Rs&#39; Log</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Wed, 29 Jan 2025 00:00:00 +0000</lastBuildDate><atom:link href="https://tqzhong.github.io/my-blog/tags/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Wed, 05 Mar 2025 00:00:00 +0000</lastBuildDate><atom:link href="https://tqzhong.github.io/my-blog/tags/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>AI</title>
       <link>https://tqzhong.github.io/my-blog/tags/ai/</link>
-      <pubDate>Wed, 29 Jan 2025 00:00:00 +0000</pubDate>
+      <pubDate>Wed, 05 Mar 2025 00:00:00 +0000</pubDate>
       
       <guid>https://tqzhong.github.io/my-blog/tags/ai/</guid>
       <description></description>
@@ -19,7 +19,7 @@
     <item>
       <title>LLM</title>
       <link>https://tqzhong.github.io/my-blog/tags/llm/</link>
-      <pubDate>Wed, 29 Jan 2025 00:00:00 +0000</pubDate>
+      <pubDate>Wed, 05 Mar 2025 00:00:00 +0000</pubDate>
       
       <guid>https://tqzhong.github.io/my-blog/tags/llm/</guid>
       <description></description>
@@ -28,9 +28,18 @@
     <item>
       <title>NLP</title>
       <link>https://tqzhong.github.io/my-blog/tags/nlp/</link>
-      <pubDate>Wed, 29 Jan 2025 00:00:00 +0000</pubDate>
+      <pubDate>Wed, 05 Mar 2025 00:00:00 +0000</pubDate>
       
       <guid>https://tqzhong.github.io/my-blog/tags/nlp/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>RL</title>
+      <link>https://tqzhong.github.io/my-blog/tags/rl/</link>
+      <pubDate>Wed, 05 Mar 2025 00:00:00 +0000</pubDate>
+      
+      <guid>https://tqzhong.github.io/my-blog/tags/rl/</guid>
       <description></description>
     </item>
     
@@ -58,15 +67,6 @@
       <pubDate>Wed, 08 Jan 2025 00:00:00 +0000</pubDate>
       
       <guid>https://tqzhong.github.io/my-blog/tags/rag/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>RL</title>
-      <link>https://tqzhong.github.io/my-blog/tags/rl/</link>
-      <pubDate>Thu, 21 Nov 2024 00:00:00 +0000</pubDate>
-      
-      <guid>https://tqzhong.github.io/my-blog/tags/rl/</guid>
       <description></description>
     </item>
     
