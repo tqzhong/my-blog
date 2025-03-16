@@ -473,7 +473,7 @@ $$
 \hat A_{i,t}=A_i = \frac{r_i - \text{mean}(\{r_1, r_2, \cdots, r_G\})}{\text{std}(\{r_1, r_2, \cdots, r_G\})}.
 $$
 </div>
-<p>GRPO算法出自文章<a href="https://arxiv.org/abs/2402.03300" class="entityLink">DeepSeekMath (2024)</a>，其中KL散度的计算采用了<a herf="http://joschu.net/blog/kl-approx.html" class="entityLink">Approximating KL Divergence</a>中的无偏估计方法，即$\mathbb D_{KL}(q\Vert p)=r-1-\log r$，其中$r=\log\frac{p(x)}{q(x)}$，该估计相比$-\log r$具有更小的方差，比$\frac{1}{2}(\log r)^2$具有更小的偏差（无偏）。</p>
+<p>GRPO算法出自文章<a href="https://arxiv.org/abs/2402.03300" class="entityLink">DeepSeekMath (2024)</a>，其中KL散度的计算采用了<a href="http://joschu.net/blog/kl-approx.html" class="entityLink">Approximating KL Divergence</a>中的无偏估计方法，即$\mathbb D_{KL}(q\Vert p)=r-1-\log r$，其中$r=\log\frac{p(x)}{q(x)}$，该估计相比$-\log r$具有更小的方差，比$\frac{1}{2}(\log r)^2$具有更小的偏差（无偏）。</p>
 <h3 id="代码">代码<a hidden class="anchor" aria-hidden="true" href="#代码">#</a></h3>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">

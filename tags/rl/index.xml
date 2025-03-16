@@ -44,7 +44,7 @@ $$
 \hat A_{i,t}=A_i = \frac{r_i - \text{mean}(\{r_1, r_2, \cdots, r_G\})}{\text{std}(\{r_1, r_2, \cdots, r_G\})}.
 $$
 &lt;/div&gt;
-&lt;p&gt;GRPO算法出自文章&lt;a href=&#34;https://arxiv.org/abs/2402.03300&#34; class=&#34;entityLink&#34;&gt;DeepSeekMath (2024)&lt;/a&gt;，其中KL散度的计算采用了&lt;a herf=&#34;http://joschu.net/blog/kl-approx.html&#34; class=&#34;entityLink&#34;&gt;Approximating KL Divergence&lt;/a&gt;中的无偏估计方法，即$\mathbb D_{KL}(q\Vert p)=r-1-\log r$，其中$r=\log\frac{p(x)}{q(x)}$，该估计相比$-\log r$具有更小的方差，比$\frac{1}{2}(\log r)^2$具有更小的偏差（无偏）。&lt;/p&gt;</description>
+&lt;p&gt;GRPO算法出自文章&lt;a href=&#34;https://arxiv.org/abs/2402.03300&#34; class=&#34;entityLink&#34;&gt;DeepSeekMath (2024)&lt;/a&gt;，其中KL散度的计算采用了&lt;a href=&#34;http://joschu.net/blog/kl-approx.html&#34; class=&#34;entityLink&#34;&gt;Approximating KL Divergence&lt;/a&gt;中的无偏估计方法，即$\mathbb D_{KL}(q\Vert p)=r-1-\log r$，其中$r=\log\frac{p(x)}{q(x)}$，该估计相比$-\log r$具有更小的方差，比$\frac{1}{2}(\log r)^2$具有更小的偏差（无偏）。&lt;/p&gt;</description>
     </item>
     
     <item>
