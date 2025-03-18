@@ -28,7 +28,7 @@ $$
 \right] 
 - \beta \mathbb D_{\text{KL}}[\pi_{\theta} \| \pi_{\text{ref}}]
 \right\}\\
-&amp;=\frac{1}{G} \sum_{i=1}^G\frac{1}{\vert o_i\vert}\sum_{t=1}^{\vert o_i\vert}\left\{\min\left[\frac{\pi_\theta(o_{i,t}\vert q,o_{i,&lt; t})}{\pi_{\theta_{old}}(o_{i,t}\vert q, o_{i,&lt; t})}\hat A_{i,t},\ \text{clip}\left(\frac{\pi_\theta(o_{i,t}\vert q,o_{i,&lt; t})}{\pi_{\theta_{old}}(o_{i,t}\vert q,o_{i, &lt; t})},1-\epsilon,1+\epsilon\right)\hat A_{i,t}\right] - \beta\mathbb D_{KL}[\pi_\theta\Vert\pi_{ref}]\right\}
+&amp;=\frac{1}{G} \sum_{i=1}^G\frac{1}{\vert o_i\vert}\sum_{t=1}^{\vert o_i\vert}\left\{\min\left[\frac{\pi_\theta(o_{i,t}\vert q,o_{i,&lt; t})}{\pi_{\theta_{old}}(o_{i,t}\vert q, o_{i,&lt; t})}\hat A_{i,t},\ \text{clip}\left(\frac{\pi_\theta(o_{i,t}\vert q,o_{i,&lt; t})}{\pi_{\theta_{old}}(o_{i,t}\vert q,o_{i, &lt; t})},1-\epsilon,1+\epsilon\right)\hat A_{i,t}\right] - \beta\mathbb D_{KL}[\pi_\theta\Vert\pi_{\text{ref}}]\right\}
 \end{align*}
 $$
 &lt;/div&gt;
