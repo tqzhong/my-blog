@@ -6,7 +6,42 @@
     <description>Recent content in Reasoning on Rs&#39; Log</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Mon, 27 Jan 2025 00:00:00 +0000</lastBuildDate><atom:link href="https://tqzhong.github.io/my-blog/tags/reasoning/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Wed, 19 Mar 2025 00:00:00 +0000</lastBuildDate><atom:link href="https://tqzhong.github.io/my-blog/tags/reasoning/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>大模型后训练：PPO、GRPO、DAPO</title>
+      <link>https://tqzhong.github.io/my-blog/posts/2025-03-19-llm-post-training-via-reinforcement-learning/</link>
+      <pubDate>Wed, 19 Mar 2025 00:00:00 +0000</pubDate>
+      
+      <guid>https://tqzhong.github.io/my-blog/posts/2025-03-19-llm-post-training-via-reinforcement-learning/</guid>
+      <description>&lt;h3 id=&#34;dapo&#34;&gt;DAPO&lt;/h3&gt;
+&lt;p&gt;&lt;a href=&#34;https://arxiv.org/abs/2503.14476&#34; class=&#34;entityLink&#34;&gt;Yu et al.&lt;/a&gt;提出了DAPO（Decouple Clip and Dynamic sAmpling Policy Optimization）算法，该算法基于&lt;a href=&#34;https://arxiv.org/abs/2402.03300&#34; class=&#34;entityLink&#34;&gt;GRPO&lt;/a&gt;算法提出了四点改进，其优化目标如下：&lt;/p&gt;
+&lt;div class=&#34;scroll-container&#34;&gt;
+$$
+\begin{align*}
+    \mathcal J_{DAPO}(\theta)&amp;=\mathbb E_{(q,a)\sim\mathcal D,\{o_i\}_{i=1}^G\sim\pi_{\theta_{old}}(\cdot\vert q)}\left\{\frac{1}{\sum_{i=1}^G\vert o_i\vert}\sum_{i=1}^G\sum_{t=1}^{\vert o_i\vert}\min\left[r_{i,t}(\theta)\hat A_{i,t},\text{clip}\left(r_{i,t}(\theta),1-\epsilon_{\text{low}},1+\epsilon_{\text{high}}\right)\hat A_{i,t}\right]\right\}\\
+    % &amp; \text{s.t.}\quad 0 &lt; \vert \{o_i\vert \text{is\_equivalent}\}
+    &amp; \text{s.t.}\quad 0 &lt; \left\vert \{o_i\ \vert\  \text{is\_equivalent}(a, o_i)\}\right\vert &lt; G,
+\end{align*}
+$$
+&lt;/div&gt;
+&lt;div class=&#34;scroll-container&#34;&gt;
+$$
+r_{i,t}(\theta)=\frac{\pi_\theta(o_{i,t}\vert q,o_{i,&lt; t})}{\pi_{\theta_{old}}(o_{i,t}\vert q,o_{i, &lt; t})},\quad \hat A_{i,t}=\frac{R_i-\text{mean}(\{R_i\}_{i=1}^G)}{\text{std}(\{R_i\}_{i=1}^G)}
+$$
+&lt;/div&gt;
+&lt;p&gt;首先作者移除了GRPO算法中的KL散度惩罚，作者认为对于训练long-CoT推理模型，actor model的输出分布与ref model的输出分布自然存在较大差异，没有必要设置KL散度限制。其次对于DAPO，作者采用基于规则的奖励模型，对于可验证任务（automated throrem proving、computer programming、mathematics competition），作者使用如下奖励函数，其中$\hat y$是预测答案，$y$是标准答案。&lt;/p&gt;
+&lt;div class=&#34;scroll-container&#34;&gt;
+$$
+R(\hat y, y)=
+\begin{cases}
+    1,&amp; \text{is\_equivalent}(\hat y, y)\\
+    -1,&amp; \text{otherwise}
+\end{cases}
+$$
+&lt;/div&gt;
+&lt;p&gt;接着，作者针对GRPO的理论缺陷提出了四点比较有意思的insights，每个insight对原本算法的改动都很小，但存在一定效果的提升。&lt;/p&gt;</description>
+    </item>
+    
     <item>
       <title>DeepSeek-R1技术报告解读</title>
       <link>https://tqzhong.github.io/my-blog/posts/2025-01-27-deepseek-r1/</link>
