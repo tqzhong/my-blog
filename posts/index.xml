@@ -8,33 +8,43 @@
     <language>en-us</language>
     <lastBuildDate>Wed, 19 Mar 2025 00:00:00 +0000</lastBuildDate><atom:link href="https://tqzhong.github.io/my-blog/posts/index.xml" rel="self" type="application/rss+xml" />
     <item>
-      <title>大模型后训练：PPO、GRPO、DAPO</title>
-      <link>https://tqzhong.github.io/my-blog/posts/2025-03-19-llm-post-training-via-reinforcement-learning/</link>
-      <pubDate>Wed, 19 Mar 2025 00:00:00 +0000</pubDate>
+      <title>大模型后训练-GRPO From Scratch</title>
+      <link>https://tqzhong.github.io/my-blog/posts/2025-03-05-grpo/</link>
+      <pubDate>Wed, 05 Mar 2025 00:00:00 +0000</pubDate>
       
-      <guid>https://tqzhong.github.io/my-blog/posts/2025-03-19-llm-post-training-via-reinforcement-learning/</guid>
-      <description>&lt;h3 id=&#34;ppo&#34;&gt;PPO&lt;/h3&gt;
-&lt;p&gt;PPO（Proximal Policy Optimization）算法出自&lt;a href=&#34;https://arxiv.org/abs/1707.06347&#34; class=&#34;entityLink&#34;&gt;Schulman et al.&lt;/a&gt;，在微调大模型中，该算法通过最大化以下目标函数来优化模型参数&lt;/p&gt;
-&lt;p&gt;$$
-\mathcal J_{PPO}(\theta)=\mathbb E_{[q\sim P(Q),o\sim \pi_{\theta_{old}}(O\vert q)]}\frac{1}{\vert o\vert}\sum_{t=1}^{\vert o\vert}\min\left[\frac{\pi_\theta(o_t\vert q,o_{&amp;lt; t})}{\pi_{\theta_{old}}(o_t\vert q,o_{&amp;lt; t})}A_t,\text{clip}\left(\frac{\pi_\theta(o_t\vert q,o_{&amp;lt; t})}{\pi_{\theta_{old}}(o_t\vert q,o_{&amp;lt; t})},1-\epsilon,1+\epsilon\right),A_t\right]
-$$&lt;/p&gt;
-&lt;h3 id=&#34;dapo&#34;&gt;DAPO&lt;/h3&gt;
-&lt;p&gt;&lt;a href=&#34;https://arxiv.org/abs/2503.14476&#34; class=&#34;entityLink&#34;&gt;Yu et al.&lt;/a&gt;提出了DAPO（Decouple Clip and Dynamic sAmpling Policy Optimization）算法，该算法基于&lt;a href=&#34;https://arxiv.org/abs/2402.03300&#34; class=&#34;entityLink&#34;&gt;GRPO&lt;/a&gt;算法提出了四点改进，其优化目标如下：&lt;/p&gt;
+      <guid>https://tqzhong.github.io/my-blog/posts/2025-03-05-grpo/</guid>
+      <description>&lt;h3 id=&#34;简介&#34;&gt;简介&lt;/h3&gt;
+&lt;p&gt;本篇博客基于Andriy Burkov的grpo开源代码，简单跑通GRPO的完整流程。使用的GPU资源为1张3090（24G）。原作者代码见：&lt;a href=&#34;https://github.com/aburkov/theLMbook/blob/main/GRPO_From_Scratch_Multi_GPU_DataParallel_Qwen_2_5_1_5B_Instruct.ipynb&#34; class=&#34;entityLink&#34;&gt;GRPO_From-Scratch&lt;/a&gt;以及&lt;a href=&#34;https://github.com/aburkov/theLMbook/blob/main/GRPO_Qwen_0_5_Instruct.ipynb&#34; class=&#34;entityLink&#34;&gt;GRPO_Qwen-0_5_Instruct&lt;/a&gt;。注：原作者使用8张80G A100完成实验。&lt;/p&gt;
+&lt;h3 id=&#34;grpo&#34;&gt;GRPO&lt;/h3&gt;
+&lt;p&gt;GRPO算法原理见&lt;a href=&#34;https://matrixai.online/my-blog/posts/2025-01-27-deepseek-r1/#311-reinforcement-learning-algorithm&#34; class=&#34;entityLink&#34;&gt;alg-grpo&lt;/a&gt;，原作者在这块的实现基本遵从DeepSeek技术报告中的损失公式，后面代码处详细展开。&lt;/p&gt;
 &lt;div class=&#34;scroll-container&#34;&gt;
 $$
 \begin{align*}
-    \mathcal J_{DAPO}(\theta)&amp;=\mathbb E_{(q,a)\sim\mathcal D,\{o_i\}_{i=1}^G\sim\pi_{\theta_{old}}(\cdot\vert q)}\left\{\frac{1}{\sum_{i=1}^G\vert o_i\vert}\sum_{i=1}^G\sum_{t=1}^{\vert o_i\vert}\min\left[r_{i,t}(\theta)\hat A_{i,t},\text{clip}\left(r_{i,t}(\theta),1-\epsilon_{\text{low}},1+\epsilon_{\text{high}}\right)\hat A_{i,t}\right]\right\}\\
-    % &amp; \text{s.t.}\quad 0 &lt; \vert \{o_i\vert \text{is\_equivalent}\}
-    &amp; \text{s.t.}\quad 0 &lt; \left\vert \{o_i\ \vert\  \text{is\_equivalent}(a, o_i)\}\right\vert &lt; G,
+\mathcal{J}_{\text{GRPO}}(\theta) &amp;= \mathbb{E}\left[q \sim P(Q), \{o_i\}_{i=1}^G \sim \pi_{\theta_{\text{old}}}(O|q)\right]\\
+&amp;=\frac{1}{G} \sum_{i=1}^G \left\{
+\min \left[ 
+\frac{\pi_{\theta}(o_i | q)}{\pi_{\theta_{\text{old}}}(o_i | q)} A_i, 
+\text{clip}\left( \frac{\pi_{\theta}(o_i | q)}{\pi_{\theta_{\text{old}}}(o_i | q)}, 1 - \epsilon, 1 + \epsilon \right) A_i 
+\right] 
+- \beta \mathbb D_{\text{KL}}[\pi_{\theta} \| \pi_{\text{ref}}]
+\right\}\\
+&amp;=\frac{1}{G} \sum_{i=1}^G\frac{1}{\vert o_i\vert}\sum_{t=1}^{\vert o_i\vert}\left\{\min\left[\frac{\pi_\theta(o_{i,t}\vert q,o_{i,&lt; t})}{\pi_{\theta_{old}}(o_{i,t}\vert q, o_{i,&lt; t})}\hat A_{i,t},\ \text{clip}\left(\frac{\pi_\theta(o_{i,t}\vert q,o_{i,&lt; t})}{\pi_{\theta_{old}}(o_{i,t}\vert q,o_{i, &lt; t})},1-\epsilon,1+\epsilon\right)\hat A_{i,t}\right] - \beta\mathbb D_{KL}[\pi_\theta\Vert\pi_{\text{ref}}]\right\}
 \end{align*}
 $$
 &lt;/div&gt;
 &lt;div class=&#34;scroll-container&#34;&gt;
 $$
-r_{i,t}(\theta)=\frac{\pi_\theta(o_{i,t}\vert q,o_{i,&lt; t})}{\pi_{\theta_{old}}(o_{i,t}\vert q,o_{i, &lt; t})},\quad \hat A_{i,t}=\frac{R_i-\text{mean}(\{R_i\}_{i=1}^G)}{\text{std}(\{R_i\}_{i=1}^G)}
+D_{\text{KL}}(\pi_{\theta} \| \pi_{\text{ref}}) = 
+\frac{\pi_{\text{ref}}(o_{i, t} | q, o_{i, &lt; t})}{\pi_{\theta}(o_{i, t} | q, o_{i, &lt; t})} 
+- \log \frac{\pi_{\text{ref}}(o_{i, t} | q, o_{i, &lt; t})}{\pi_{\theta}(o_{i, t} | q, o_{i, &lt; t})} - 1,
 $$
 &lt;/div&gt;
-&lt;p&gt;首先作者移除了GRPO算法中的KL散度惩罚，作者认为对于训练long-CoT推理模型，actor model的输出分布与ref model的输出分布自然存在较大差异，没有必要设置KL散度限制。其次对于DAPO，作者采用基于规则的奖励模型，对于可验证任务（automated throrem proving、computer programming、mathematics competition），作者使用如下奖励函数，其中$\hat y$是预测答案，$y$是标准答案。&lt;/p&gt;</description>
+&lt;div class=&#34;scroll-container&#34;&gt;
+$$
+\hat A_{i,t}=A_i = \frac{r_i - \text{mean}(\{r_1, r_2, \cdots, r_G\})}{\text{std}(\{r_1, r_2, \cdots, r_G\})}.
+$$
+&lt;/div&gt;
+&lt;p&gt;GRPO算法出自文章&lt;a href=&#34;https://arxiv.org/abs/2402.03300&#34; class=&#34;entityLink&#34;&gt;DeepSeekMath (2024)&lt;/a&gt;，其中KL散度的计算采用了&lt;a href=&#34;http://joschu.net/blog/kl-approx.html&#34; class=&#34;entityLink&#34;&gt;Approximating KL Divergence&lt;/a&gt;中的无偏估计方法，即$\mathbb D_{KL}(q\Vert p)=r-1-\log r$，其中$r=\log\frac{p(x)}{q(x)}$，该估计相比$-\log r$具有更小的方差，比$\frac{1}{2}(\log r)^2$具有更小的偏差（无偏）。&lt;/p&gt;</description>
     </item>
     
     <item>
