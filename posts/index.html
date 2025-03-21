@@ -206,6 +206,45 @@
       <article class="post-entry bordered-article"> 
         <header class="entry-header">
           <h2>
+            <a href="https://tqzhong.github.io/my-blog/posts/2025-03-19-llm-post-training-via-reinforcement-learning/">大模型后训练：PPO、GRPO、DAPO</a>
+          </h2>
+        </header>
+          <div class="entry-content">
+            <p>PPO PPO（Proximal Policy Optimization）算法出自Schulman et al.，在微调大模型中，该算法通过最大化以下目标函数来优化模型参数：
+$$ \mathcal J_{PPO}(\theta)=\mathbb E_{[q\sim P(Q),o\sim \pi_{\theta_{old}}(O\vert q)]}\frac{1}{\vert o\vert}\sum_{t=1}^{\vert o\vert}\min\left[\frac{\pi_\theta(o_t\vert q,o_{&lt; t})}{\pi_{\theta_{old}}(o_t\vert q,o_{&lt; t})}A_t,\text{clip}\left(\frac{\pi_\theta(o_t\vert q,o_{&lt; t})}{\pi_{\theta_{old}}(o_t\vert q,o_{&lt; t})},1-\epsilon,1&#43;\epsilon\right),A_t\right] $$
+其中优势函数$A_t$通过使用GAE（Generalized Advantage Estimation）算法计算得到：
+$$ r_t=r_\phi(q,o_{1:t}) - \beta \log\frac{\pi_\theta(o_t\vert q,o_{&lt; t})}{\pi_{ref}(o_t\vert q,o_{&lt; t})} $$
+$$ A_t=\delta_t &#43; (\gamma\lambda)\delta_{t&#43;1} &#43; \cdots &#43; (\gamma\lambda)^{T-t&#43;1}\delta_{T-1}, $$
+$$ \delta_t=r_t&#43;\gamma V(s_{t&#43;1}) - V(s_t) $$
+针对大模型微调的场景，$q$为问题（或者prompt），假设其最大长度为max_prompt_len，生成的$o_{1:t}$为答案（或者generation sentence），假设其最大长度为max_seq_len。上式中$r_t$为奖励，$r_\phi$为reward model（PPO优化中参数不更新），该模型输入$q$和$o_{1:t}$得到每个句子的最后一个有效token上的reward score，因此$r_\phi(q,o_{1:t})$的维度可以记作$(bs,)$（$bs$为ppo批量大小），KL惩罚项使用估计项$\log\frac{\pi_\theta(\cdot)}{\pi_{ref}(\cdot)}$
+DAPO Yu et al.提出了DAPO（Decouple Clip and Dynamic sAmpling Policy Optimization）算法，该算法基于GRPO算法提出了四点改进，其优化目标如下：
+$$ \begin{align*} \mathcal J_{DAPO}(\theta)&amp;=\mathbb E_{(q,a)\sim\mathcal D,\{o_i\}_{i=1}^G\sim\pi_{\theta_{old}}(\cdot\vert q)}\left\{\frac{1}{\sum_{i=1}^G\vert o_i\vert}\sum_{i=1}^G\sum_{t=1}^{\vert o_i\vert}\min\left[r_{i,t}(\theta)\hat A_{i,t},\text{clip}\left(r_{i,t}(\theta),1-\epsilon_{\text{low}},1&#43;\epsilon_{\text{high}}\right)\hat A_{i,t}\right]\right\}\\ % &amp; \text{s.t.}\quad 0 &lt; \vert \{o_i\vert \text{is\_equivalent}\} &amp; \text{s.t.}\quad 0 &lt; \left\vert \{o_i\ \vert\ \text{is\_equivalent}(a, o_i)\}\right\vert &lt; G, \end{align*} $$ $$ r_{i,t}(\theta)=\frac{\pi_\theta(o_{i,t}\vert q,o_{i,&lt; t})}{\pi_{\theta_{old}}(o_{i,t}\vert q,o_{i, &lt; t})},\quad \hat A_{i,t}=\frac{R_i-\text{mean}(\{R_i\}_{i=1}^G)}{\text{std}(\{R_i\}_{i=1}^G)} $$ 首先作者移除了GRPO算法中的KL散度惩罚，作者认为对于训练long-CoT推理模型，actor model的输出分布与ref model的输出分布自然存在较大差异，没有必要设置KL散度限制。其次对于DAPO，作者采用基于规则的奖励模型，对于可验证任务（automated throrem proving、computer programming、mathematics competition），作者使用如下奖励函数，其中$\hat y$是预测答案，$y$是标准答案。
+...</p>
+          </div>
+          <footer class="entry-footer">
+
+
+<i class="fas fa-calendar-alt blog-meta-icon"></i>&nbsp;2025-03-19 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <i class="fas fa-clock blog-meta-icon"></i>&nbsp;2 min &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <i class="fas fa-user blog-meta-icon"></i>&nbsp;Rs &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <i class="fas fa-eye blog-meta-icon"></i>&nbsp;<span class="view-counter" data-url="https://tqzhong.github.io/my-blog/posts/2025-03-19-llm-post-training-via-reinforcement-learning/"></span>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        
+        var viewCounterElement = document.querySelector(".view-counter[data-url='https:\/\/tqzhong.github.io\/my-blog\/posts\/2025-03-19-llm-post-training-via-reinforcement-learning\/']");
+        if (viewCounterElement) {
+            
+            var cachedViews = localStorage.getItem("view-count-\/my-blog\/posts\/2025-03-19-llm-post-training-via-reinforcement-learning\/");
+            
+            viewCounterElement.innerText = cachedViews || "0";
+        }
+    });
+  </script>
+  
+          </footer>
+        <a class="entry-link" aria-label="post link to 大模型后训练：PPO、GRPO、DAPO" href="https://tqzhong.github.io/my-blog/posts/2025-03-19-llm-post-training-via-reinforcement-learning/"></a>
+      </article>
+      <article class="post-entry bordered-article"> 
+        <header class="entry-header">
+          <h2>
             <a href="https://tqzhong.github.io/my-blog/posts/2025-03-05-grpo/">大模型后训练-GRPO From Scratch</a>
           </h2>
         </header>
