@@ -15,7 +15,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <meta name="robots" content="index, follow">
-<title>大模型后训练：PPO、GRPO、DAPO | Rs&#39; Log</title>
+<title>大模型post-training方法——强化学习篇 | Rs&#39; Log</title>
 <meta name="keywords" content="AI, NLP, LLM, RL, Reasoning">
 <meta name="description" content="PPO
 PPO（Proximal Policy Optimization）算法出自Schulman et al.，在微调大模型中，该算法通过最大化以下目标函数来优化模型参数：
@@ -119,7 +119,7 @@ def get_advantages_and_returns(self, values, rewards):
 
     </style>
 </noscript>
-<link rel="stylesheet" href="/my-blog/css/custom.css?v=1.7"><meta property="og:title" content="大模型后训练：PPO、GRPO、DAPO" />
+<link rel="stylesheet" href="/my-blog/css/custom.css?v=1.7"><meta property="og:title" content="大模型post-training方法——强化学习篇" />
 <meta property="og:description" content="PPO
 PPO（Proximal Policy Optimization）算法出自Schulman et al.，在微调大模型中，该算法通过最大化以下目标函数来优化模型参数：
 $$
@@ -171,7 +171,7 @@ def get_advantages_and_returns(self, values, rewards):
 <meta property="article:modified_time" content="2025-03-19T00:00:00+00:00" />
 
 <meta name="twitter:card" content="summary"/>
-<meta name="twitter:title" content="大模型后训练：PPO、GRPO、DAPO"/>
+<meta name="twitter:title" content="大模型post-training方法——强化学习篇"/>
 <meta name="twitter:description" content="PPO
 PPO（Proximal Policy Optimization）算法出自Schulman et al.，在微调大模型中，该算法通过最大化以下目标函数来优化模型参数：
 $$
@@ -233,7 +233,7 @@ def get_advantages_and_returns(self, values, rewards):
     {
       "@type": "ListItem",
       "position":  2 ,
-      "name": "大模型后训练：PPO、GRPO、DAPO",
+      "name": "大模型post-training方法——强化学习篇",
       "item": "https://tqzhong.github.io/my-blog/posts/2025-03-19-llm-post-training-via-reinforcement-learning/"
     }
   ]
@@ -243,8 +243,8 @@ def get_advantages_and_returns(self, values, rewards):
 {
   "@context": "https://schema.org",
   "@type": "BlogPosting",
-  "headline": "大模型后训练：PPO、GRPO、DAPO",
-  "name": "大模型后训练：PPO、GRPO、DAPO",
+  "headline": "大模型post-training方法——强化学习篇",
+  "name": "大模型post-training方法——强化学习篇",
   "description": "PPO PPO（Proximal Policy Optimization）算法出自Schulman et al.，在微调大模型中，该算法通过最大化以下目标函数来优化模型参数：\n$$ \\mathcal J_{PPO}(\\theta)=\\mathbb E_{[q\\sim P(Q),o\\sim \\pi_{\\theta_{old}}(O\\vert q)]}\\frac{1}{\\vert o\\vert}\\sum_{t=1}^{\\vert o\\vert}\\min\\left[\\frac{\\pi_\\theta(o_t\\vert q,o_{\u0026lt; t})}{\\pi_{\\theta_{old}}(o_t\\vert q,o_{\u0026lt; t})}A_t,\\text{clip}\\left(\\frac{\\pi_\\theta(o_t\\vert q,o_{\u0026lt; t})}{\\pi_{\\theta_{old}}(o_t\\vert q,o_{\u0026lt; t})},1-\\epsilon,1+\\epsilon\\right),A_t\\right] $$\n其中优势函数$A_t$通过使用GAE（Generalized Advantage Estimation）算法计算得到：\n$$ r_t=r_\\phi(q,o_{1:t}) - \\beta \\log\\frac{\\pi_\\theta(o_t\\vert q,o_{\u0026lt; t})}{\\pi_{ref}(o_t\\vert q,o_{\u0026lt; t})} $$\n$$ A_t=\\delta_t + (\\gamma\\lambda)\\delta_{t+1} + (\\gamma\\lambda)^2\\delta_{t+2}+\\cdots=\\sum_{l=0}^\\infty (\\gamma\\lambda)^l\\delta_{t+l} $$\n$$ \\delta_t=r_t+\\gamma V(s_{t+1}) - V(s_t) $$\n针对大模型微调的场景，$q$为问题（或者prompt），假设其最大长度为max_prompt_len，生成的$o_{1:t}$为答案（或者generation sentence），假设其最大长度为max_seq_len。上式中$r_t$为奖励，$r_\\phi$为reward model（PPO优化中参数不更新），该模型输入$q$和$o_{1:t}$得到每个句子的最后一个有效token上的reward score，因此$r_\\phi(q,o_{1:t})$的维度可以记作(bs,)（$bs$为ppo批量大小），KL惩罚项使用估计项$\\log\\frac{\\pi_\\theta(\\cdot)}{\\pi_{ref}(\\cdot)}$，该项得到的维度为(bs, max_seq_len)，因此最终的奖励向量$r_t$维度为(bs, max_seq_len)。接着看一下DeepSpeed中对优势函数和回报实现的代码：\n1 2 3 4 5 6 7 8 9 10 11 def get_advantages_and_returns(self, values, rewards): lastgaelam = 0 advantages_reversed = [] max_seq_len = rewards.shape[-1] for t in reversed(range(max_seq_len)): nextvalues = values[:, t + 1] if t \u0026lt; max_seq_len - 1 else 0.0 delta = rewards[:, t] + self.gamma * nextvalues - values[:, t] lastgaelam = delta + self.gamma * self.lam * lastgaelam advantages_reversed.append(lastgaelam) advantages = torch.stack(advantages_reversed[::-1], dim=1) returns = advantages + values 经过一次for循环得到的分别是（令max_seq_len为$\\vert o\\vert$）：\n",
   "keywords": [
     "AI", "NLP", "LLM", "RL", "Reasoning"
@@ -373,7 +373,7 @@ def get_advantages_and_returns(self, values, rewards):
   <header class="post-header">
     
     <h1 class="post-title">
-      大模型后训练：PPO、GRPO、DAPO
+      大模型post-training方法——强化学习篇
     </h1>
     <div class="post-meta">
 
