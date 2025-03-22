@@ -15,7 +15,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <meta name="robots" content="index, follow">
-<title>大模型后训练-GRPO From Scratch | Rs&#39; Log</title>
+<title>GRPO From Scratch | Rs&#39; Log</title>
 <meta name="keywords" content="AI, NLP, LLM, RL">
 <meta name="description" content="简介
 本篇博客基于Andriy Burkov的grpo开源代码，简单跑通GRPO的完整流程。使用的GPU资源为1张3090（24G）。原作者代码见：GRPO_From-Scratch以及GRPO_Qwen-0_5_Instruct。注：原作者使用8张80G A100完成实验。
@@ -106,7 +106,7 @@ GRPO算法出自文章DeepSeekMath (2024)，其中KL散度的计算采用了Appr
 
     </style>
 </noscript>
-<link rel="stylesheet" href="/my-blog/css/custom.css?v=1.7"><meta property="og:title" content="大模型后训练-GRPO From Scratch" />
+<link rel="stylesheet" href="/my-blog/css/custom.css?v=1.7"><meta property="og:title" content="GRPO From Scratch" />
 <meta property="og:description" content="简介
 本篇博客基于Andriy Burkov的grpo开源代码，简单跑通GRPO的完整流程。使用的GPU资源为1张3090（24G）。原作者代码见：GRPO_From-Scratch以及GRPO_Qwen-0_5_Instruct。注：原作者使用8张80G A100完成实验。
 GRPO
@@ -145,7 +145,7 @@ GRPO算法出自文章DeepSeekMath (2024)，其中KL散度的计算采用了Appr
 <meta property="article:modified_time" content="2025-03-05T00:00:00+00:00" />
 
 <meta name="twitter:card" content="summary"/>
-<meta name="twitter:title" content="大模型后训练-GRPO From Scratch"/>
+<meta name="twitter:title" content="GRPO From Scratch"/>
 <meta name="twitter:description" content="简介
 本篇博客基于Andriy Burkov的grpo开源代码，简单跑通GRPO的完整流程。使用的GPU资源为1张3090（24G）。原作者代码见：GRPO_From-Scratch以及GRPO_Qwen-0_5_Instruct。注：原作者使用8张80G A100完成实验。
 GRPO
@@ -194,7 +194,7 @@ GRPO算法出自文章DeepSeekMath (2024)，其中KL散度的计算采用了Appr
     {
       "@type": "ListItem",
       "position":  2 ,
-      "name": "大模型后训练-GRPO From Scratch",
+      "name": "GRPO From Scratch",
       "item": "https://tqzhong.github.io/my-blog/posts/2025-03-05-grpo/"
     }
   ]
@@ -204,8 +204,8 @@ GRPO算法出自文章DeepSeekMath (2024)，其中KL散度的计算采用了Appr
 {
   "@context": "https://schema.org",
   "@type": "BlogPosting",
-  "headline": "大模型后训练-GRPO From Scratch",
-  "name": "大模型后训练-GRPO From Scratch",
+  "headline": "GRPO From Scratch",
+  "name": "GRPO From Scratch",
   "description": "简介 本篇博客基于Andriy Burkov的grpo开源代码，简单跑通GRPO的完整流程。使用的GPU资源为1张3090（24G）。原作者代码见：GRPO_From-Scratch以及GRPO_Qwen-0_5_Instruct。注：原作者使用8张80G A100完成实验。\nGRPO GRPO算法原理见alg-grpo，原作者在这块的实现基本遵从DeepSeek技术报告中的损失公式，后面代码处详细展开。\n$$ \\begin{align*} \\mathcal{J}_{\\text{GRPO}}(\\theta) \u0026= \\mathbb{E}\\left[q \\sim P(Q), \\{o_i\\}_{i=1}^G \\sim \\pi_{\\theta_{\\text{old}}}(O|q)\\right]\\\\ \u0026=\\frac{1}{G} \\sum_{i=1}^G \\left\\{ \\min \\left[ \\frac{\\pi_{\\theta}(o_i | q)}{\\pi_{\\theta_{\\text{old}}}(o_i | q)} A_i, \\text{clip}\\left( \\frac{\\pi_{\\theta}(o_i | q)}{\\pi_{\\theta_{\\text{old}}}(o_i | q)}, 1 - \\epsilon, 1 + \\epsilon \\right) A_i \\right] - \\beta \\mathbb D_{\\text{KL}}[\\pi_{\\theta} \\| \\pi_{\\text{ref}}] \\right\\}\\\\ \u0026=\\frac{1}{G} \\sum_{i=1}^G\\frac{1}{\\vert o_i\\vert}\\sum_{t=1}^{\\vert o_i\\vert}\\left\\{\\min\\left[\\frac{\\pi_\\theta(o_{i,t}\\vert q,o_{i,\u003c t})}{\\pi_{\\theta_{old}}(o_{i,t}\\vert q, o_{i,\u003c t})}\\hat A_{i,t},\\ \\text{clip}\\left(\\frac{\\pi_\\theta(o_{i,t}\\vert q,o_{i,\u003c t})}{\\pi_{\\theta_{old}}(o_{i,t}\\vert q,o_{i, \u003c t})},1-\\epsilon,1+\\epsilon\\right)\\hat A_{i,t}\\right] - \\beta\\mathbb D_{KL}[\\pi_\\theta\\Vert\\pi_{\\text{ref}}]\\right\\} \\end{align*} $$ $$ D_{\\text{KL}}(\\pi_{\\theta} \\| \\pi_{\\text{ref}}) = \\frac{\\pi_{\\text{ref}}(o_{i, t} | q, o_{i, \u003c t})}{\\pi_{\\theta}(o_{i, t} | q, o_{i, \u003c t})} - \\log \\frac{\\pi_{\\text{ref}}(o_{i, t} | q, o_{i, \u003c t})}{\\pi_{\\theta}(o_{i, t} | q, o_{i, \u003c t})} - 1, $$ $$ \\hat A_{i,t}=A_i = \\frac{r_i - \\text{mean}(\\{r_1, r_2, \\cdots, r_G\\})}{\\text{std}(\\{r_1, r_2, \\cdots, r_G\\})}. $$ GRPO算法出自文章DeepSeekMath (2024)，其中KL散度的计算采用了Approximating KL Divergence中的无偏估计方法，即$\\mathbb D_{KL}(q\\Vert p)=r-1-\\log r$，其中$r=\\log\\frac{p(x)}{q(x)}$，该估计相比$-\\log r$具有更小的方差，比$\\frac{1}{2}(\\log r)^2$具有更小的偏差（无偏）。\n",
   "keywords": [
     "AI", "NLP", "LLM", "RL"
@@ -334,7 +334,7 @@ GRPO算法出自文章DeepSeekMath (2024)，其中KL散度的计算采用了Appr
   <header class="post-header">
     
     <h1 class="post-title">
-      大模型后训练-GRPO From Scratch
+      GRPO From Scratch
     </h1>
     <div class="post-meta">
 
