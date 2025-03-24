@@ -15,19 +15,27 @@
       <guid>https://tqzhong.github.io/my-blog/posts/2025-03-19-llm-post-training-via-reinforcement-learning/</guid>
       <description>&lt;h3 id=&#34;ppo&#34;&gt;PPO&lt;/h3&gt;
 &lt;p&gt;PPO（Proximal Policy Optimization）算法出自&lt;a href=&#34;https://arxiv.org/abs/1707.06347&#34; class=&#34;entityLink&#34;&gt;Schulman et al.&lt;/a&gt;，在微调大模型中，该算法通过最大化以下目标函数来优化模型参数：&lt;/p&gt;
-&lt;p&gt;$$
-\mathcal J_{PPO}(\theta)=\mathbb E_{[q\sim P(Q),o\sim \pi_{\theta_{old}}(O\vert q)]}\frac{1}{\vert o\vert}\sum_{t=1}^{\vert o\vert}\min\left[\frac{\pi_\theta(o_t\vert q,o_{&amp;lt; t})}{\pi_{\theta_{old}}(o_t\vert q,o_{&amp;lt; t})}A_t,\text{clip}\left(\frac{\pi_\theta(o_t\vert q,o_{&amp;lt; t})}{\pi_{\theta_{old}}(o_t\vert q,o_{&amp;lt; t})},1-\epsilon,1+\epsilon\right),A_t\right]
-$$&lt;/p&gt;
+&lt;div class=&#34;scroll-container&#34;&gt;
+$$
+\mathcal J_{PPO}(\theta)=\mathbb E_{[q\sim P(Q),o\sim \pi_{\theta_{old}}(O\vert q)]}\frac{1}{\vert o\vert}\sum_{t=1}^{\vert o\vert}\min\left[\frac{\pi_\theta(o_t\vert q,o_{&lt; t})}{\pi_{\theta_{old}}(o_t\vert q,o_{&lt; t})}A_t,\text{clip}\left(\frac{\pi_\theta(o_t\vert q,o_{&lt; t})}{\pi_{\theta_{old}}(o_t\vert q,o_{&lt; t})},1-\epsilon,1+\epsilon\right),A_t\right]
+$$
+&lt;/div&gt;
 &lt;p&gt;其中优势函数$A_t$通过使用GAE（Generalized Advantage Estimation）算法计算得到：&lt;/p&gt;
-&lt;p&gt;$$
-r_t=r_\phi(q,o_{1:t}) - \beta \log\frac{\pi_\theta(o_t\vert q,o_{&amp;lt; t})}{\pi_{ref}(o_t\vert q,o_{&amp;lt; t})}
-$$&lt;/p&gt;
-&lt;p&gt;$$
+&lt;div class=&#34;scroll-container&#34;&gt;
+$$
+r_t=r_\phi(q,o_{1:t}) - \beta \log\frac{\pi_\theta(o_t\vert q,o_{&lt; t})}{\pi_{ref}(o_t\vert q,o_{&lt; t})}
+$$
+&lt;/div&gt;
+&lt;div class=&#34;scroll-container&#34;&gt;
+$$
 A_t=\delta_t + (\gamma\lambda)\delta_{t+1} + (\gamma\lambda)^2\delta_{t+2}+\cdots=\sum_{l=0}^\infty (\gamma\lambda)^l\delta_{t+l}
-$$&lt;/p&gt;
-&lt;p&gt;$$
+$$
+&lt;/div&gt;
+&lt;div class=&#34;scroll-container&#34;&gt;
+$$
 \delta_t=r_t+\gamma V(s_{t+1}) - V(s_t)
-$$&lt;/p&gt;
+$$
+&lt;/div&gt;
 &lt;p&gt;针对大模型微调的场景，$q$为问题（或者prompt），假设其最大长度为max_prompt_len，生成的$o_{1:t}$为答案（或者generation sentence），假设其最大长度为max_seq_len。上式中$r_t$为奖励，$r_\phi$为reward model（PPO优化中参数不更新），该模型输入$q$和$o_{1:t}$得到每个句子的最后一个有效token上的reward score，因此$r_\phi(q,o_{1:t})$的维度可以记作(bs,)（$bs$为ppo批量大小），KL惩罚项使用估计项$\log\frac{\pi_\theta(\cdot)}{\pi_{ref}(\cdot)}$，该项得到的维度为(bs, max_seq_len)，因此最终的奖励向量$r_t$维度为(bs, max_seq_len)。接着看一下DeepSpeed中对优势函数和回报实现的代码：&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
 &lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
