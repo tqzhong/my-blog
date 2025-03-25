@@ -23,7 +23,7 @@ $$
 &lt;p&gt;其中优势函数$A_t$通过使用GAE（Generalized Advantage Estimation）算法计算得到：&lt;/p&gt;
 &lt;div class=&#34;scroll-container&#34;&gt;
 $$
-r_t=r_\phi(q,o_{1:t}) - \beta \log\frac{\pi_\theta(o_t\vert q,o_{&lt; t})}{\pi_{ref}(o_t\vert q,o_{&lt; t})}
+r_t=r_\phi(q,o_{1:\vert o\vert}) - \beta \log\frac{\pi_\theta(o_t\vert q,o_{&lt; t})}{\pi_{ref}(o_t\vert q,o_{&lt; t})}
 $$
 &lt;/div&gt;
 &lt;div class=&#34;scroll-container&#34;&gt;
