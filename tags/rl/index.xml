@@ -14,6 +14,7 @@
       
       <guid>https://tqzhong.github.io/my-blog/posts/2025-03-19-llm-post-training-via-reinforcement-learning/</guid>
       <description>&lt;h3 id=&#34;ppo&#34;&gt;PPO&lt;/h3&gt;
+&lt;!-- #### Algorithm --&gt;
 &lt;p&gt;PPO（Proximal Policy Optimization）算法出自&lt;a href=&#34;https://arxiv.org/abs/1707.06347&#34; class=&#34;entityLink&#34;&gt;Schulman et al.&lt;/a&gt;，在微调大模型中，该算法通过最大化以下目标函数来优化模型参数：&lt;/p&gt;
 &lt;div class=&#34;scroll-container&#34;&gt;
 $$
