@@ -1,23 +1,5 @@
-<!DOCTYPE html>
-<html lang="en" dir="auto">
-<a href="https://yourpersonalwebsite.com" target="_blank">
-
-<head>
-    <script src="https://cdn.jsdelivr.net/npm/fuse.js/dist/fuse.min.js"></script>
-    <link rel="stylesheet" href="https://unpkg.com/@waline/client@v3/dist/waline.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.13.0/dist/katex.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/default.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
-    <script>hljs.initHighlightingOnLoad();</script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/plugins/line-numbers.min.js"></script>
-
-<meta charset="utf-8">
-<meta http-equiv="X-UA-Compatible" content="IE=edge">
-<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<meta name="robots" content="index, follow">
-<title>DeepSeek-R1技术报告解读 | Rs&#39; Log</title>
-<meta name="keywords" content="AI, Paper Reading, NLP, LLM, Reasoning">
-<meta name="description" content="1. 摘要
+<!doctype html><html lang=en dir=auto><a href=https://yourpersonalwebsite.com target=_blank><head><script src=https://cdn.jsdelivr.net/npm/fuse.js/dist/fuse.min.js></script><link rel=stylesheet href=https://unpkg.com/@waline/client@v3/dist/waline.css><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/katex@0.13.0/dist/katex.min.css><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/default.min.css><script src=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js></script><script>hljs.initHighlightingOnLoad()</script><script src=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/plugins/line-numbers.min.js></script><meta charset=utf-8><meta http-equiv=X-UA-Compatible content="IE=edge"><meta name=viewport content="width=device-width,initial-scale=1,shrink-to-fit=no"><meta name=robots content="index, follow"><title>DeepSeek-R1技术报告解读 | Rs' Log</title>
+<meta name=keywords content="AI,Paper Reading,NLP,LLM,Reasoning"><meta name=description content="1. 摘要
 本次更新开源了DeepSeek-R1-Zero和DeepSeek-R1两个新旗舰reasoning模型，主要使用large-scale reinforcement learning且不需要SFT即完成训练，为开源社区给出了一个完全新颖且行之有效的reasoning LLM训练方案。其中DeepSeek-R1在reasoning任务上和OpenAI-o1-1217性能相当。除此之外，团队还开源了不同size的稠密模型（1.5B,7B,8B,14B,32B,70B），这些小模型是基于Qwen和Llama开源模型通过蒸馏DeepSeek-R1得到。
 2. 主要贡献
 新的后训练范式：在Base Model上直接使用Large-Scale RL
@@ -35,517 +17,6 @@ DeepSeek-R1-Zero模型不实用任何有监督数据，不做SFT，仅使用纯�
 3.1.1 Reinforcement Learning Algorithm
 团队采用Croup Relative Policy Optimization（GRPO）强化学习算法。使critic model和policy model具有相同模型大小，具体来说，对每个问题$q$，GRPO从旧策略$\pi_{\theta_{old}}$采样一组输出${o_1,o_2,\cdots,o_G}$，然后使用如下优化目标优化策略模型$\pi_\theta$：
 
-$$
-\begin{align*}
-\mathcal{J}_{\text{GRPO}}(\theta) &= \mathbb{E}\left[q \sim P(Q), \{o_i\}_{i=1}^G \sim \pi_{\theta_{\text{old}}}(O|q)\right]\\
-&=\frac{1}{G} \sum_{i=1}^G \left( 
-\min \left( 
-\frac{\pi_{\theta}(o_i | q)}{\pi_{\theta_{\text{old}}}(o_i | q)} A_i, 
-\text{clip}\left( \frac{\pi_{\theta}(o_i | q)}{\pi_{\theta_{\text{old}}}(o_i | q)}, 1 - \epsilon, 1 &#43; \epsilon \right) A_i 
-\right) 
-- \beta D_{\text{KL}}(\pi_{\theta} \| \pi_{\text{ref}})
-\right),
-\end{align*}
-$$
-
-
-$$
-D_{\text{KL}}(\pi_{\theta} \| \pi_{\text{ref}}) = 
-\frac{\pi_{\text{ref}}(o_i | q)}{\pi_{\theta}(o_i | q)} 
-- \log \frac{\pi_{\text{ref}}(o_i | q)}{\pi_{\theta}(o_i | q)} - 1,
-$$
-
-
-$$
-A_i = \frac{r_i - \text{mean}(\{r_1, r_2, \cdots, r_G\})}{\text{std}(\{r_1, r_2, \cdots, r_G\})}.
-$$
-
-其中$\epsilon$和$\beta$为超参数，$A_i$为advantage，使用每个输出对应的奖励${r_1,r_2,\cdots,r_G}$计算得到。">
-<meta name="author" content="Rs">
-<link rel="canonical" href="https://tqzhong.github.io/my-blog/posts/2025-01-27-deepseek-r1/">
-
-
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-<link crossorigin="anonymous" href="/my-blog/assets/css/stylesheet.6a98292fb8fa8cf0f3ba4042d4b75515c04267550f3ad49ff6271b5af9562443.css" integrity="sha256-apgpL7j6jPDzukBC1LdVFcBCZ1UPOtSf9icbWvlWJEM=" rel="preload stylesheet" as="style">
-
-
-<script defer crossorigin="anonymous" src="/my-blog/assets/js/highlight.f413e19d0714851f6474e7ee9632408e58ac146fbdbe62747134bea2fa3415e0.js" integrity="sha256-9BPhnQcUhR9kdOfuljJAjlisFG&#43;9vmJ0cTS&#43;ovo0FeA="
-    onload="hljs.initHighlightingOnLoad();"></script>
-<link rel="icon" type="image/x-icon" sizes="48x48" href="images/favicon.ico">
-<link rel="icon" type="image/png" sizes="16x16" href="images/favicon-16x16.png">
-<link rel="icon" type="image/png" sizes="32x32" href="images/favicon-32x32.png">
-<link rel="apple-touch-icon" href="images/apple-touch-icon.png">
-<link rel="icon" sizes="512x512" href="images/android-chrome-512x512.png" type="image/png">
-<link rel="icon" sizes="192x192" href="images/android-chrome-192x192.png" type="image/png">
-<link rel="mask-icon" href="https://tqzhong.github.io/my-blog/safari-pinned-tab.svg">
-<meta name="theme-color" content="#2e2e33">
-<meta name="msapplication-TileColor" content="#2e2e33">
-<link rel="alternate" hreflang="en" href="https://tqzhong.github.io/my-blog/posts/2025-01-27-deepseek-r1/">
-<noscript>
-    <style>
-        #theme-toggle,
-        .top-link {
-            display: none;
-        }
-
-    </style>
-    <style>
-        @media (prefers-color-scheme: dark) {
-            :root {
-                --theme: rgb(29, 30, 32);
-                --entry: rgb(46, 46, 51);
-                --primary: rgb(218, 218, 219);
-                --secondary: rgb(155, 156, 157);
-                --tertiary: rgb(65, 66, 68);
-                --content: rgb(196, 196, 197);
-                --hljs-bg: rgb(46, 46, 51);
-                --code-bg: rgb(55, 56, 62);
-                --border: rgb(51, 51, 51);
-            }
-
-            .list {
-                background: var(--theme);
-            }
-
-            .list:not(.dark)::-webkit-scrollbar-track {
-                background: 0 0;
-            }
-
-            .list:not(.dark)::-webkit-scrollbar-thumb {
-                border-color: var(--theme);
-            }
-        }
-
-    </style>
-</noscript>
-<link rel="stylesheet" href="/my-blog/css/custom.css?v=1.7"><meta property="og:title" content="DeepSeek-R1技术报告解读" />
-<meta property="og:description" content="1. 摘要
-本次更新开源了DeepSeek-R1-Zero和DeepSeek-R1两个新旗舰reasoning模型，主要使用large-scale reinforcement learning且不需要SFT即完成训练，为开源社区给出了一个完全新颖且行之有效的reasoning LLM训练方案。其中DeepSeek-R1在reasoning任务上和OpenAI-o1-1217性能相当。除此之外，团队还开源了不同size的稠密模型（1.5B,7B,8B,14B,32B,70B），这些小模型是基于Qwen和Llama开源模型通过蒸馏DeepSeek-R1得到。
-2. 主要贡献
-新的后训练范式：在Base Model上直接使用Large-Scale RL
-
-不使用SFT而直接基于base model做RL，让模型能够探索CoT来解决复杂问题。其中得到的DeepSeek-R1-Zero模型展现出了自我验证，反思，生成长的CoT的能力。
-团队给出了DeepSeek-R1的详细训练pipeline，该pipeline包含两段RL阶段，分别用于提升reasoning能力和用于提升通用能力；以及包含两段SFT阶段，分别为模型获取reasoning和non-reasoning能力提供冷启动。
-
-蒸馏：小模型也可以很强大
-
-开源了多个size的基于Qwen2.5和Llama3系列模型使用DeepSeek-R1蒸馏得到的小模型，并且均在reasoning任务上展现了比同size最强开源模型更强的能力。在AIME2024、MATH-500、LiveCodeBench等基准上取得很高成绩。
-
-3. 方法
-3.1 DeepSeek-R1-Zero: Reinforcement Learning on the Base Model
-DeepSeek-R1-Zero模型不实用任何有监督数据，不做SFT，仅使用纯粹的强化学习过程让模型自我进化。
-3.1.1 Reinforcement Learning Algorithm
-团队采用Croup Relative Policy Optimization（GRPO）强化学习算法。使critic model和policy model具有相同模型大小，具体来说，对每个问题$q$，GRPO从旧策略$\pi_{\theta_{old}}$采样一组输出${o_1,o_2,\cdots,o_G}$，然后使用如下优化目标优化策略模型$\pi_\theta$：
-
-$$
-\begin{align*}
-\mathcal{J}_{\text{GRPO}}(\theta) &= \mathbb{E}\left[q \sim P(Q), \{o_i\}_{i=1}^G \sim \pi_{\theta_{\text{old}}}(O|q)\right]\\
-&=\frac{1}{G} \sum_{i=1}^G \left( 
-\min \left( 
-\frac{\pi_{\theta}(o_i | q)}{\pi_{\theta_{\text{old}}}(o_i | q)} A_i, 
-\text{clip}\left( \frac{\pi_{\theta}(o_i | q)}{\pi_{\theta_{\text{old}}}(o_i | q)}, 1 - \epsilon, 1 &#43; \epsilon \right) A_i 
-\right) 
-- \beta D_{\text{KL}}(\pi_{\theta} \| \pi_{\text{ref}})
-\right),
-\end{align*}
-$$
-
-
-$$
-D_{\text{KL}}(\pi_{\theta} \| \pi_{\text{ref}}) = 
-\frac{\pi_{\text{ref}}(o_i | q)}{\pi_{\theta}(o_i | q)} 
-- \log \frac{\pi_{\text{ref}}(o_i | q)}{\pi_{\theta}(o_i | q)} - 1,
-$$
-
-
-$$
-A_i = \frac{r_i - \text{mean}(\{r_1, r_2, \cdots, r_G\})}{\text{std}(\{r_1, r_2, \cdots, r_G\})}.
-$$
-
-其中$\epsilon$和$\beta$为超参数，$A_i$为advantage，使用每个输出对应的奖励${r_1,r_2,\cdots,r_G}$计算得到。" />
-<meta property="og:type" content="article" />
-<meta property="og:url" content="https://tqzhong.github.io/my-blog/posts/2025-01-27-deepseek-r1/" /><meta property="article:section" content="posts" />
-<meta property="article:published_time" content="2025-01-27T00:00:00+00:00" />
-<meta property="article:modified_time" content="2025-01-27T00:00:00+00:00" />
-
-<meta name="twitter:card" content="summary"/>
-<meta name="twitter:title" content="DeepSeek-R1技术报告解读"/>
-<meta name="twitter:description" content="1. 摘要
-本次更新开源了DeepSeek-R1-Zero和DeepSeek-R1两个新旗舰reasoning模型，主要使用large-scale reinforcement learning且不需要SFT即完成训练，为开源社区给出了一个完全新颖且行之有效的reasoning LLM训练方案。其中DeepSeek-R1在reasoning任务上和OpenAI-o1-1217性能相当。除此之外，团队还开源了不同size的稠密模型（1.5B,7B,8B,14B,32B,70B），这些小模型是基于Qwen和Llama开源模型通过蒸馏DeepSeek-R1得到。
-2. 主要贡献
-新的后训练范式：在Base Model上直接使用Large-Scale RL
-
-不使用SFT而直接基于base model做RL，让模型能够探索CoT来解决复杂问题。其中得到的DeepSeek-R1-Zero模型展现出了自我验证，反思，生成长的CoT的能力。
-团队给出了DeepSeek-R1的详细训练pipeline，该pipeline包含两段RL阶段，分别用于提升reasoning能力和用于提升通用能力；以及包含两段SFT阶段，分别为模型获取reasoning和non-reasoning能力提供冷启动。
-
-蒸馏：小模型也可以很强大
-
-开源了多个size的基于Qwen2.5和Llama3系列模型使用DeepSeek-R1蒸馏得到的小模型，并且均在reasoning任务上展现了比同size最强开源模型更强的能力。在AIME2024、MATH-500、LiveCodeBench等基准上取得很高成绩。
-
-3. 方法
-3.1 DeepSeek-R1-Zero: Reinforcement Learning on the Base Model
-DeepSeek-R1-Zero模型不实用任何有监督数据，不做SFT，仅使用纯粹的强化学习过程让模型自我进化。
-3.1.1 Reinforcement Learning Algorithm
-团队采用Croup Relative Policy Optimization（GRPO）强化学习算法。使critic model和policy model具有相同模型大小，具体来说，对每个问题$q$，GRPO从旧策略$\pi_{\theta_{old}}$采样一组输出${o_1,o_2,\cdots,o_G}$，然后使用如下优化目标优化策略模型$\pi_\theta$：
-
-$$
-\begin{align*}
-\mathcal{J}_{\text{GRPO}}(\theta) &= \mathbb{E}\left[q \sim P(Q), \{o_i\}_{i=1}^G \sim \pi_{\theta_{\text{old}}}(O|q)\right]\\
-&=\frac{1}{G} \sum_{i=1}^G \left( 
-\min \left( 
-\frac{\pi_{\theta}(o_i | q)}{\pi_{\theta_{\text{old}}}(o_i | q)} A_i, 
-\text{clip}\left( \frac{\pi_{\theta}(o_i | q)}{\pi_{\theta_{\text{old}}}(o_i | q)}, 1 - \epsilon, 1 &#43; \epsilon \right) A_i 
-\right) 
-- \beta D_{\text{KL}}(\pi_{\theta} \| \pi_{\text{ref}})
-\right),
-\end{align*}
-$$
-
-
-$$
-D_{\text{KL}}(\pi_{\theta} \| \pi_{\text{ref}}) = 
-\frac{\pi_{\text{ref}}(o_i | q)}{\pi_{\theta}(o_i | q)} 
-- \log \frac{\pi_{\text{ref}}(o_i | q)}{\pi_{\theta}(o_i | q)} - 1,
-$$
-
-
-$$
-A_i = \frac{r_i - \text{mean}(\{r_1, r_2, \cdots, r_G\})}{\text{std}(\{r_1, r_2, \cdots, r_G\})}.
-$$
-
-其中$\epsilon$和$\beta$为超参数，$A_i$为advantage，使用每个输出对应的奖励${r_1,r_2,\cdots,r_G}$计算得到。"/>
-
-
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "BreadcrumbList",
-  "itemListElement": [
-    {
-      "@type": "ListItem",
-      "position":  1 ,
-      "name": "Posts",
-      "item": "https://tqzhong.github.io/my-blog/posts/"
-    }, 
-    {
-      "@type": "ListItem",
-      "position":  2 ,
-      "name": "DeepSeek-R1技术报告解读",
-      "item": "https://tqzhong.github.io/my-blog/posts/2025-01-27-deepseek-r1/"
-    }
-  ]
-}
-</script>
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "BlogPosting",
-  "headline": "DeepSeek-R1技术报告解读",
-  "name": "DeepSeek-R1技术报告解读",
-  "description": "1. 摘要 本次更新开源了DeepSeek-R1-Zero和DeepSeek-R1两个新旗舰reasoning模型，主要使用large-scale reinforcement learning且不需要SFT即完成训练，为开源社区给出了一个完全新颖且行之有效的reasoning LLM训练方案。其中DeepSeek-R1在reasoning任务上和OpenAI-o1-1217性能相当。除此之外，团队还开源了不同size的稠密模型（1.5B,7B,8B,14B,32B,70B），这些小模型是基于Qwen和Llama开源模型通过蒸馏DeepSeek-R1得到。\n2. 主要贡献 新的后训练范式：在Base Model上直接使用Large-Scale RL\n不使用SFT而直接基于base model做RL，让模型能够探索CoT来解决复杂问题。其中得到的DeepSeek-R1-Zero模型展现出了自我验证，反思，生成长的CoT的能力。 团队给出了DeepSeek-R1的详细训练pipeline，该pipeline包含两段RL阶段，分别用于提升reasoning能力和用于提升通用能力；以及包含两段SFT阶段，分别为模型获取reasoning和non-reasoning能力提供冷启动。 蒸馏：小模型也可以很强大\n开源了多个size的基于Qwen2.5和Llama3系列模型使用DeepSeek-R1蒸馏得到的小模型，并且均在reasoning任务上展现了比同size最强开源模型更强的能力。在AIME2024、MATH-500、LiveCodeBench等基准上取得很高成绩。 3. 方法 3.1 DeepSeek-R1-Zero: Reinforcement Learning on the Base Model DeepSeek-R1-Zero模型不实用任何有监督数据，不做SFT，仅使用纯粹的强化学习过程让模型自我进化。\n3.1.1 Reinforcement Learning Algorithm 团队采用Croup Relative Policy Optimization（GRPO）强化学习算法。使critic model和policy model具有相同模型大小，具体来说，对每个问题$q$，GRPO从旧策略$\\pi_{\\theta_{old}}$采样一组输出${o_1,o_2,\\cdots,o_G}$，然后使用如下优化目标优化策略模型$\\pi_\\theta$：\n$$ \\begin{align*} \\mathcal{J}_{\\text{GRPO}}(\\theta) \u0026= \\mathbb{E}\\left[q \\sim P(Q), \\{o_i\\}_{i=1}^G \\sim \\pi_{\\theta_{\\text{old}}}(O|q)\\right]\\\\ \u0026=\\frac{1}{G} \\sum_{i=1}^G \\left( \\min \\left( \\frac{\\pi_{\\theta}(o_i | q)}{\\pi_{\\theta_{\\text{old}}}(o_i | q)} A_i, \\text{clip}\\left( \\frac{\\pi_{\\theta}(o_i | q)}{\\pi_{\\theta_{\\text{old}}}(o_i | q)}, 1 - \\epsilon, 1 + \\epsilon \\right) A_i \\right) - \\beta D_{\\text{KL}}(\\pi_{\\theta} \\| \\pi_{\\text{ref}}) \\right), \\end{align*} $$ $$ D_{\\text{KL}}(\\pi_{\\theta} \\| \\pi_{\\text{ref}}) = \\frac{\\pi_{\\text{ref}}(o_i | q)}{\\pi_{\\theta}(o_i | q)} - \\log \\frac{\\pi_{\\text{ref}}(o_i | q)}{\\pi_{\\theta}(o_i | q)} - 1, $$ $$ A_i = \\frac{r_i - \\text{mean}(\\{r_1, r_2, \\cdots, r_G\\})}{\\text{std}(\\{r_1, r_2, \\cdots, r_G\\})}. $$ 其中$\\epsilon$和$\\beta$为超参数，$A_i$为advantage，使用每个输出对应的奖励${r_1,r_2,\\cdots,r_G}$计算得到。\n",
-  "keywords": [
-    "AI", "Paper Reading", "NLP", "LLM", "Reasoning"
-  ],
-  "articleBody": "1. 摘要 本次更新开源了DeepSeek-R1-Zero和DeepSeek-R1两个新旗舰reasoning模型，主要使用large-scale reinforcement learning且不需要SFT即完成训练，为开源社区给出了一个完全新颖且行之有效的reasoning LLM训练方案。其中DeepSeek-R1在reasoning任务上和OpenAI-o1-1217性能相当。除此之外，团队还开源了不同size的稠密模型（1.5B,7B,8B,14B,32B,70B），这些小模型是基于Qwen和Llama开源模型通过蒸馏DeepSeek-R1得到。\n2. 主要贡献 新的后训练范式：在Base Model上直接使用Large-Scale RL\n不使用SFT而直接基于base model做RL，让模型能够探索CoT来解决复杂问题。其中得到的DeepSeek-R1-Zero模型展现出了自我验证，反思，生成长的CoT的能力。 团队给出了DeepSeek-R1的详细训练pipeline，该pipeline包含两段RL阶段，分别用于提升reasoning能力和用于提升通用能力；以及包含两段SFT阶段，分别为模型获取reasoning和non-reasoning能力提供冷启动。 蒸馏：小模型也可以很强大\n开源了多个size的基于Qwen2.5和Llama3系列模型使用DeepSeek-R1蒸馏得到的小模型，并且均在reasoning任务上展现了比同size最强开源模型更强的能力。在AIME2024、MATH-500、LiveCodeBench等基准上取得很高成绩。 3. 方法 3.1 DeepSeek-R1-Zero: Reinforcement Learning on the Base Model DeepSeek-R1-Zero模型不实用任何有监督数据，不做SFT，仅使用纯粹的强化学习过程让模型自我进化。\n3.1.1 Reinforcement Learning Algorithm 团队采用Croup Relative Policy Optimization（GRPO）强化学习算法。使critic model和policy model具有相同模型大小，具体来说，对每个问题$q$，GRPO从旧策略$\\pi_{\\theta_{old}}$采样一组输出${o_1,o_2,\\cdots,o_G}$，然后使用如下优化目标优化策略模型$\\pi_\\theta$：\n$$ \\begin{align*} \\mathcal{J}_{\\text{GRPO}}(\\theta) \u0026= \\mathbb{E}\\left[q \\sim P(Q), \\{o_i\\}_{i=1}^G \\sim \\pi_{\\theta_{\\text{old}}}(O|q)\\right]\\\\ \u0026=\\frac{1}{G} \\sum_{i=1}^G \\left( \\min \\left( \\frac{\\pi_{\\theta}(o_i | q)}{\\pi_{\\theta_{\\text{old}}}(o_i | q)} A_i, \\text{clip}\\left( \\frac{\\pi_{\\theta}(o_i | q)}{\\pi_{\\theta_{\\text{old}}}(o_i | q)}, 1 - \\epsilon, 1 + \\epsilon \\right) A_i \\right) - \\beta D_{\\text{KL}}(\\pi_{\\theta} \\| \\pi_{\\text{ref}}) \\right), \\end{align*} $$ $$ D_{\\text{KL}}(\\pi_{\\theta} \\| \\pi_{\\text{ref}}) = \\frac{\\pi_{\\text{ref}}(o_i | q)}{\\pi_{\\theta}(o_i | q)} - \\log \\frac{\\pi_{\\text{ref}}(o_i | q)}{\\pi_{\\theta}(o_i | q)} - 1, $$ $$ A_i = \\frac{r_i - \\text{mean}(\\{r_1, r_2, \\cdots, r_G\\})}{\\text{std}(\\{r_1, r_2, \\cdots, r_G\\})}. $$ 其中$\\epsilon$和$\\beta$为超参数，$A_i$为advantage，使用每个输出对应的奖励${r_1,r_2,\\cdots,r_G}$计算得到。\n3.1.2 Reward Modeling 团队没有用神经网络模型来获取奖励（主要防止在large-scale RL中的reward hacking问题，且增添训练pipeline复杂度），采用的是基于规则的奖励函数，主要包含以下两种规则：\nAccuracy rewards：评估回答是否正确。例如，数学问题中，模型被要求提供某种格式下的最终答案；代码问题中，生成的代码能够被编译通过并基于预先准备的cases提供正确输出。\nFormat rewards：强制要求模型在其思考过程中打上‘’和‘’标签。\n3.1.3 Training Template DeepSeek-R1-Zero的训练模版如图1所示。该模版首先要求模型生成推理过程，然后是最终答案。 图1: DeepSeek-R1-Zero训练prompt模版 3.1.4 Performance, Self-evolution Process and Aha Moment of DeepSeek-R1-Zero Performance 图2: DeepSeek-R1-Zero与OpenAI o1在推理基准上的比较 图3: DeepSeek-R1-Zero在AIME上的准确率随着训练步数的变化 此外，团队发现通过majority voting，DeepSeek-R1-Zero的性能还能够进一步加强，在AIME上能从71.0%提升至86.7%。总结，DeepSeek-R1-Zero证明了不使用SFT而直接使用强化学习能够做到很优秀的推理能力。\nSelf-evolution Process of DeepSeek-R1-Zero 图4: DeepSeek-R1-Zero平均回答长度随着RL训练步数变化，能够通过更多的思考时间来解决推理任务 团队发现随着RL训练步数的增加，模型生成长度不断提高，即表明模型回答问题时思考的时间越来越长，在这过程中模型出现了一些比较sophisticated的行为。比如reflection，模型会从新回看自己之前生成的内容；自发的探索其他可能的方法，这些能力并不是通过监督学习得到，而是通过RL训练过程中不断涌现出来的。\nAha Moment of DeepSeek-R1-Zero 图5: DeepSeek-R1-Zero的Aha Moment 这是在RL训练中间过程出现的一个case，即模型学会了通过重新评估自己先前给出的方案来为思考的过程支配更多的时间，这个case表明通过RL能够使模型导向更多超出预期的生成结果。\n3.1.5 Drawback of DeepSeek-R1-Zero DeepSeek-R1-Zero在阅读能力以及语言混合能力上有不足，对此，团队提供了DeepSeek-R1，使用human-friendly cold-start data并结合RL的方法训练出的模型。\n3.2 DeepSeek-R1: Reinforcement Learning with Cold Start 受DeepSeek-R1-Zero强大推理能力的启发，团队提出两个新的问题：\n通过加入一小部分高质量的数据作为冷启动之后，模型的推理能力能否进一步提升，或者模型收敛速度能否提快？ 除了生成强大的CoT能力外，能否训练出一个user-friendly的，具有strong general capabilities的模型？ 对此，团队设计了训练DeepSeek-R1的pipeline，包含下面四个阶段：\n3.2.1 Cold Start 为了避免RL训练的初始不稳定的冷启动阶段，团队收集了一小批long CoT data（高质量SFT数据）用于微调base model作为initial RL actor，为了收集这样的数据，团队探索了几种方法：\nfew-shot prompting with a long CoT as an example directly prompting models to generate detailed answers with reflection and verification 收集DeepSeek-R1-Zero的输出，做成可阅读模式，并通过人工精调这些输出 在该阶段，团队收集了几千条code-start data，并微调DeepSeek-V3-Base作为initial RL actor。相比于DeepSeek-R1-Zero，DeepSeek-R1添加了code-start data有以下几个好处：\n增加输出可阅读性：DeepSeek-R1-Zero一个关键不足是输出的阅读性较差，回复中会混杂多个语言，且对关键部分缺少markdown高亮。 增加模型的潜力 3.2.2 Reasoning-oriented Reinforcement Learning 基于冷启动数据微调后的DeepSeek-V3-Base，团队使用DeepSeek-R1-Zero中相同的RL训练来训练DeepSeek-R1，这过程主要增强模型coding，mathematics，science，logic reasoning能力。\n训练过程中团队发现模型输出的CoT经常混杂多个语言，尤其是当RL的prompt包含多种语言时。为了缓解该问题，团推引入了一种language consistency reward，用于衡量CoT中目标语言统一的比例。尽管消融实验表明添加这个reward会略微降低模型性能，但该reward能使模型输出更加的user-friendly。\n3.2.3 Rejection Sampling and Supervised Fine-Tuning 当上一个阶段收敛后，团队使用收敛后的ckpt收集SFT数据（这次不像冷启动数据只针对reasoning，该阶段的SFT数据也包含其他领域，用于提升模型writing，role-playing，以及其他general-purpose任务的能力）\nReasoning data：600k Non-Reasoning data：200k 3.2.4 Reinforcement Learning for all Scenarios 这一阶段主要为了强化模型除了reasoning外其他通用能力。该阶段中，奖励函数没有使用基于规则的，而是正常用reward model，采用DeepSeek-V3中RL的pipeline，并选择了相似分布的偏好数据对和prompt数据。\n除此之外，该阶段还增强模型的helpfulness和harmlessness。\n3.3 Distillation: Empower Small Models with Reasoning Capability 团队选了base model有：Qwen2.5-Math-1.5B，Qwen2.5-Math-7B，Qwen2.5-14B，Qwen2.5-32B，Llama-3.1-8B，Llama3.3-70B-Instruct。\n对于蒸馏模型，团队仅使用SFT，没有RL阶段。其中SFT数据为3.2.3中使用DeepSeek-R1获取的800K条数据。\n4. 实验 4.1 DeepSeek-R1 Evaluation 图6: DeepSeek-R1-Zero与其他模型效果对比 4.2 Distilled Model Evaluation 图7: DeepSeek-R1蒸馏的小模型在reasoning基准上的对比结果 5. 讨论 5.1 Distillation v.s. Reinforcement Learning 图8: RL模型和蒸馏模型在reasoning基准上的对比 上图中，DeepSeek-R1-Zero-Qwen-32B是基于Qwen-32B-Base模型，使用math，code，STEM数据用large-scale RL训练超过10K步得到的，而DeepSeek-R1-Distill-Qwen-32B为基于Qwen-32B-Base模型使用DeepSeek-R1蒸馏得到。结果表明：\n将大模型能力蒸馏到小模型上能表现出很好的效果，而小模型直接用large-scale RL不仅需要更多的算力，甚至也达不到蒸馏模型的效果。 尽管蒸馏方案经济且有效，扩充模型能力的边界仍需要基于更强的base models并使用larger-scale RL。 5.2 Unsuccessful Attempts 团队早期也尝试了Rrocess Reward Model（PRM）和Monte Carlo Tree Search（MCTS）等方案，但都失败了。\nProcess Reward Model：PRM有三大主要限制 在一条推理链中精细定义一个step比较困难 判断当前中间step是否正确是一个充满挑战的任务。模型标注的数据并不能得到满意结果，而人工标注很难scaling up。 不可避免存在reward hacking的问题，重新训练奖励模型消耗大，增加整个训练流程的复杂度。 Monte Carlo Tree Search：主要用于棋类RL算法 语言模型search space比棋类大得多，这样必须设定一个最大搜索限制，但这样会导致模型陷入局部最优。 价值模型直接影响生成质量，但训练一个好的价值模型很困难。 References [1] DeepSeek-AI. “DeepSeek-R1: Incentivizing Reasoning Capability in LLMs via Reinforcement Learning ” arXiv preprint axXiv:2501.12948 (2025).\n",
-  "wordCount" : "330",
-  "inLanguage": "en",
-  "datePublished": "2025-01-27T00:00:00Z",
-  "dateModified": "2025-01-27T00:00:00Z",
-  "author":{
-    "@type": "Person",
-    "name": "Rs"
-  },
-  "mainEntityOfPage": {
-    "@type": "WebPage",
-    "@id": "https://tqzhong.github.io/my-blog/posts/2025-01-27-deepseek-r1/"
-  },
-  "publisher": {
-    "@type": "Organization",
-    "name": "Rs' Log",
-    "logo": {
-      "@type": "ImageObject",
-      "url": "https://tqzhong.github.io/my-blog/favicon.ico"
-    }
-  }
-}
-</script>
-</head>
-
-<body class="" id="top">
-<script>
-    if (localStorage.getItem("pref-theme") === "dark") {
-        document.body.classList.add('dark');
-    } else if (localStorage.getItem("pref-theme") === "light") {
-        document.body.classList.remove('dark');
-    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-        document.body.classList.add('dark');
-    }
-</script>
-
-<header class="header">
-    <script>
-        MathJax = {
-          tex: {
-            inlineMath: [['$', '$'], ['\\(', '\\)']],
-            displayMath: [['$$', '$$'], ['\\[', '\\]']],
-            processEscapes: true,
-            processEnvironments: true
-          },
-          svg: {
-            fontCache: 'global'
-          }
-        };
-    </script>
-    
-    
-    
-    <nav class="nav">
-        <div class="logo-logo-switches">
-        <div class="logo">
-            <a href="https://tqzhong.github.io/my-blog/" accesskey="h" title="Rs&#39; Log (Alt + H)">Rs&#39; Log</a>
-
-            <div class="logo-switches">
-                <button id="theme-toggle" accesskey="t" title="(Alt + T)">
-                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-                    </svg>
-                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="5"></circle>
-                        <line x1="12" y1="1" x2="12" y2="3"></line>
-                        <line x1="12" y1="21" x2="12" y2="23"></line>
-                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                        <line x1="1" y1="12" x2="3" y2="12"></line>
-                        <line x1="21" y1="12" x2="23" y2="12"></line>
-                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-                    </svg>
-                </button>
-                <ul class="lang-switch">
-                </ul>
-            </div>
-        </div>
-        </div>
-        <ul id="menu">
-            <li>
-                <a href="https://tqzhong.github.io/my-blog/" title="Posts">
-                    <span>Posts</span>
-                </a>
-            </li>
-            <li>
-                <a href="https://tqzhong.github.io/my-blog/archive/" title="Archive">
-                    <span>Archive</span>
-                </a>
-            </li>
-            <li>
-                <a href="https://tqzhong.github.io/my-blog/search/" title="Search (Alt &#43; /)" accesskey=/>
-                    <span>Search</span>
-                </a>
-            </li>
-            <li>
-                <a href="https://tqzhong.github.io/my-blog/tags/" title="Tags">
-                    <span>Tags</span>
-                </a>
-            </li>
-            <li>
-                <a href="https://tqzhong.github.io/my-blog/categories/" title="Categories">
-                    <span>Categories</span>
-                </a>
-            </li>
-            <li>
-                <a href="https://tqzhong.github.io/my-blog/faq/" title="FAQ">
-                    <span>FAQ</span>
-                </a>
-            </li>
-        </ul>
-    </nav>
-</header>
-
-
-    <main class="main">
-
-<article class="post-single">
-  <header class="post-header">
-    
-    <h1 class="post-title">
-      DeepSeek-R1技术报告解读
-    </h1>
-    <div class="post-meta">
-
-
-<i class="fas fa-calendar-alt blog-meta-icon"></i>&nbsp;2025-01-27 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <i class="fas fa-clock blog-meta-icon"></i>&nbsp;2 min &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <i class="fas fa-user blog-meta-icon"></i>&nbsp;Rs &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <i class="fas fa-eye blog-meta-icon"></i>&nbsp;<span id="view-counter"></span>
-
-<script src="https://cdn.jsdelivr.net/npm/leancloud-storage@4.12.0/dist/av-min.js"></script>
-<script>
-    
-    AV.initialize("AokLJzaIvwVNJW0b2F0YTLLy-MdYXbMMI", "fwZpRfBG259O3LscJFPW3ViH");
-
-    loadViewCount(location.pathname, "view-counter");
-
-    
-    
-    
-        
-    
-    
-    
-    
-    
-    
-    
-    
-    
-                
-    
-    
-    
-    
-    
-
-
-    var hasViewCounted = false;
-
-    
-    function loadViewCount(pageUrl, elementId) {
-        if (hasViewCounted) return;
-        hasViewCounted = true;       
-
-        var counter = document.getElementById(elementId);
-        var cachedViews = localStorage.getItem("view-count-" + pageUrl);
-
-        
-        if (cachedViews) {
-            counter.innerText = cachedViews;
-        } else {
-            counter.innerText = "0"; 
-        }
-
-        
-        var query = new AV.Query('Counter');
-        query.equalTo("url", pageUrl);
-        query.find().then(results => {
-            if (results.length > 0) {
-                var counterObj = results[0];
-                counterObj.increment("views", 1);
-                counterObj.save();
-                var views = counterObj.get("views");
-                counter.innerText = views;
-                localStorage.setItem("view-count-" + pageUrl, views); 
-            } else {
-                var Counter = AV.Object.extend("Counter");
-                var newCounter = new Counter();
-                newCounter.set("url", pageUrl);
-                newCounter.set("views", 1);
-                newCounter.save().then(() => {
-                    counter.innerText = "1";
-                    localStorage.setItem("view-count-" + pageUrl, 1); 
-                });
-            }
-        }).catch(function(error) {
-            console.error("error:", error);
-        });
-    }
-    
-</script>
-
-
-
-</div>
-  </header> <div class="toc">
-    <details >
-        <summary accesskey="c" title="(Alt + C)">
-            <span class="details">Table of Contents</span>
-        </summary>
-
-        <div class="inner"><ul>
-                <li>
-                    <a href="#1-%e6%91%98%e8%a6%81" aria-label="1. 摘要">1. 摘要</a></li>
-                <li>
-                    <a href="#2-%e4%b8%bb%e8%a6%81%e8%b4%a1%e7%8c%ae" aria-label="2. 主要贡献">2. 主要贡献</a></li>
-                <li>
-                    <a href="#3-%e6%96%b9%e6%b3%95" aria-label="3. 方法">3. 方法</a><ul>
-                        
-                <li>
-                    <a href="#31-deepseek-r1-zero-reinforcement-learning-on-the-base-model" aria-label="3.1 DeepSeek-R1-Zero: Reinforcement Learning on the Base Model">3.1 DeepSeek-R1-Zero: Reinforcement Learning on the Base Model</a><ul>
-                        
-                <li>
-                    <a href="#311-reinforcement-learning-algorithm" aria-label="3.1.1 Reinforcement Learning Algorithm">3.1.1 Reinforcement Learning Algorithm</a></li>
-                <li>
-                    <a href="#312-reward-modeling" aria-label="3.1.2 Reward Modeling">3.1.2 Reward Modeling</a></li>
-                <li>
-                    <a href="#313-training-template" aria-label="3.1.3 Training Template">3.1.3 Training Template</a></li>
-                <li>
-                    <a href="#314-performance-self-evolution-process-and-aha-moment-of-deepseek-r1-zero" aria-label="3.1.4 Performance, Self-evolution Process and Aha Moment of DeepSeek-R1-Zero">3.1.4 Performance, Self-evolution Process and Aha Moment of DeepSeek-R1-Zero</a><ul>
-                        
-                <li>
-                    <a href="#performance" aria-label="Performance">Performance</a></li>
-                <li>
-                    <a href="#self-evolution-process-of-deepseek-r1-zero" aria-label="Self-evolution Process of DeepSeek-R1-Zero">Self-evolution Process of DeepSeek-R1-Zero</a></li>
-                <li>
-                    <a href="#aha-moment-of-deepseek-r1-zero" aria-label="Aha Moment of DeepSeek-R1-Zero">Aha Moment of DeepSeek-R1-Zero</a></li></ul>
-                </li>
-                <li>
-                    <a href="#315-drawback-of-deepseek-r1-zero" aria-label="3.1.5 Drawback of DeepSeek-R1-Zero">3.1.5 Drawback of DeepSeek-R1-Zero</a></li></ul>
-                </li>
-                <li>
-                    <a href="#32-deepseek-r1-reinforcement-learning-with-cold-start" aria-label="3.2 DeepSeek-R1: Reinforcement Learning with Cold Start">3.2 DeepSeek-R1: Reinforcement Learning with Cold Start</a><ul>
-                        
-                <li>
-                    <a href="#321-cold-start" aria-label="3.2.1 Cold Start">3.2.1 Cold Start</a></li>
-                <li>
-                    <a href="#322-reasoning-oriented-reinforcement-learning" aria-label="3.2.2 Reasoning-oriented Reinforcement Learning">3.2.2 Reasoning-oriented Reinforcement Learning</a></li>
-                <li>
-                    <a href="#323-rejection-sampling-and-supervised-fine-tuning" aria-label="3.2.3 Rejection Sampling and Supervised Fine-Tuning">3.2.3 Rejection Sampling and Supervised Fine-Tuning</a></li>
-                <li>
-                    <a href="#324-reinforcement-learning-for-all-scenarios" aria-label="3.2.4 Reinforcement Learning for all Scenarios">3.2.4 Reinforcement Learning for all Scenarios</a></li></ul>
-                </li>
-                <li>
-                    <a href="#33-distillation-empower-small-models-with-reasoning-capability" aria-label="3.3 Distillation: Empower Small Models with Reasoning Capability">3.3 Distillation: Empower Small Models with Reasoning Capability</a></li></ul>
-                </li>
-                <li>
-                    <a href="#4-%e5%ae%9e%e9%aa%8c" aria-label="4. 实验">4. 实验</a><ul>
-                        
-                <li>
-                    <a href="#41-deepseek-r1-evaluation" aria-label="4.1 DeepSeek-R1 Evaluation">4.1 DeepSeek-R1 Evaluation</a></li>
-                <li>
-                    <a href="#42-distilled-model-evaluation" aria-label="4.2 Distilled Model Evaluation">4.2 Distilled Model Evaluation</a></li></ul>
-                </li>
-                <li>
-                    <a href="#5-%e8%ae%a8%e8%ae%ba" aria-label="5. 讨论">5. 讨论</a><ul>
-                        
-                <li>
-                    <a href="#51-distillation-vs-reinforcement-learning" aria-label="5.1 Distillation v.s. Reinforcement Learning">5.1 Distillation v.s. Reinforcement Learning</a></li>
-                <li>
-                    <a href="#52-unsuccessful-attempts" aria-label="5.2 Unsuccessful Attempts">5.2 Unsuccessful Attempts</a></li></ul>
-                </li>
-                <li>
-                    <a href="#references" aria-label="References">References</a>
-                </li>
-            </ul>
-        </div>
-    </details>
-</div>
-
-  <div class="post-content"><h3 id="1-摘要">1. 摘要<a hidden class="anchor" aria-hidden="true" href="#1-摘要">#</a></h3>
-<p>本次更新开源了DeepSeek-R1-Zero和DeepSeek-R1两个新旗舰reasoning模型，主要使用large-scale reinforcement learning且不需要SFT即完成训练，为开源社区给出了一个完全新颖且行之有效的reasoning LLM训练方案。其中DeepSeek-R1在reasoning任务上和OpenAI-o1-1217性能相当。除此之外，团队还开源了不同size的稠密模型（1.5B,7B,8B,14B,32B,70B），这些小模型是基于Qwen和Llama开源模型通过蒸馏DeepSeek-R1得到。</p>
-<h3 id="2-主要贡献">2. 主要贡献<a hidden class="anchor" aria-hidden="true" href="#2-主要贡献">#</a></h3>
-<p>新的后训练范式：在Base Model上直接使用Large-Scale RL</p>
-<ul>
-<li>不使用SFT而直接基于base model做RL，让模型能够探索CoT来解决复杂问题。其中得到的DeepSeek-R1-Zero模型展现出了<strong>自我验证，反思，生成长的CoT</strong>的能力。</li>
-<li>团队给出了DeepSeek-R1的详细训练pipeline，该pipeline包含两段RL阶段，分别用于提升reasoning能力和用于提升通用能力；以及包含两段SFT阶段，分别为模型获取reasoning和non-reasoning能力提供冷启动。</li>
-</ul>
-<p>蒸馏：小模型也可以很强大</p>
-<ul>
-<li>开源了多个size的基于Qwen2.5和Llama3系列模型使用DeepSeek-R1蒸馏得到的小模型，并且均在reasoning任务上展现了比同size最强开源模型更强的能力。在AIME2024、MATH-500、LiveCodeBench等基准上取得很高成绩。</li>
-</ul>
-<h3 id="3-方法">3. 方法<a hidden class="anchor" aria-hidden="true" href="#3-方法">#</a></h3>
-<h4 id="31-deepseek-r1-zero-reinforcement-learning-on-the-base-model">3.1 DeepSeek-R1-Zero: Reinforcement Learning on the Base Model<a hidden class="anchor" aria-hidden="true" href="#31-deepseek-r1-zero-reinforcement-learning-on-the-base-model">#</a></h4>
-<p>DeepSeek-R1-Zero模型不实用任何有监督数据，不做SFT，仅使用纯粹的强化学习过程让模型自我进化。</p>
-<h5 id="311-reinforcement-learning-algorithm">3.1.1 Reinforcement Learning Algorithm<a hidden class="anchor" aria-hidden="true" href="#311-reinforcement-learning-algorithm">#</a></h5>
-<p>团队采用Croup Relative Policy Optimization（GRPO）强化学习算法。使critic model和policy model具有相同模型大小，具体来说，对每个问题$q$，GRPO从旧策略$\pi_{\theta_{old}}$采样一组输出${o_1,o_2,\cdots,o_G}$，然后使用如下优化目标优化策略模型$\pi_\theta$：</p>
-<div class="scroll-container">
 $$
 \begin{align*}
 \mathcal{J}_{\text{GRPO}}(\theta) &= \mathbb{E}\left[q \sim P(Q), \{o_i\}_{i=1}^G \sim \pi_{\theta_{\text{old}}}(O|q)\right]\\
@@ -558,288 +29,131 @@ $$
 \right),
 \end{align*}
 $$
-</div>
-<div class="scroll-container">
+
+
 $$
 D_{\text{KL}}(\pi_{\theta} \| \pi_{\text{ref}}) = 
 \frac{\pi_{\text{ref}}(o_i | q)}{\pi_{\theta}(o_i | q)} 
 - \log \frac{\pi_{\text{ref}}(o_i | q)}{\pi_{\theta}(o_i | q)} - 1,
 $$
-</div>
-<div class="scroll-container">
+
+
 $$
 A_i = \frac{r_i - \text{mean}(\{r_1, r_2, \cdots, r_G\})}{\text{std}(\{r_1, r_2, \cdots, r_G\})}.
 $$
-</div>
-<p>其中$\epsilon$和$\beta$为超参数，$A_i$为advantage，使用每个输出对应的奖励${r_1,r_2,\cdots,r_G}$计算得到。</p>
-<h5 id="312-reward-modeling">3.1.2 Reward Modeling<a hidden class="anchor" aria-hidden="true" href="#312-reward-modeling">#</a></h5>
-<p>团队没有用神经网络模型来获取奖励（主要防止在large-scale RL中的reward hacking问题，且增添训练pipeline复杂度），采用的是基于规则的奖励函数，主要包含以下两种规则：</p>
-<ul>
-<li>
-<p>Accuracy rewards：评估回答是否正确。例如，数学问题中，模型被要求提供某种格式下的最终答案；代码问题中，生成的代码能够被编译通过并基于预先准备的cases提供正确输出。</p>
-</li>
-<li>
-<p>Format rewards：强制要求模型在其思考过程中打上‘&lt;think&gt;’和‘&lt;/think&gt;’标签。</p>
-</li>
-</ul>
-<h5 id="313-training-template">3.1.3 Training Template<a hidden class="anchor" aria-hidden="true" href="#313-training-template">#</a></h5>
-<p>DeepSeek-R1-Zero的训练模版如图1所示。该模版首先要求模型生成推理过程，然后是最终答案。
-<img loading="lazy" src="/my-blog/images/2025-01-27-deepseek-r1/2025-01-27-image1.jpg" alt="deepseek-r1-zero-training-template"  />
-</p>
-<div align='center' style="color: #999999">图1: DeepSeek-R1-Zero训练prompt模版</div>
-<h5 id="314-performance-self-evolution-process-and-aha-moment-of-deepseek-r1-zero">3.1.4 Performance, Self-evolution Process and Aha Moment of DeepSeek-R1-Zero<a hidden class="anchor" aria-hidden="true" href="#314-performance-self-evolution-process-and-aha-moment-of-deepseek-r1-zero">#</a></h5>
-<h6 id="performance">Performance<a hidden class="anchor" aria-hidden="true" href="#performance">#</a></h6>
-<p><img loading="lazy" src="/my-blog/images/2025-01-27-deepseek-r1/2025-01-27-image2.jpg" alt="deepseek-r1-zero-performance-1"  />
-</p>
-<div align='center' style="color: #999999">图2: DeepSeek-R1-Zero与OpenAI o1在推理基准上的比较</div>
-<p><img loading="lazy" src="/my-blog/images/2025-01-27-deepseek-r1/2025-01-27-image3.jpg" alt="deepseek-r1-zero-performance-2"  />
-</p>
-<div align='center' style="color: #999999">图3: DeepSeek-R1-Zero在AIME上的准确率随着训练步数的变化</div>
-<p>此外，团队发现通过majority voting，DeepSeek-R1-Zero的性能还能够进一步加强，在AIME上能从71.0%提升至86.7%。总结，DeepSeek-R1-Zero证明了不使用SFT而直接使用强化学习能够做到很优秀的推理能力。</p>
-<h6 id="self-evolution-process-of-deepseek-r1-zero">Self-evolution Process of DeepSeek-R1-Zero<a hidden class="anchor" aria-hidden="true" href="#self-evolution-process-of-deepseek-r1-zero">#</a></h6>
-<p><img loading="lazy" src="/my-blog/images/2025-01-27-deepseek-r1/2025-01-27-image4.jpg" alt="deepseek-r1-zero-self-evolution"  />
-</p>
-<div align='center' style="color: #999999">图4: DeepSeek-R1-Zero平均回答长度随着RL训练步数变化，能够通过更多的思考时间来解决推理任务</div>
-<p>团队发现随着RL训练步数的增加，模型生成长度不断提高，即表明模型回答问题时思考的时间越来越长，在这过程中模型出现了一些比较sophisticated的行为。比如<strong>reflection</strong>，模型会从新回看自己之前生成的内容；<strong>自发的探索其他可能的方法</strong>，这些能力并不是通过监督学习得到，而是通过RL训练过程中不断涌现出来的。</p>
-<h6 id="aha-moment-of-deepseek-r1-zero">Aha Moment of DeepSeek-R1-Zero<a hidden class="anchor" aria-hidden="true" href="#aha-moment-of-deepseek-r1-zero">#</a></h6>
-<p><img loading="lazy" src="/my-blog/images/2025-01-27-deepseek-r1/2025-01-27-image5.jpg" alt="deepseek-r1-zero-aha-moment"  />
-</p>
-<div align='center' style="color: #999999">图5: DeepSeek-R1-Zero的Aha Moment</div>
-<p>这是在RL训练中间过程出现的一个case，即模型学会了通过重新评估自己先前给出的方案来为思考的过程支配更多的时间，这个case表明通过RL能够使模型导向更多超出预期的生成结果。</p>
-<h5 id="315-drawback-of-deepseek-r1-zero">3.1.5 Drawback of DeepSeek-R1-Zero<a hidden class="anchor" aria-hidden="true" href="#315-drawback-of-deepseek-r1-zero">#</a></h5>
-<p>DeepSeek-R1-Zero在阅读能力以及语言混合能力上有不足，对此，团队提供了DeepSeek-R1，使用human-friendly cold-start data并结合RL的方法训练出的模型。</p>
-<h4 id="32-deepseek-r1-reinforcement-learning-with-cold-start">3.2 DeepSeek-R1: Reinforcement Learning with Cold Start<a hidden class="anchor" aria-hidden="true" href="#32-deepseek-r1-reinforcement-learning-with-cold-start">#</a></h4>
-<p>受DeepSeek-R1-Zero强大推理能力的启发，团队提出两个新的问题：</p>
-<ul>
-<li>通过加入一小部分高质量的数据作为冷启动之后，模型的推理能力能否进一步提升，或者模型收敛速度能否提快？</li>
-<li>除了生成强大的CoT能力外，能否训练出一个user-friendly的，具有strong general capabilities的模型？</li>
-</ul>
-<p>对此，团队设计了训练DeepSeek-R1的pipeline，包含下面四个阶段：</p>
-<h5 id="321-cold-start">3.2.1 Cold Start<a hidden class="anchor" aria-hidden="true" href="#321-cold-start">#</a></h5>
-<p>为了避免RL训练的初始不稳定的冷启动阶段，团队收集了一小批long CoT data（高质量SFT数据）用于微调base model作为initial RL actor，为了收集这样的数据，团队探索了几种方法：</p>
-<ul>
-<li>few-shot prompting with a long CoT as an example</li>
-<li>directly prompting models to generate detailed answers with reflection and verification</li>
-<li>收集DeepSeek-R1-Zero的输出，做成可阅读模式，并通过人工精调这些输出</li>
-</ul>
-<p>在该阶段，团队收集了几千条code-start data，并微调DeepSeek-V3-Base作为initial RL actor。相比于DeepSeek-R1-Zero，DeepSeek-R1添加了code-start data有以下几个好处：</p>
-<ul>
-<li>增加输出可阅读性：DeepSeek-R1-Zero一个关键不足是输出的阅读性较差，回复中会混杂多个语言，且对关键部分缺少markdown高亮。</li>
-<li>增加模型的潜力</li>
-</ul>
-<h5 id="322-reasoning-oriented-reinforcement-learning">3.2.2 Reasoning-oriented Reinforcement Learning<a hidden class="anchor" aria-hidden="true" href="#322-reasoning-oriented-reinforcement-learning">#</a></h5>
-<p>基于冷启动数据微调后的DeepSeek-V3-Base，团队使用DeepSeek-R1-Zero中相同的RL训练来训练DeepSeek-R1，这过程主要增强模型coding，mathematics，science，logic reasoning能力。</p>
-<p>训练过程中团队发现模型输出的CoT经常混杂多个语言，尤其是当RL的prompt包含多种语言时。为了缓解该问题，团推引入了一种language consistency reward，用于衡量CoT中目标语言统一的比例。尽管消融实验表明添加这个reward会略微降低模型性能，但该reward能使模型输出更加的user-friendly。</p>
-<h5 id="323-rejection-sampling-and-supervised-fine-tuning">3.2.3 Rejection Sampling and Supervised Fine-Tuning<a hidden class="anchor" aria-hidden="true" href="#323-rejection-sampling-and-supervised-fine-tuning">#</a></h5>
-<p>当上一个阶段收敛后，团队使用收敛后的ckpt收集SFT数据（这次不像冷启动数据只针对reasoning，该阶段的SFT数据也包含其他领域，用于提升模型writing，role-playing，以及其他general-purpose任务的能力）</p>
-<ul>
-<li><strong>Reasoning data</strong>：600k</li>
-<li><strong>Non-Reasoning data</strong>：200k</li>
-</ul>
-<h5 id="324-reinforcement-learning-for-all-scenarios">3.2.4 Reinforcement Learning for all Scenarios<a hidden class="anchor" aria-hidden="true" href="#324-reinforcement-learning-for-all-scenarios">#</a></h5>
-<p>这一阶段主要为了强化模型除了reasoning外其他通用能力。该阶段中，奖励函数没有使用基于规则的，而是正常用reward model，采用DeepSeek-V3中RL的pipeline，并选择了相似分布的偏好数据对和prompt数据。</p>
-<p>除此之外，该阶段还增强模型的helpfulness和harmlessness。</p>
-<h4 id="33-distillation-empower-small-models-with-reasoning-capability">3.3 Distillation: Empower Small Models with Reasoning Capability<a hidden class="anchor" aria-hidden="true" href="#33-distillation-empower-small-models-with-reasoning-capability">#</a></h4>
-<p>团队选了base model有：Qwen2.5-Math-1.5B，Qwen2.5-Math-7B，Qwen2.5-14B，Qwen2.5-32B，Llama-3.1-8B，Llama3.3-70B-Instruct。</p>
-<p>对于蒸馏模型，团队仅使用SFT，没有RL阶段。其中SFT数据为<a href="#323-rejection-sampling-and-supervised-fine-tuning">3.2.3</a>中使用DeepSeek-R1获取的800K条数据。</p>
-<h3 id="4-实验">4. 实验<a hidden class="anchor" aria-hidden="true" href="#4-实验">#</a></h3>
-<h4 id="41-deepseek-r1-evaluation">4.1 DeepSeek-R1 Evaluation<a hidden class="anchor" aria-hidden="true" href="#41-deepseek-r1-evaluation">#</a></h4>
-<p><img loading="lazy" src="/my-blog/images/2025-01-27-deepseek-r1/2025-01-27-image6.jpg" alt="deepseek-r1-zero-results"  />
-</p>
-<div align='center' style="color: #999999">图6: DeepSeek-R1-Zero与其他模型效果对比</div>
-<h4 id="42-distilled-model-evaluation">4.2 Distilled Model Evaluation<a hidden class="anchor" aria-hidden="true" href="#42-distilled-model-evaluation">#</a></h4>
-<p><img loading="lazy" src="/my-blog/images/2025-01-27-deepseek-r1/2025-01-27-image7.jpg" alt="deepseek-r1-zero-results"  />
-</p>
-<div align='center' style="color: #999999">图7: DeepSeek-R1蒸馏的小模型在reasoning基准上的对比结果</div>
-<h3 id="5-讨论">5. 讨论<a hidden class="anchor" aria-hidden="true" href="#5-讨论">#</a></h3>
-<h4 id="51-distillation-vs-reinforcement-learning">5.1 Distillation v.s. Reinforcement Learning<a hidden class="anchor" aria-hidden="true" href="#51-distillation-vs-reinforcement-learning">#</a></h4>
-<p><img loading="lazy" src="/my-blog/images/2025-01-27-deepseek-r1/2025-01-27-image8.jpg" alt="deepseek-r1-zero-results"  />
-</p>
-<div align='center' style="color: #999999">图8: RL模型和蒸馏模型在reasoning基准上的对比</div>
-<p>上图中，DeepSeek-R1-Zero-Qwen-32B是基于Qwen-32B-Base模型，使用math，code，STEM数据用large-scale RL训练超过10K步得到的，而DeepSeek-R1-Distill-Qwen-32B为基于Qwen-32B-Base模型使用DeepSeek-R1蒸馏得到。结果表明：</p>
-<ul>
-<li>将大模型能力蒸馏到小模型上能表现出很好的效果，而小模型直接用large-scale RL不仅需要更多的算力，甚至也达不到蒸馏模型的效果。</li>
-<li>尽管蒸馏方案经济且有效，扩充模型能力的边界仍需要基于更强的base models并使用larger-scale RL。</li>
-</ul>
-<h4 id="52-unsuccessful-attempts">5.2 Unsuccessful Attempts<a hidden class="anchor" aria-hidden="true" href="#52-unsuccessful-attempts">#</a></h4>
-<p>团队早期也尝试了Rrocess Reward Model（PRM）和Monte Carlo Tree Search（MCTS）等方案，但都失败了。</p>
-<ul>
-<li>Process Reward Model：PRM有三大主要限制
-<ul>
-<li>在一条推理链中精细定义一个step比较困难</li>
-<li>判断当前中间step是否正确是一个充满挑战的任务。模型标注的数据并不能得到满意结果，而人工标注很难scaling up。</li>
-<li>不可避免存在reward hacking的问题，重新训练奖励模型消耗大，增加整个训练流程的复杂度。</li>
-</ul>
-</li>
-<li>Monte Carlo Tree Search：主要用于棋类RL算法
-<ul>
-<li>语言模型search space比棋类大得多，这样必须设定一个最大搜索限制，但这样会导致模型陷入局部最优。</li>
-<li>价值模型直接影响生成质量，但训练一个好的价值模型很困难。</li>
-</ul>
-</li>
-</ul>
-<h3 id="references">References<a hidden class="anchor" aria-hidden="true" href="#references">#</a></h3>
-<p>[1] DeepSeek-AI. <a href="https://arxiv.org/abs/2501.12948" class="entityLink">“DeepSeek-R1: Incentivizing Reasoning Capability in LLMs via Reinforcement Learning
-”</a> arXiv preprint axXiv:2501.12948 (2025).</p>
+
+其中$\epsilon$和$\beta$为超参数，$A_i$为advantage，使用每个输出对应的奖励${r_1,r_2,\cdots,r_G}$计算得到。"><meta name=author content="Rs"><link rel=canonical href=https://tqzhong.github.io/my-blog/posts/2025-01-27-deepseek-r1/><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css><link crossorigin=anonymous href=/my-blog/assets/css/stylesheet.6a98292fb8fa8cf0f3ba4042d4b75515c04267550f3ad49ff6271b5af9562443.css integrity="sha256-apgpL7j6jPDzukBC1LdVFcBCZ1UPOtSf9icbWvlWJEM=" rel="preload stylesheet" as=style><script defer crossorigin=anonymous src=/my-blog/assets/js/highlight.f413e19d0714851f6474e7ee9632408e58ac146fbdbe62747134bea2fa3415e0.js integrity="sha256-9BPhnQcUhR9kdOfuljJAjlisFG+9vmJ0cTS+ovo0FeA=" onload=hljs.initHighlightingOnLoad()></script><link rel=icon type=image/x-icon sizes=48x48 href=images/favicon.ico><link rel=icon type=image/png sizes=16x16 href=images/favicon-16x16.png><link rel=icon type=image/png sizes=32x32 href=images/favicon-32x32.png><link rel=apple-touch-icon href=images/apple-touch-icon.png><link rel=icon sizes=512x512 href=images/android-chrome-512x512.png type=image/png><link rel=icon sizes=192x192 href=images/android-chrome-192x192.png type=image/png><link rel=mask-icon href=https://tqzhong.github.io/my-blog/safari-pinned-tab.svg><meta name=theme-color content="#2e2e33"><meta name=msapplication-TileColor content="#2e2e33"><link rel=alternate hreflang=en href=https://tqzhong.github.io/my-blog/posts/2025-01-27-deepseek-r1/><noscript><style>#theme-toggle,.top-link{display:none}</style><style>@media(prefers-color-scheme:dark){:root{--theme:rgb(29, 30, 32);--entry:rgb(46, 46, 51);--primary:rgb(218, 218, 219);--secondary:rgb(155, 156, 157);--tertiary:rgb(65, 66, 68);--content:rgb(196, 196, 197);--hljs-bg:rgb(46, 46, 51);--code-bg:rgb(55, 56, 62);--border:rgb(51, 51, 51)}.list{background:var(--theme)}.list:not(.dark)::-webkit-scrollbar-track{background:0 0}.list:not(.dark)::-webkit-scrollbar-thumb{border-color:var(--theme)}}</style></noscript><link rel=stylesheet href="/my-blog/css/custom.css?v=1.7"><meta property="og:title" content="DeepSeek-R1技术报告解读"><meta property="og:description" content="1. 摘要
+本次更新开源了DeepSeek-R1-Zero和DeepSeek-R1两个新旗舰reasoning模型，主要使用large-scale reinforcement learning且不需要SFT即完成训练，为开源社区给出了一个完全新颖且行之有效的reasoning LLM训练方案。其中DeepSeek-R1在reasoning任务上和OpenAI-o1-1217性能相当。除此之外，团队还开源了不同size的稠密模型（1.5B,7B,8B,14B,32B,70B），这些小模型是基于Qwen和Llama开源模型通过蒸馏DeepSeek-R1得到。
+2. 主要贡献
+新的后训练范式：在Base Model上直接使用Large-Scale RL
+
+不使用SFT而直接基于base model做RL，让模型能够探索CoT来解决复杂问题。其中得到的DeepSeek-R1-Zero模型展现出了自我验证，反思，生成长的CoT的能力。
+团队给出了DeepSeek-R1的详细训练pipeline，该pipeline包含两段RL阶段，分别用于提升reasoning能力和用于提升通用能力；以及包含两段SFT阶段，分别为模型获取reasoning和non-reasoning能力提供冷启动。
+
+蒸馏：小模型也可以很强大
+
+开源了多个size的基于Qwen2.5和Llama3系列模型使用DeepSeek-R1蒸馏得到的小模型，并且均在reasoning任务上展现了比同size最强开源模型更强的能力。在AIME2024、MATH-500、LiveCodeBench等基准上取得很高成绩。
+
+3. 方法
+3.1 DeepSeek-R1-Zero: Reinforcement Learning on the Base Model
+DeepSeek-R1-Zero模型不实用任何有监督数据，不做SFT，仅使用纯粹的强化学习过程让模型自我进化。
+3.1.1 Reinforcement Learning Algorithm
+团队采用Croup Relative Policy Optimization（GRPO）强化学习算法。使critic model和policy model具有相同模型大小，具体来说，对每个问题$q$，GRPO从旧策略$\pi_{\theta_{old}}$采样一组输出${o_1,o_2,\cdots,o_G}$，然后使用如下优化目标优化策略模型$\pi_\theta$：
+
+$$
+\begin{align*}
+\mathcal{J}_{\text{GRPO}}(\theta) &= \mathbb{E}\left[q \sim P(Q), \{o_i\}_{i=1}^G \sim \pi_{\theta_{\text{old}}}(O|q)\right]\\
+&=\frac{1}{G} \sum_{i=1}^G \left( 
+\min \left( 
+\frac{\pi_{\theta}(o_i | q)}{\pi_{\theta_{\text{old}}}(o_i | q)} A_i, 
+\text{clip}\left( \frac{\pi_{\theta}(o_i | q)}{\pi_{\theta_{\text{old}}}(o_i | q)}, 1 - \epsilon, 1 + \epsilon \right) A_i 
+\right) 
+- \beta D_{\text{KL}}(\pi_{\theta} \| \pi_{\text{ref}})
+\right),
+\end{align*}
+$$
 
 
-  </div>
-
-  <footer class="post-footer">
-      <ul class="post-tags">
-        <li><a href="https://tqzhong.github.io/my-blog/tags/ai/">AI</a></li>
-        <li><a href="https://tqzhong.github.io/my-blog/tags/paper-reading/">Paper Reading</a></li>
-        <li><a href="https://tqzhong.github.io/my-blog/tags/nlp/">NLP</a></li>
-        <li><a href="https://tqzhong.github.io/my-blog/tags/llm/">LLM</a></li>
-        <li><a href="https://tqzhong.github.io/my-blog/tags/reasoning/">Reasoning</a></li>
-      </ul>
-<nav class="paginav">
-  <a class="prev" href="https://tqzhong.github.io/my-blog/posts/2025-01-29-deepseek-v3/">
-    <span class="title">« Prev</span>
-    <br>
-    <span>DeepSeek-V3技术报告解读</span>
-  </a>
-  <a class="next" href="https://tqzhong.github.io/my-blog/posts/2025-01-08-retrieval-augmented-generation/">
-    <span class="title">Next »</span>
-    <br>
-    <span>RAG路线</span>
-  </a>
-</nav>
-
-  </footer>
-  
-</article>
+$$
+D_{\text{KL}}(\pi_{\theta} \| \pi_{\text{ref}}) = 
+\frac{\pi_{\text{ref}}(o_i | q)}{\pi_{\theta}(o_i | q)} 
+- \log \frac{\pi_{\text{ref}}(o_i | q)}{\pi_{\theta}(o_i | q)} - 1,
+$$
 
 
+$$
+A_i = \frac{r_i - \text{mean}(\{r_1, r_2, \cdots, r_G\})}{\text{std}(\{r_1, r_2, \cdots, r_G\})}.
+$$
+
+其中$\epsilon$和$\beta$为超参数，$A_i$为advantage，使用每个输出对应的奖励${r_1,r_2,\cdots,r_G}$计算得到。"><meta property="og:type" content="article"><meta property="og:url" content="https://tqzhong.github.io/my-blog/posts/2025-01-27-deepseek-r1/"><meta property="article:section" content="posts"><meta property="article:published_time" content="2025-01-27T00:00:00+00:00"><meta property="article:modified_time" content="2025-01-27T00:00:00+00:00"><meta name=twitter:card content="summary"><meta name=twitter:title content="DeepSeek-R1技术报告解读"><meta name=twitter:description content="1. 摘要
+本次更新开源了DeepSeek-R1-Zero和DeepSeek-R1两个新旗舰reasoning模型，主要使用large-scale reinforcement learning且不需要SFT即完成训练，为开源社区给出了一个完全新颖且行之有效的reasoning LLM训练方案。其中DeepSeek-R1在reasoning任务上和OpenAI-o1-1217性能相当。除此之外，团队还开源了不同size的稠密模型（1.5B,7B,8B,14B,32B,70B），这些小模型是基于Qwen和Llama开源模型通过蒸馏DeepSeek-R1得到。
+2. 主要贡献
+新的后训练范式：在Base Model上直接使用Large-Scale RL
+
+不使用SFT而直接基于base model做RL，让模型能够探索CoT来解决复杂问题。其中得到的DeepSeek-R1-Zero模型展现出了自我验证，反思，生成长的CoT的能力。
+团队给出了DeepSeek-R1的详细训练pipeline，该pipeline包含两段RL阶段，分别用于提升reasoning能力和用于提升通用能力；以及包含两段SFT阶段，分别为模型获取reasoning和non-reasoning能力提供冷启动。
+
+蒸馏：小模型也可以很强大
+
+开源了多个size的基于Qwen2.5和Llama3系列模型使用DeepSeek-R1蒸馏得到的小模型，并且均在reasoning任务上展现了比同size最强开源模型更强的能力。在AIME2024、MATH-500、LiveCodeBench等基准上取得很高成绩。
+
+3. 方法
+3.1 DeepSeek-R1-Zero: Reinforcement Learning on the Base Model
+DeepSeek-R1-Zero模型不实用任何有监督数据，不做SFT，仅使用纯粹的强化学习过程让模型自我进化。
+3.1.1 Reinforcement Learning Algorithm
+团队采用Croup Relative Policy Optimization（GRPO）强化学习算法。使critic model和policy model具有相同模型大小，具体来说，对每个问题$q$，GRPO从旧策略$\pi_{\theta_{old}}$采样一组输出${o_1,o_2,\cdots,o_G}$，然后使用如下优化目标优化策略模型$\pi_\theta$：
+
+$$
+\begin{align*}
+\mathcal{J}_{\text{GRPO}}(\theta) &= \mathbb{E}\left[q \sim P(Q), \{o_i\}_{i=1}^G \sim \pi_{\theta_{\text{old}}}(O|q)\right]\\
+&=\frac{1}{G} \sum_{i=1}^G \left( 
+\min \left( 
+\frac{\pi_{\theta}(o_i | q)}{\pi_{\theta_{\text{old}}}(o_i | q)} A_i, 
+\text{clip}\left( \frac{\pi_{\theta}(o_i | q)}{\pi_{\theta_{\text{old}}}(o_i | q)}, 1 - \epsilon, 1 + \epsilon \right) A_i 
+\right) 
+- \beta D_{\text{KL}}(\pi_{\theta} \| \pi_{\text{ref}})
+\right),
+\end{align*}
+$$
 
 
-  <div class="social-icons">
-    
-        
-            
-        
-    
-        
-            <a href="https://github.com/tqzhong" target="_blank" rel="noopener noreferrer">
-            <i class="fab fa-github"></i>
-            </a>
-        
-    
-        
-            <a href="https://x.com/rs1047g" target="_blank" rel="noopener noreferrer">
-            <i class="fab fa-twitter"></i>
-            </a>
-        
-    
-        
-            <a href="https://scholar.google.com/citations?hl=en&amp;user=UNNLJX4AAAAJ" target="_blank" rel="noopener noreferrer">
-            <i class="fab fa-google"></i>
-            </a>
-        
-    
-        
-            <a href="https://tqzhong.github.io" target="_blank" rel="noopener noreferrer">
-            <i class="fas fa-user"></i>  
-            </a>
-        
-    
-  </div>
+$$
+D_{\text{KL}}(\pi_{\theta} \| \pi_{\text{ref}}) = 
+\frac{\pi_{\text{ref}}(o_i | q)}{\pi_{\theta}(o_i | q)} 
+- \log \frac{\pi_{\text{ref}}(o_i | q)}{\pi_{\theta}(o_i | q)} - 1,
+$$
 
 
+$$
+A_i = \frac{r_i - \text{mean}(\{r_1, r_2, \cdots, r_G\})}{\text{std}(\{r_1, r_2, \cdots, r_G\})}.
+$$
 
-<script src="https://utteranc.es/client.js"
-        repo="tqzhong/my-blog"
-        issue-term="pathname"
-        label="hugo-comment"
-        theme="github-dark"
-        crossorigin="anonymous"
-        async>
-</script>
-
-    </main>
-    
-<footer class="footer">
-    <span>&copy; 2025 <a href="https://tqzhong.github.io/my-blog/">Rs&#39; Log</a></span>
-    <span>
-        Powered by
-        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
-        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
-    </span>
-</footer>
-<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
-        <path d="M12 6H0l6-6z" />
-    </svg>
-</a>
-
-<script>
-    let menu = document.getElementById('menu')
-    if (menu) {
-        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
-        menu.onscroll = function () {
-            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
-        }
-    }
-
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener("click", function (e) {
-            e.preventDefault();
-            var id = this.getAttribute("href").substr(1);
-            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
-                    behavior: "smooth"
-                });
-            } else {
-                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
-            }
-            if (id === "top") {
-                history.replaceState(null, null, " ");
-            } else {
-                history.pushState(null, null, `#${id}`);
-            }
-        });
-    });
-
-</script>
-<script>
-    var mybutton = document.getElementById("top-link");
-    window.onscroll = function () {
-        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
-            mybutton.style.visibility = "visible";
-            mybutton.style.opacity = "1";
-        } else {
-            mybutton.style.visibility = "hidden";
-            mybutton.style.opacity = "0";
-        }
-    };
-
-</script>
-<script>
-    document.getElementById("theme-toggle").addEventListener("click", () => {
-        if (document.body.className.includes("dark")) {
-            document.body.classList.remove('dark');
-            localStorage.setItem("pref-theme", 'light');
-        } else {
-            document.body.classList.add('dark');
-            localStorage.setItem("pref-theme", 'dark');
-        }
-    })
-
-</script>
-<script src="https://cdn.jsdelivr.net/npm/katex@0.13.0/dist/katex.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/katex@0.13.0/dist/contrib/auto-render.min.js"></script>
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            renderMathInElement(document.body, {
-                delimiters: [
-                    {left: "$$", right: "$$", display: true},
-                    {left: "\\(", right: "\\)", display: false},
-                    {left: "$", right: "$", display: false}
-                ]
-            });
-        });
-    </script>    
-
-</body>
-
-</html>
+其中$\epsilon$和$\beta$为超参数，$A_i$为advantage，使用每个输出对应的奖励${r_1,r_2,\cdots,r_G}$计算得到。"><script type=application/ld+json>{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Posts","item":"https://tqzhong.github.io/my-blog/posts/"},{"@type":"ListItem","position":2,"name":"DeepSeek-R1技术报告解读","item":"https://tqzhong.github.io/my-blog/posts/2025-01-27-deepseek-r1/"}]}</script><script type=application/ld+json>{"@context":"https://schema.org","@type":"BlogPosting","headline":"DeepSeek-R1技术报告解读","name":"DeepSeek-R1技术报告解读","description":"1. 摘要 本次更新开源了DeepSeek-R1-Zero和DeepSeek-R1两个新旗舰reasoning模型，主要使用large-scale reinforcement learning且不需要SFT即完成训练，为开源社区给出了一个完全新颖且行之有效的reasoning LLM训练方案。其中DeepSeek-R1在reasoning任务上和OpenAI-o1-1217性能相当。除此之外，团队还开源了不同size的稠密模型（1.5B,7B,8B,14B,32B,70B），这些小模型是基于Qwen和Llama开源模型通过蒸馏DeepSeek-R1得到。\n2. 主要贡献 新的后训练范式：在Base Model上直接使用Large-Scale RL\n不使用SFT而直接基于base model做RL，让模型能够探索CoT来解决复杂问题。其中得到的DeepSeek-R1-Zero模型展现出了自我验证，反思，生成长的CoT的能力。 团队给出了DeepSeek-R1的详细训练pipeline，该pipeline包含两段RL阶段，分别用于提升reasoning能力和用于提升通用能力；以及包含两段SFT阶段，分别为模型获取reasoning和non-reasoning能力提供冷启动。 蒸馏：小模型也可以很强大\n开源了多个size的基于Qwen2.5和Llama3系列模型使用DeepSeek-R1蒸馏得到的小模型，并且均在reasoning任务上展现了比同size最强开源模型更强的能力。在AIME2024、MATH-500、LiveCodeBench等基准上取得很高成绩。 3. 方法 3.1 DeepSeek-R1-Zero: Reinforcement Learning on the Base Model DeepSeek-R1-Zero模型不实用任何有监督数据，不做SFT，仅使用纯粹的强化学习过程让模型自我进化。\n3.1.1 Reinforcement Learning Algorithm 团队采用Croup Relative Policy Optimization（GRPO）强化学习算法。使critic model和policy model具有相同模型大小，具体来说，对每个问题$q$，GRPO从旧策略$\\pi_{\\theta_{old}}$采样一组输出${o_1,o_2,\\cdots,o_G}$，然后使用如下优化目标优化策略模型$\\pi_\\theta$：\n$$ \\begin{align*} \\mathcal{J}_{\\text{GRPO}}(\\theta) \u0026= \\mathbb{E}\\left[q \\sim P(Q), \\{o_i\\}_{i=1}^G \\sim \\pi_{\\theta_{\\text{old}}}(O|q)\\right]\\\\ \u0026=\\frac{1}{G} \\sum_{i=1}^G \\left( \\min \\left( \\frac{\\pi_{\\theta}(o_i | q)}{\\pi_{\\theta_{\\text{old}}}(o_i | q)} A_i, \\text{clip}\\left( \\frac{\\pi_{\\theta}(o_i | q)}{\\pi_{\\theta_{\\text{old}}}(o_i | q)}, 1 - \\epsilon, 1 + \\epsilon \\right) A_i \\right) - \\beta D_{\\text{KL}}(\\pi_{\\theta} \\| \\pi_{\\text{ref}}) \\right), \\end{align*} $$ $$ D_{\\text{KL}}(\\pi_{\\theta} \\| \\pi_{\\text{ref}}) = \\frac{\\pi_{\\text{ref}}(o_i | q)}{\\pi_{\\theta}(o_i | q)} - \\log \\frac{\\pi_{\\text{ref}}(o_i | q)}{\\pi_{\\theta}(o_i | q)} - 1, $$ $$ A_i = \\frac{r_i - \\text{mean}(\\{r_1, r_2, \\cdots, r_G\\})}{\\text{std}(\\{r_1, r_2, \\cdots, r_G\\})}. $$ 其中$\\epsilon$和$\\beta$为超参数，$A_i$为advantage，使用每个输出对应的奖励${r_1,r_2,\\cdots,r_G}$计算得到。\n","keywords":["AI","Paper Reading","NLP","LLM","Reasoning"],"articleBody":"1. 摘要 本次更新开源了DeepSeek-R1-Zero和DeepSeek-R1两个新旗舰reasoning模型，主要使用large-scale reinforcement learning且不需要SFT即完成训练，为开源社区给出了一个完全新颖且行之有效的reasoning LLM训练方案。其中DeepSeek-R1在reasoning任务上和OpenAI-o1-1217性能相当。除此之外，团队还开源了不同size的稠密模型（1.5B,7B,8B,14B,32B,70B），这些小模型是基于Qwen和Llama开源模型通过蒸馏DeepSeek-R1得到。\n2. 主要贡献 新的后训练范式：在Base Model上直接使用Large-Scale RL\n不使用SFT而直接基于base model做RL，让模型能够探索CoT来解决复杂问题。其中得到的DeepSeek-R1-Zero模型展现出了自我验证，反思，生成长的CoT的能力。 团队给出了DeepSeek-R1的详细训练pipeline，该pipeline包含两段RL阶段，分别用于提升reasoning能力和用于提升通用能力；以及包含两段SFT阶段，分别为模型获取reasoning和non-reasoning能力提供冷启动。 蒸馏：小模型也可以很强大\n开源了多个size的基于Qwen2.5和Llama3系列模型使用DeepSeek-R1蒸馏得到的小模型，并且均在reasoning任务上展现了比同size最强开源模型更强的能力。在AIME2024、MATH-500、LiveCodeBench等基准上取得很高成绩。 3. 方法 3.1 DeepSeek-R1-Zero: Reinforcement Learning on the Base Model DeepSeek-R1-Zero模型不实用任何有监督数据，不做SFT，仅使用纯粹的强化学习过程让模型自我进化。\n3.1.1 Reinforcement Learning Algorithm 团队采用Croup Relative Policy Optimization（GRPO）强化学习算法。使critic model和policy model具有相同模型大小，具体来说，对每个问题$q$，GRPO从旧策略$\\pi_{\\theta_{old}}$采样一组输出${o_1,o_2,\\cdots,o_G}$，然后使用如下优化目标优化策略模型$\\pi_\\theta$：\n$$ \\begin{align*} \\mathcal{J}_{\\text{GRPO}}(\\theta) \u0026= \\mathbb{E}\\left[q \\sim P(Q), \\{o_i\\}_{i=1}^G \\sim \\pi_{\\theta_{\\text{old}}}(O|q)\\right]\\\\ \u0026=\\frac{1}{G} \\sum_{i=1}^G \\left( \\min \\left( \\frac{\\pi_{\\theta}(o_i | q)}{\\pi_{\\theta_{\\text{old}}}(o_i | q)} A_i, \\text{clip}\\left( \\frac{\\pi_{\\theta}(o_i | q)}{\\pi_{\\theta_{\\text{old}}}(o_i | q)}, 1 - \\epsilon, 1 + \\epsilon \\right) A_i \\right) - \\beta D_{\\text{KL}}(\\pi_{\\theta} \\| \\pi_{\\text{ref}}) \\right), \\end{align*} $$ $$ D_{\\text{KL}}(\\pi_{\\theta} \\| \\pi_{\\text{ref}}) = \\frac{\\pi_{\\text{ref}}(o_i | q)}{\\pi_{\\theta}(o_i | q)} - \\log \\frac{\\pi_{\\text{ref}}(o_i | q)}{\\pi_{\\theta}(o_i | q)} - 1, $$ $$ A_i = \\frac{r_i - \\text{mean}(\\{r_1, r_2, \\cdots, r_G\\})}{\\text{std}(\\{r_1, r_2, \\cdots, r_G\\})}. $$ 其中$\\epsilon$和$\\beta$为超参数，$A_i$为advantage，使用每个输出对应的奖励${r_1,r_2,\\cdots,r_G}$计算得到。\n3.1.2 Reward Modeling 团队没有用神经网络模型来获取奖励（主要防止在large-scale RL中的reward hacking问题，且增添训练pipeline复杂度），采用的是基于规则的奖励函数，主要包含以下两种规则：\nAccuracy rewards：评估回答是否正确。例如，数学问题中，模型被要求提供某种格式下的最终答案；代码问题中，生成的代码能够被编译通过并基于预先准备的cases提供正确输出。\nFormat rewards：强制要求模型在其思考过程中打上‘’和‘’标签。\n3.1.3 Training Template DeepSeek-R1-Zero的训练模版如图1所示。该模版首先要求模型生成推理过程，然后是最终答案。 图1: DeepSeek-R1-Zero训练prompt模版 3.1.4 Performance, Self-evolution Process and Aha Moment of DeepSeek-R1-Zero Performance 图2: DeepSeek-R1-Zero与OpenAI o1在推理基准上的比较 图3: DeepSeek-R1-Zero在AIME上的准确率随着训练步数的变化 此外，团队发现通过majority voting，DeepSeek-R1-Zero的性能还能够进一步加强，在AIME上能从71.0%提升至86.7%。总结，DeepSeek-R1-Zero证明了不使用SFT而直接使用强化学习能够做到很优秀的推理能力。\nSelf-evolution Process of DeepSeek-R1-Zero 图4: DeepSeek-R1-Zero平均回答长度随着RL训练步数变化，能够通过更多的思考时间来解决推理任务 团队发现随着RL训练步数的增加，模型生成长度不断提高，即表明模型回答问题时思考的时间越来越长，在这过程中模型出现了一些比较sophisticated的行为。比如reflection，模型会从新回看自己之前生成的内容；自发的探索其他可能的方法，这些能力并不是通过监督学习得到，而是通过RL训练过程中不断涌现出来的。\nAha Moment of DeepSeek-R1-Zero 图5: DeepSeek-R1-Zero的Aha Moment 这是在RL训练中间过程出现的一个case，即模型学会了通过重新评估自己先前给出的方案来为思考的过程支配更多的时间，这个case表明通过RL能够使模型导向更多超出预期的生成结果。\n3.1.5 Drawback of DeepSeek-R1-Zero DeepSeek-R1-Zero在阅读能力以及语言混合能力上有不足，对此，团队提供了DeepSeek-R1，使用human-friendly cold-start data并结合RL的方法训练出的模型。\n3.2 DeepSeek-R1: Reinforcement Learning with Cold Start 受DeepSeek-R1-Zero强大推理能力的启发，团队提出两个新的问题：\n通过加入一小部分高质量的数据作为冷启动之后，模型的推理能力能否进一步提升，或者模型收敛速度能否提快？ 除了生成强大的CoT能力外，能否训练出一个user-friendly的，具有strong general capabilities的模型？ 对此，团队设计了训练DeepSeek-R1的pipeline，包含下面四个阶段：\n3.2.1 Cold Start 为了避免RL训练的初始不稳定的冷启动阶段，团队收集了一小批long CoT data（高质量SFT数据）用于微调base model作为initial RL actor，为了收集这样的数据，团队探索了几种方法：\nfew-shot prompting with a long CoT as an example directly prompting models to generate detailed answers with reflection and verification 收集DeepSeek-R1-Zero的输出，做成可阅读模式，并通过人工精调这些输出 在该阶段，团队收集了几千条code-start data，并微调DeepSeek-V3-Base作为initial RL actor。相比于DeepSeek-R1-Zero，DeepSeek-R1添加了code-start data有以下几个好处：\n增加输出可阅读性：DeepSeek-R1-Zero一个关键不足是输出的阅读性较差，回复中会混杂多个语言，且对关键部分缺少markdown高亮。 增加模型的潜力 3.2.2 Reasoning-oriented Reinforcement Learning 基于冷启动数据微调后的DeepSeek-V3-Base，团队使用DeepSeek-R1-Zero中相同的RL训练来训练DeepSeek-R1，这过程主要增强模型coding，mathematics，science，logic reasoning能力。\n训练过程中团队发现模型输出的CoT经常混杂多个语言，尤其是当RL的prompt包含多种语言时。为了缓解该问题，团推引入了一种language consistency reward，用于衡量CoT中目标语言统一的比例。尽管消融实验表明添加这个reward会略微降低模型性能，但该reward能使模型输出更加的user-friendly。\n3.2.3 Rejection Sampling and Supervised Fine-Tuning 当上一个阶段收敛后，团队使用收敛后的ckpt收集SFT数据（这次不像冷启动数据只针对reasoning，该阶段的SFT数据也包含其他领域，用于提升模型writing，role-playing，以及其他general-purpose任务的能力）\nReasoning data：600k Non-Reasoning data：200k 3.2.4 Reinforcement Learning for all Scenarios 这一阶段主要为了强化模型除了reasoning外其他通用能力。该阶段中，奖励函数没有使用基于规则的，而是正常用reward model，采用DeepSeek-V3中RL的pipeline，并选择了相似分布的偏好数据对和prompt数据。\n除此之外，该阶段还增强模型的helpfulness和harmlessness。\n3.3 Distillation: Empower Small Models with Reasoning Capability 团队选了base model有：Qwen2.5-Math-1.5B，Qwen2.5-Math-7B，Qwen2.5-14B，Qwen2.5-32B，Llama-3.1-8B，Llama3.3-70B-Instruct。\n对于蒸馏模型，团队仅使用SFT，没有RL阶段。其中SFT数据为3.2.3中使用DeepSeek-R1获取的800K条数据。\n4. 实验 4.1 DeepSeek-R1 Evaluation 图6: DeepSeek-R1-Zero与其他模型效果对比 4.2 Distilled Model Evaluation 图7: DeepSeek-R1蒸馏的小模型在reasoning基准上的对比结果 5. 讨论 5.1 Distillation v.s. Reinforcement Learning 图8: RL模型和蒸馏模型在reasoning基准上的对比 上图中，DeepSeek-R1-Zero-Qwen-32B是基于Qwen-32B-Base模型，使用math，code，STEM数据用large-scale RL训练超过10K步得到的，而DeepSeek-R1-Distill-Qwen-32B为基于Qwen-32B-Base模型使用DeepSeek-R1蒸馏得到。结果表明：\n将大模型能力蒸馏到小模型上能表现出很好的效果，而小模型直接用large-scale RL不仅需要更多的算力，甚至也达不到蒸馏模型的效果。 尽管蒸馏方案经济且有效，扩充模型能力的边界仍需要基于更强的base models并使用larger-scale RL。 5.2 Unsuccessful Attempts 团队早期也尝试了Rrocess Reward Model（PRM）和Monte Carlo Tree Search（MCTS）等方案，但都失败了。\nProcess Reward Model：PRM有三大主要限制 在一条推理链中精细定义一个step比较困难 判断当前中间step是否正确是一个充满挑战的任务。模型标注的数据并不能得到满意结果，而人工标注很难scaling up。 不可避免存在reward hacking的问题，重新训练奖励模型消耗大，增加整个训练流程的复杂度。 Monte Carlo Tree Search：主要用于棋类RL算法 语言模型search space比棋类大得多，这样必须设定一个最大搜索限制，但这样会导致模型陷入局部最优。 价值模型直接影响生成质量，但训练一个好的价值模型很困难。 References [1] DeepSeek-AI. “DeepSeek-R1: Incentivizing Reasoning Capability in LLMs via Reinforcement Learning ” arXiv preprint axXiv:2501.12948 (2025).\n","wordCount":"330","inLanguage":"en","datePublished":"2025-01-27T00:00:00Z","dateModified":"2025-01-27T00:00:00Z","author":{"@type":"Person","name":"Rs"},"mainEntityOfPage":{"@type":"WebPage","@id":"https://tqzhong.github.io/my-blog/posts/2025-01-27-deepseek-r1/"},"publisher":{"@type":"Organization","name":"Rs' Log","logo":{"@type":"ImageObject","url":"https://tqzhong.github.io/my-blog/favicon.ico"}}}</script></head><body id=top><script>localStorage.getItem("pref-theme")==="dark"?document.body.classList.add("dark"):localStorage.getItem("pref-theme")==="light"?document.body.classList.remove("dark"):window.matchMedia("(prefers-color-scheme: dark)").matches&&document.body.classList.add("dark")</script><header class=header><script>MathJax={tex:{inlineMath:[["$","$"],["\\(","\\)"]],displayMath:[["$$","$$"],["\\[","\\]"]],processEscapes:!0,processEnvironments:!0},svg:{fontCache:"global"}}</script><nav class=nav><div class=logo-logo-switches><div class=logo><a href=https://tqzhong.github.io/my-blog/ accesskey=h title="Rs' Log (Alt + H)">Rs' Log</a><div class=logo-switches><button id=theme-toggle accesskey=t title="(Alt + T)"><svg id="moon" width="24" height="18" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg><svg id="sun" width="24" height="18" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg></button><ul class=lang-switch></ul></div></div></div><ul id=menu><li><a href=https://tqzhong.github.io/my-blog/ title=Posts><span>Posts</span></a></li><li><a href=https://tqzhong.github.io/my-blog/archive/ title=Archive><span>Archive</span></a></li><li><a href=https://tqzhong.github.io/my-blog/search/ title="Search (Alt + /)" accesskey=/><span>Search</span></a></li><li><a href=https://tqzhong.github.io/my-blog/tags/ title=Tags><span>Tags</span></a></li><li><a href=https://tqzhong.github.io/my-blog/categories/ title=Categories><span>Categories</span></a></li><li><a href=https://tqzhong.github.io/my-blog/faq/ title=FAQ><span>FAQ</span></a></li></ul></nav></header><main class=main><article class=post-single><header class=post-header><h1 class=post-title>DeepSeek-R1技术报告解读</h1><div class=post-meta><i class="fas fa-calendar-alt blog-meta-icon"></i>&nbsp;2025-01-27 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <i class="fas fa-clock blog-meta-icon"></i>&nbsp;2 min &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <i class="fas fa-user blog-meta-icon"></i>&nbsp;Rs &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <i class="fas fa-eye blog-meta-icon"></i>&nbsp;<span id=view-counter></span>
+<script src=https://cdn.jsdelivr.net/npm/leancloud-storage@4.12.0/dist/av-min.js></script><script>AV.initialize("AokLJzaIvwVNJW0b2F0YTLLy-MdYXbMMI","fwZpRfBG259O3LscJFPW3ViH"),loadViewCount(location.pathname,"view-counter");var hasViewCounted=!1;function loadViewCount(e,t){if(hasViewCounted)return;hasViewCounted=!0;var s,n=document.getElementById(t),o=localStorage.getItem("view-count-"+e);o?n.innerText=o:n.innerText="0",s=new AV.Query("Counter"),s.equalTo("url",e),s.find().then(t=>{if(t.length>0){var s,i,a,o=t[0];o.increment("views",1),o.save(),i=o.get("views"),n.innerText=i,localStorage.setItem("view-count-"+e,i)}else a=AV.Object.extend("Counter"),s=new a,s.set("url",e),s.set("views",1),s.save().then(()=>{n.innerText="1",localStorage.setItem("view-count-"+e,1)})}).catch(function(e){console.error("error:",e)})}</script></div></header><div class=toc><details><summary accesskey=c title="(Alt + C)"><span class=details>Table of Contents</span></summary><div class=inner><ul><li><a href=#1-%e6%91%98%e8%a6%81 aria-label="1. 摘要">1. 摘要</a></li><li><a href=#2-%e4%b8%bb%e8%a6%81%e8%b4%a1%e7%8c%ae aria-label="2. 主要贡献">2. 主要贡献</a></li><li><a href=#3-%e6%96%b9%e6%b3%95 aria-label="3. 方法">3. 方法</a><ul><li><a href=#31-deepseek-r1-zero-reinforcement-learning-on-the-base-model aria-label="3.1 DeepSeek-R1-Zero: Reinforcement Learning on the Base Model">3.1 DeepSeek-R1-Zero: Reinforcement Learning on the Base Model</a><ul><li><a href=#311-reinforcement-learning-algorithm aria-label="3.1.1 Reinforcement Learning Algorithm">3.1.1 Reinforcement Learning Algorithm</a></li><li><a href=#312-reward-modeling aria-label="3.1.2 Reward Modeling">3.1.2 Reward Modeling</a></li><li><a href=#313-training-template aria-label="3.1.3 Training Template">3.1.3 Training Template</a></li><li><a href=#314-performance-self-evolution-process-and-aha-moment-of-deepseek-r1-zero aria-label="3.1.4 Performance, Self-evolution Process and Aha Moment of DeepSeek-R1-Zero">3.1.4 Performance, Self-evolution Process and Aha Moment of DeepSeek-R1-Zero</a><ul><li><a href=#performance aria-label=Performance>Performance</a></li><li><a href=#self-evolution-process-of-deepseek-r1-zero aria-label="Self-evolution Process of DeepSeek-R1-Zero">Self-evolution Process of DeepSeek-R1-Zero</a></li><li><a href=#aha-moment-of-deepseek-r1-zero aria-label="Aha Moment of DeepSeek-R1-Zero">Aha Moment of DeepSeek-R1-Zero</a></li></ul></li><li><a href=#315-drawback-of-deepseek-r1-zero aria-label="3.1.5 Drawback of DeepSeek-R1-Zero">3.1.5 Drawback of DeepSeek-R1-Zero</a></li></ul></li><li><a href=#32-deepseek-r1-reinforcement-learning-with-cold-start aria-label="3.2 DeepSeek-R1: Reinforcement Learning with Cold Start">3.2 DeepSeek-R1: Reinforcement Learning with Cold Start</a><ul><li><a href=#321-cold-start aria-label="3.2.1 Cold Start">3.2.1 Cold Start</a></li><li><a href=#322-reasoning-oriented-reinforcement-learning aria-label="3.2.2 Reasoning-oriented Reinforcement Learning">3.2.2 Reasoning-oriented Reinforcement Learning</a></li><li><a href=#323-rejection-sampling-and-supervised-fine-tuning aria-label="3.2.3 Rejection Sampling and Supervised Fine-Tuning">3.2.3 Rejection Sampling and Supervised Fine-Tuning</a></li><li><a href=#324-reinforcement-learning-for-all-scenarios aria-label="3.2.4 Reinforcement Learning for all Scenarios">3.2.4 Reinforcement Learning for all Scenarios</a></li></ul></li><li><a href=#33-distillation-empower-small-models-with-reasoning-capability aria-label="3.3 Distillation: Empower Small Models with Reasoning Capability">3.3 Distillation: Empower Small Models with Reasoning Capability</a></li></ul></li><li><a href=#4-%e5%ae%9e%e9%aa%8c aria-label="4. 实验">4. 实验</a><ul><li><a href=#41-deepseek-r1-evaluation aria-label="4.1 DeepSeek-R1 Evaluation">4.1 DeepSeek-R1 Evaluation</a></li><li><a href=#42-distilled-model-evaluation aria-label="4.2 Distilled Model Evaluation">4.2 Distilled Model Evaluation</a></li></ul></li><li><a href=#5-%e8%ae%a8%e8%ae%ba aria-label="5. 讨论">5. 讨论</a><ul><li><a href=#51-distillation-vs-reinforcement-learning aria-label="5.1 Distillation v.s. Reinforcement Learning">5.1 Distillation v.s. Reinforcement Learning</a></li><li><a href=#52-unsuccessful-attempts aria-label="5.2 Unsuccessful Attempts">5.2 Unsuccessful Attempts</a></li></ul></li><li><a href=#references aria-label=References>References</a></li></ul></div></details></div><div class=post-content><h3 id=1-摘要>1. 摘要<a hidden class=anchor aria-hidden=true href=#1-摘要>#</a></h3><p>本次更新开源了DeepSeek-R1-Zero和DeepSeek-R1两个新旗舰reasoning模型，主要使用large-scale reinforcement learning且不需要SFT即完成训练，为开源社区给出了一个完全新颖且行之有效的reasoning LLM训练方案。其中DeepSeek-R1在reasoning任务上和OpenAI-o1-1217性能相当。除此之外，团队还开源了不同size的稠密模型（1.5B,7B,8B,14B,32B,70B），这些小模型是基于Qwen和Llama开源模型通过蒸馏DeepSeek-R1得到。</p><h3 id=2-主要贡献>2. 主要贡献<a hidden class=anchor aria-hidden=true href=#2-主要贡献>#</a></h3><p>新的后训练范式：在Base Model上直接使用Large-Scale RL</p><ul><li>不使用SFT而直接基于base model做RL，让模型能够探索CoT来解决复杂问题。其中得到的DeepSeek-R1-Zero模型展现出了<strong>自我验证，反思，生成长的CoT</strong>的能力。</li><li>团队给出了DeepSeek-R1的详细训练pipeline，该pipeline包含两段RL阶段，分别用于提升reasoning能力和用于提升通用能力；以及包含两段SFT阶段，分别为模型获取reasoning和non-reasoning能力提供冷启动。</li></ul><p>蒸馏：小模型也可以很强大</p><ul><li>开源了多个size的基于Qwen2.5和Llama3系列模型使用DeepSeek-R1蒸馏得到的小模型，并且均在reasoning任务上展现了比同size最强开源模型更强的能力。在AIME2024、MATH-500、LiveCodeBench等基准上取得很高成绩。</li></ul><h3 id=3-方法>3. 方法<a hidden class=anchor aria-hidden=true href=#3-方法>#</a></h3><h4 id=31-deepseek-r1-zero-reinforcement-learning-on-the-base-model>3.1 DeepSeek-R1-Zero: Reinforcement Learning on the Base Model<a hidden class=anchor aria-hidden=true href=#31-deepseek-r1-zero-reinforcement-learning-on-the-base-model>#</a></h4><p>DeepSeek-R1-Zero模型不实用任何有监督数据，不做SFT，仅使用纯粹的强化学习过程让模型自我进化。</p><h5 id=311-reinforcement-learning-algorithm>3.1.1 Reinforcement Learning Algorithm<a hidden class=anchor aria-hidden=true href=#311-reinforcement-learning-algorithm>#</a></h5><p>团队采用Croup Relative Policy Optimization（GRPO）强化学习算法。使critic model和policy model具有相同模型大小，具体来说，对每个问题$q$，GRPO从旧策略$\pi_{\theta_{old}}$采样一组输出${o_1,o_2,\cdots,o_G}$，然后使用如下优化目标优化策略模型$\pi_\theta$：</p><div class=scroll-container>$$
+\begin{align*}
+\mathcal{J}_{\text{GRPO}}(\theta) &= \mathbb{E}\left[q \sim P(Q), \{o_i\}_{i=1}^G \sim \pi_{\theta_{\text{old}}}(O|q)\right]\\
+&=\frac{1}{G} \sum_{i=1}^G \left( 
+\min \left(
+\frac{\pi_{\theta}(o_i | q)}{\pi_{\theta_{\text{old}}}(o_i | q)} A_i,
+\text{clip}\left( \frac{\pi_{\theta}(o_i | q)}{\pi_{\theta_{\text{old}}}(o_i | q)}, 1 - \epsilon, 1 + \epsilon \right) A_i
+\right)
+- \beta D_{\text{KL}}(\pi_{\theta} \| \pi_{\text{ref}})
+\right),
+\end{align*}
+$$</div><div class=scroll-container>$$
+D_{\text{KL}}(\pi_{\theta} \| \pi_{\text{ref}}) =
+\frac{\pi_{\text{ref}}(o_i | q)}{\pi_{\theta}(o_i | q)}
+- \log \frac{\pi_{\text{ref}}(o_i | q)}{\pi_{\theta}(o_i | q)} - 1,
+$$</div><div class=scroll-container>$$
+A_i = \frac{r_i - \text{mean}(\{r_1, r_2, \cdots, r_G\})}{\text{std}(\{r_1, r_2, \cdots, r_G\})}.
+$$</div><p>其中$\epsilon$和$\beta$为超参数，$A_i$为advantage，使用每个输出对应的奖励${r_1,r_2,\cdots,r_G}$计算得到。</p><h5 id=312-reward-modeling>3.1.2 Reward Modeling<a hidden class=anchor aria-hidden=true href=#312-reward-modeling>#</a></h5><p>团队没有用神经网络模型来获取奖励（主要防止在large-scale RL中的reward hacking问题，且增添训练pipeline复杂度），采用的是基于规则的奖励函数，主要包含以下两种规则：</p><ul><li><p>Accuracy rewards：评估回答是否正确。例如，数学问题中，模型被要求提供某种格式下的最终答案；代码问题中，生成的代码能够被编译通过并基于预先准备的cases提供正确输出。</p></li><li><p>Format rewards：强制要求模型在其思考过程中打上‘&lt;think>’和‘&lt;/think>’标签。</p></li></ul><h5 id=313-training-template>3.1.3 Training Template<a hidden class=anchor aria-hidden=true href=#313-training-template>#</a></h5><p>DeepSeek-R1-Zero的训练模版如图1所示。该模版首先要求模型生成推理过程，然后是最终答案。
+<img loading=lazy src=/my-blog/images/2025-01-27-deepseek-r1/2025-01-27-image1.jpg alt=deepseek-r1-zero-training-template></p><div align=center style=color:#999>图1: DeepSeek-R1-Zero训练prompt模版</div><h5 id=314-performance-self-evolution-process-and-aha-moment-of-deepseek-r1-zero>3.1.4 Performance, Self-evolution Process and Aha Moment of DeepSeek-R1-Zero<a hidden class=anchor aria-hidden=true href=#314-performance-self-evolution-process-and-aha-moment-of-deepseek-r1-zero>#</a></h5><h6 id=performance>Performance<a hidden class=anchor aria-hidden=true href=#performance>#</a></h6><p><img loading=lazy src=/my-blog/images/2025-01-27-deepseek-r1/2025-01-27-image2.jpg alt=deepseek-r1-zero-performance-1></p><div align=center style=color:#999>图2: DeepSeek-R1-Zero与OpenAI o1在推理基准上的比较</div><p><img loading=lazy src=/my-blog/images/2025-01-27-deepseek-r1/2025-01-27-image3.jpg alt=deepseek-r1-zero-performance-2></p><div align=center style=color:#999>图3: DeepSeek-R1-Zero在AIME上的准确率随着训练步数的变化</div><p>此外，团队发现通过majority voting，DeepSeek-R1-Zero的性能还能够进一步加强，在AIME上能从71.0%提升至86.7%。总结，DeepSeek-R1-Zero证明了不使用SFT而直接使用强化学习能够做到很优秀的推理能力。</p><h6 id=self-evolution-process-of-deepseek-r1-zero>Self-evolution Process of DeepSeek-R1-Zero<a hidden class=anchor aria-hidden=true href=#self-evolution-process-of-deepseek-r1-zero>#</a></h6><p><img loading=lazy src=/my-blog/images/2025-01-27-deepseek-r1/2025-01-27-image4.jpg alt=deepseek-r1-zero-self-evolution></p><div align=center style=color:#999>图4: DeepSeek-R1-Zero平均回答长度随着RL训练步数变化，能够通过更多的思考时间来解决推理任务</div><p>团队发现随着RL训练步数的增加，模型生成长度不断提高，即表明模型回答问题时思考的时间越来越长，在这过程中模型出现了一些比较sophisticated的行为。比如<strong>reflection</strong>，模型会从新回看自己之前生成的内容；<strong>自发的探索其他可能的方法</strong>，这些能力并不是通过监督学习得到，而是通过RL训练过程中不断涌现出来的。</p><h6 id=aha-moment-of-deepseek-r1-zero>Aha Moment of DeepSeek-R1-Zero<a hidden class=anchor aria-hidden=true href=#aha-moment-of-deepseek-r1-zero>#</a></h6><p><img loading=lazy src=/my-blog/images/2025-01-27-deepseek-r1/2025-01-27-image5.jpg alt=deepseek-r1-zero-aha-moment></p><div align=center style=color:#999>图5: DeepSeek-R1-Zero的Aha Moment</div><p>这是在RL训练中间过程出现的一个case，即模型学会了通过重新评估自己先前给出的方案来为思考的过程支配更多的时间，这个case表明通过RL能够使模型导向更多超出预期的生成结果。</p><h5 id=315-drawback-of-deepseek-r1-zero>3.1.5 Drawback of DeepSeek-R1-Zero<a hidden class=anchor aria-hidden=true href=#315-drawback-of-deepseek-r1-zero>#</a></h5><p>DeepSeek-R1-Zero在阅读能力以及语言混合能力上有不足，对此，团队提供了DeepSeek-R1，使用human-friendly cold-start data并结合RL的方法训练出的模型。</p><h4 id=32-deepseek-r1-reinforcement-learning-with-cold-start>3.2 DeepSeek-R1: Reinforcement Learning with Cold Start<a hidden class=anchor aria-hidden=true href=#32-deepseek-r1-reinforcement-learning-with-cold-start>#</a></h4><p>受DeepSeek-R1-Zero强大推理能力的启发，团队提出两个新的问题：</p><ul><li>通过加入一小部分高质量的数据作为冷启动之后，模型的推理能力能否进一步提升，或者模型收敛速度能否提快？</li><li>除了生成强大的CoT能力外，能否训练出一个user-friendly的，具有strong general capabilities的模型？</li></ul><p>对此，团队设计了训练DeepSeek-R1的pipeline，包含下面四个阶段：</p><h5 id=321-cold-start>3.2.1 Cold Start<a hidden class=anchor aria-hidden=true href=#321-cold-start>#</a></h5><p>为了避免RL训练的初始不稳定的冷启动阶段，团队收集了一小批long CoT data（高质量SFT数据）用于微调base model作为initial RL actor，为了收集这样的数据，团队探索了几种方法：</p><ul><li>few-shot prompting with a long CoT as an example</li><li>directly prompting models to generate detailed answers with reflection and verification</li><li>收集DeepSeek-R1-Zero的输出，做成可阅读模式，并通过人工精调这些输出</li></ul><p>在该阶段，团队收集了几千条code-start data，并微调DeepSeek-V3-Base作为initial RL actor。相比于DeepSeek-R1-Zero，DeepSeek-R1添加了code-start data有以下几个好处：</p><ul><li>增加输出可阅读性：DeepSeek-R1-Zero一个关键不足是输出的阅读性较差，回复中会混杂多个语言，且对关键部分缺少markdown高亮。</li><li>增加模型的潜力</li></ul><h5 id=322-reasoning-oriented-reinforcement-learning>3.2.2 Reasoning-oriented Reinforcement Learning<a hidden class=anchor aria-hidden=true href=#322-reasoning-oriented-reinforcement-learning>#</a></h5><p>基于冷启动数据微调后的DeepSeek-V3-Base，团队使用DeepSeek-R1-Zero中相同的RL训练来训练DeepSeek-R1，这过程主要增强模型coding，mathematics，science，logic reasoning能力。</p><p>训练过程中团队发现模型输出的CoT经常混杂多个语言，尤其是当RL的prompt包含多种语言时。为了缓解该问题，团推引入了一种language consistency reward，用于衡量CoT中目标语言统一的比例。尽管消融实验表明添加这个reward会略微降低模型性能，但该reward能使模型输出更加的user-friendly。</p><h5 id=323-rejection-sampling-and-supervised-fine-tuning>3.2.3 Rejection Sampling and Supervised Fine-Tuning<a hidden class=anchor aria-hidden=true href=#323-rejection-sampling-and-supervised-fine-tuning>#</a></h5><p>当上一个阶段收敛后，团队使用收敛后的ckpt收集SFT数据（这次不像冷启动数据只针对reasoning，该阶段的SFT数据也包含其他领域，用于提升模型writing，role-playing，以及其他general-purpose任务的能力）</p><ul><li><strong>Reasoning data</strong>：600k</li><li><strong>Non-Reasoning data</strong>：200k</li></ul><h5 id=324-reinforcement-learning-for-all-scenarios>3.2.4 Reinforcement Learning for all Scenarios<a hidden class=anchor aria-hidden=true href=#324-reinforcement-learning-for-all-scenarios>#</a></h5><p>这一阶段主要为了强化模型除了reasoning外其他通用能力。该阶段中，奖励函数没有使用基于规则的，而是正常用reward model，采用DeepSeek-V3中RL的pipeline，并选择了相似分布的偏好数据对和prompt数据。</p><p>除此之外，该阶段还增强模型的helpfulness和harmlessness。</p><h4 id=33-distillation-empower-small-models-with-reasoning-capability>3.3 Distillation: Empower Small Models with Reasoning Capability<a hidden class=anchor aria-hidden=true href=#33-distillation-empower-small-models-with-reasoning-capability>#</a></h4><p>团队选了base model有：Qwen2.5-Math-1.5B，Qwen2.5-Math-7B，Qwen2.5-14B，Qwen2.5-32B，Llama-3.1-8B，Llama3.3-70B-Instruct。</p><p>对于蒸馏模型，团队仅使用SFT，没有RL阶段。其中SFT数据为<a href=#323-rejection-sampling-and-supervised-fine-tuning>3.2.3</a>中使用DeepSeek-R1获取的800K条数据。</p><h3 id=4-实验>4. 实验<a hidden class=anchor aria-hidden=true href=#4-实验>#</a></h3><h4 id=41-deepseek-r1-evaluation>4.1 DeepSeek-R1 Evaluation<a hidden class=anchor aria-hidden=true href=#41-deepseek-r1-evaluation>#</a></h4><p><img loading=lazy src=/my-blog/images/2025-01-27-deepseek-r1/2025-01-27-image6.jpg alt=deepseek-r1-zero-results></p><div align=center style=color:#999>图6: DeepSeek-R1-Zero与其他模型效果对比</div><h4 id=42-distilled-model-evaluation>4.2 Distilled Model Evaluation<a hidden class=anchor aria-hidden=true href=#42-distilled-model-evaluation>#</a></h4><p><img loading=lazy src=/my-blog/images/2025-01-27-deepseek-r1/2025-01-27-image7.jpg alt=deepseek-r1-zero-results></p><div align=center style=color:#999>图7: DeepSeek-R1蒸馏的小模型在reasoning基准上的对比结果</div><h3 id=5-讨论>5. 讨论<a hidden class=anchor aria-hidden=true href=#5-讨论>#</a></h3><h4 id=51-distillation-vs-reinforcement-learning>5.1 Distillation v.s. Reinforcement Learning<a hidden class=anchor aria-hidden=true href=#51-distillation-vs-reinforcement-learning>#</a></h4><p><img loading=lazy src=/my-blog/images/2025-01-27-deepseek-r1/2025-01-27-image8.jpg alt=deepseek-r1-zero-results></p><div align=center style=color:#999>图8: RL模型和蒸馏模型在reasoning基准上的对比</div><p>上图中，DeepSeek-R1-Zero-Qwen-32B是基于Qwen-32B-Base模型，使用math，code，STEM数据用large-scale RL训练超过10K步得到的，而DeepSeek-R1-Distill-Qwen-32B为基于Qwen-32B-Base模型使用DeepSeek-R1蒸馏得到。结果表明：</p><ul><li>将大模型能力蒸馏到小模型上能表现出很好的效果，而小模型直接用large-scale RL不仅需要更多的算力，甚至也达不到蒸馏模型的效果。</li><li>尽管蒸馏方案经济且有效，扩充模型能力的边界仍需要基于更强的base models并使用larger-scale RL。</li></ul><h4 id=52-unsuccessful-attempts>5.2 Unsuccessful Attempts<a hidden class=anchor aria-hidden=true href=#52-unsuccessful-attempts>#</a></h4><p>团队早期也尝试了Rrocess Reward Model（PRM）和Monte Carlo Tree Search（MCTS）等方案，但都失败了。</p><ul><li>Process Reward Model：PRM有三大主要限制<ul><li>在一条推理链中精细定义一个step比较困难</li><li>判断当前中间step是否正确是一个充满挑战的任务。模型标注的数据并不能得到满意结果，而人工标注很难scaling up。</li><li>不可避免存在reward hacking的问题，重新训练奖励模型消耗大，增加整个训练流程的复杂度。</li></ul></li><li>Monte Carlo Tree Search：主要用于棋类RL算法<ul><li>语言模型search space比棋类大得多，这样必须设定一个最大搜索限制，但这样会导致模型陷入局部最优。</li><li>价值模型直接影响生成质量，但训练一个好的价值模型很困难。</li></ul></li></ul><h3 id=references>References<a hidden class=anchor aria-hidden=true href=#references>#</a></h3><p>[1] DeepSeek-AI. <a href=https://arxiv.org/abs/2501.12948 class=entityLink>“DeepSeek-R1: Incentivizing Reasoning Capability in LLMs via Reinforcement Learning
+”</a> arXiv preprint axXiv:2501.12948 (2025).</p></div><footer class=post-footer><ul class=post-tags><li><a href=https://tqzhong.github.io/my-blog/tags/ai/>AI</a></li><li><a href=https://tqzhong.github.io/my-blog/tags/paper-reading/>Paper Reading</a></li><li><a href=https://tqzhong.github.io/my-blog/tags/nlp/>NLP</a></li><li><a href=https://tqzhong.github.io/my-blog/tags/llm/>LLM</a></li><li><a href=https://tqzhong.github.io/my-blog/tags/reasoning/>Reasoning</a></li></ul><nav class=paginav><a class=prev href=https://tqzhong.github.io/my-blog/posts/2025-01-29-deepseek-v3/><span class=title>« Prev</span><br><span>DeepSeek-V3技术报告解读</span>
+</a><a class=next href=https://tqzhong.github.io/my-blog/posts/2025-01-08-retrieval-augmented-generation/><span class=title>Next »</span><br><span>RAG路线</span></a></nav></footer></article><div class=social-icons><a href=https://github.com/tqzhong target=_blank rel="noopener noreferrer"><i class="fab fa-github"></i>
+</a><a href=https://x.com/rs1047g target=_blank rel="noopener noreferrer"><i class="fab fa-twitter"></i>
+</a><a href="https://scholar.google.com/citations?hl=en&amp;user=UNNLJX4AAAAJ" target=_blank rel="noopener noreferrer"><i class="fab fa-google"></i>
+</a><a href=https://tqzhong.github.io target=_blank rel="noopener noreferrer"><i class="fas fa-user"></i></a></div><script src=https://utteranc.es/client.js repo=tqzhong/my-blog issue-term=pathname label=hugo-comment theme=github-dark crossorigin=anonymous async></script></main><footer class=footer><span>&copy; 2025 <a href=https://tqzhong.github.io/my-blog/>Rs' Log</a></span>
+<span>Powered by
+<a href=https://gohugo.io/ rel="noopener noreferrer" target=_blank>Hugo</a> &
+        <a href=https://github.com/adityatelange/hugo-PaperMod/ rel=noopener target=_blank>PaperMod</a></span></footer><a href=#top aria-label="go to top" title="Go to Top (Alt + G)" class=top-link id=top-link accesskey=g><svg viewBox="0 0 12 6" fill="currentcolor"><path d="M12 6H0l6-6z"/></svg>
+</a><script>let menu=document.getElementById("menu");menu&&(menu.scrollLeft=localStorage.getItem("menu-scroll-position"),menu.onscroll=function(){localStorage.setItem("menu-scroll-position",menu.scrollLeft)}),document.querySelectorAll('a[href^="#"]').forEach(e=>{e.addEventListener("click",function(e){e.preventDefault();var t=this.getAttribute("href").substr(1);window.matchMedia("(prefers-reduced-motion: reduce)").matches?document.querySelector(`[id='${decodeURIComponent(t)}']`).scrollIntoView():document.querySelector(`[id='${decodeURIComponent(t)}']`).scrollIntoView({behavior:"smooth"}),t==="top"?history.replaceState(null,null," "):history.pushState(null,null,`#${t}`)})})</script><script>var mybutton=document.getElementById("top-link");window.onscroll=function(){document.body.scrollTop>800||document.documentElement.scrollTop>800?(mybutton.style.visibility="visible",mybutton.style.opacity="1"):(mybutton.style.visibility="hidden",mybutton.style.opacity="0")}</script><script>document.getElementById("theme-toggle").addEventListener("click",()=>{document.body.className.includes("dark")?(document.body.classList.remove("dark"),localStorage.setItem("pref-theme","light")):(document.body.classList.add("dark"),localStorage.setItem("pref-theme","dark"))})</script><script src=https://cdn.jsdelivr.net/npm/katex@0.13.0/dist/katex.min.js></script><script src=https://cdn.jsdelivr.net/npm/katex@0.13.0/dist/contrib/auto-render.min.js></script><script>document.addEventListener("DOMContentLoaded",function(){renderMathInElement(document.body,{delimiters:[{left:"$$",right:"$$",display:!0},{left:"\\(",right:"\\)",display:!1},{left:"$",right:"$",display:!1}]})})</script></body></html>

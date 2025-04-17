@@ -1,23 +1,5 @@
-<!DOCTYPE html>
-<html lang="en" dir="auto">
-<a href="https://yourpersonalwebsite.com" target="_blank">
-
-<head>
-    <script src="https://cdn.jsdelivr.net/npm/fuse.js/dist/fuse.min.js"></script>
-    <link rel="stylesheet" href="https://unpkg.com/@waline/client@v3/dist/waline.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.13.0/dist/katex.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/default.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
-    <script>hljs.initHighlightingOnLoad();</script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/plugins/line-numbers.min.js"></script>
-
-<meta charset="utf-8">
-<meta http-equiv="X-UA-Compatible" content="IE=edge">
-<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<meta name="robots" content="index, follow">
-<title>DeepSeek-V3技术报告解读 | Rs&#39; Log</title>
-<meta name="keywords" content="AI, Paper Reading, NLP, LLM">
-<meta name="description" content="1. 摘要
+<!doctype html><html lang=en dir=auto><a href=https://yourpersonalwebsite.com target=_blank><head><script src=https://cdn.jsdelivr.net/npm/fuse.js/dist/fuse.min.js></script><link rel=stylesheet href=https://unpkg.com/@waline/client@v3/dist/waline.css><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/katex@0.13.0/dist/katex.min.css><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/default.min.css><script src=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js></script><script>hljs.initHighlightingOnLoad()</script><script src=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/plugins/line-numbers.min.js></script><meta charset=utf-8><meta http-equiv=X-UA-Compatible content="IE=edge"><meta name=viewport content="width=device-width,initial-scale=1,shrink-to-fit=no"><meta name=robots content="index, follow"><title>DeepSeek-V3技术报告解读 | Rs' Log</title>
+<meta name=keywords content="AI,Paper Reading,NLP,LLM"><meta name=description content="1. 摘要
 DeepSeek-V3，是一个Mixture-of-Experts（MoE）结构的大语言模型，参数量671B，其中每个token激活的参数量为37B。DeepSeek-V3主要采用Multi-head Latent Attention（MLA）和DeepSeekMoE结构，此外为了expert负载均衡引入了auxiliary-loss-free策略，为了更强的模型性能采用了multi-token prediction（MTP）训练策略。DeepSeek-V3预训练预料一共14.8T个token，并采用SFT和RL进一步对齐增强模型性能。DeepSeek-V3完整的训练一共仅需要2.788M H800 GPU hours。项目链接：DeepSeek-V3
 2. DeepSeek-V3模型结构
 2.1 Basic Architecture
@@ -52,66 +34,7 @@ $$
 \left[\mathbf{v}^C_{t,1}; \mathbf{v}^C_{t,2}; \dots; \mathbf{v}^C_{t,n_h} \right] = \mathbf{v}^C_t = W^{UV} \mathbf{c}^{KV}_t.
 $$
 
-其中$\bold{c}_t^{KV}\in\mathbb R^{d_c}$代表key和value压缩后的隐藏向量；$d_c(\ll d_n n_h)$表明key和value的压缩维度，$W^{DKV}\in\mathbb R^{d_c\times d}$为下投影矩阵，$W^{UK},W^{UV}\in\mathbb R^{d_hn_h\times d_c}$为key和value的上投影矩阵。$W^{KR}\in\mathbb R^{d_h^R\times d}$用于生成carry RoPE key向量的矩阵。在MLA中，只有标蓝的向量（$\textcolor{blue}{\bold{c}_t^{KV}}$和$\textcolor{blue}{\bold{k}_t^R}$）需要在推理阶段存储（相比Multi-Head Attention的KV-Cache开销小很多）。">
-<meta name="author" content="Rs">
-<link rel="canonical" href="https://tqzhong.github.io/my-blog/posts/2025-01-29-deepseek-v3/">
-
-
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-<link crossorigin="anonymous" href="/my-blog/assets/css/stylesheet.6a98292fb8fa8cf0f3ba4042d4b75515c04267550f3ad49ff6271b5af9562443.css" integrity="sha256-apgpL7j6jPDzukBC1LdVFcBCZ1UPOtSf9icbWvlWJEM=" rel="preload stylesheet" as="style">
-
-
-<script defer crossorigin="anonymous" src="/my-blog/assets/js/highlight.f413e19d0714851f6474e7ee9632408e58ac146fbdbe62747134bea2fa3415e0.js" integrity="sha256-9BPhnQcUhR9kdOfuljJAjlisFG&#43;9vmJ0cTS&#43;ovo0FeA="
-    onload="hljs.initHighlightingOnLoad();"></script>
-<link rel="icon" type="image/x-icon" sizes="48x48" href="images/favicon.ico">
-<link rel="icon" type="image/png" sizes="16x16" href="images/favicon-16x16.png">
-<link rel="icon" type="image/png" sizes="32x32" href="images/favicon-32x32.png">
-<link rel="apple-touch-icon" href="images/apple-touch-icon.png">
-<link rel="icon" sizes="512x512" href="images/android-chrome-512x512.png" type="image/png">
-<link rel="icon" sizes="192x192" href="images/android-chrome-192x192.png" type="image/png">
-<link rel="mask-icon" href="https://tqzhong.github.io/my-blog/safari-pinned-tab.svg">
-<meta name="theme-color" content="#2e2e33">
-<meta name="msapplication-TileColor" content="#2e2e33">
-<link rel="alternate" hreflang="en" href="https://tqzhong.github.io/my-blog/posts/2025-01-29-deepseek-v3/">
-<noscript>
-    <style>
-        #theme-toggle,
-        .top-link {
-            display: none;
-        }
-
-    </style>
-    <style>
-        @media (prefers-color-scheme: dark) {
-            :root {
-                --theme: rgb(29, 30, 32);
-                --entry: rgb(46, 46, 51);
-                --primary: rgb(218, 218, 219);
-                --secondary: rgb(155, 156, 157);
-                --tertiary: rgb(65, 66, 68);
-                --content: rgb(196, 196, 197);
-                --hljs-bg: rgb(46, 46, 51);
-                --code-bg: rgb(55, 56, 62);
-                --border: rgb(51, 51, 51);
-            }
-
-            .list {
-                background: var(--theme);
-            }
-
-            .list:not(.dark)::-webkit-scrollbar-track {
-                background: 0 0;
-            }
-
-            .list:not(.dark)::-webkit-scrollbar-thumb {
-                border-color: var(--theme);
-            }
-        }
-
-    </style>
-</noscript>
-<link rel="stylesheet" href="/my-blog/css/custom.css?v=1.7"><meta property="og:title" content="DeepSeek-V3技术报告解读" />
-<meta property="og:description" content="1. 摘要
+其中$\bold{c}_t^{KV}\in\mathbb R^{d_c}$代表key和value压缩后的隐藏向量；$d_c(\ll d_n n_h)$表明key和value的压缩维度，$W^{DKV}\in\mathbb R^{d_c\times d}$为下投影矩阵，$W^{UK},W^{UV}\in\mathbb R^{d_hn_h\times d_c}$为key和value的上投影矩阵。$W^{KR}\in\mathbb R^{d_h^R\times d}$用于生成carry RoPE key向量的矩阵。在MLA中，只有标蓝的向量（$\textcolor{blue}{\bold{c}_t^{KV}}$和$\textcolor{blue}{\bold{k}_t^R}$）需要在推理阶段存储（相比Multi-Head Attention的KV-Cache开销小很多）。"><meta name=author content="Rs"><link rel=canonical href=https://tqzhong.github.io/my-blog/posts/2025-01-29-deepseek-v3/><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css><link crossorigin=anonymous href=/my-blog/assets/css/stylesheet.6a98292fb8fa8cf0f3ba4042d4b75515c04267550f3ad49ff6271b5af9562443.css integrity="sha256-apgpL7j6jPDzukBC1LdVFcBCZ1UPOtSf9icbWvlWJEM=" rel="preload stylesheet" as=style><script defer crossorigin=anonymous src=/my-blog/assets/js/highlight.f413e19d0714851f6474e7ee9632408e58ac146fbdbe62747134bea2fa3415e0.js integrity="sha256-9BPhnQcUhR9kdOfuljJAjlisFG+9vmJ0cTS+ovo0FeA=" onload=hljs.initHighlightingOnLoad()></script><link rel=icon type=image/x-icon sizes=48x48 href=images/favicon.ico><link rel=icon type=image/png sizes=16x16 href=images/favicon-16x16.png><link rel=icon type=image/png sizes=32x32 href=images/favicon-32x32.png><link rel=apple-touch-icon href=images/apple-touch-icon.png><link rel=icon sizes=512x512 href=images/android-chrome-512x512.png type=image/png><link rel=icon sizes=192x192 href=images/android-chrome-192x192.png type=image/png><link rel=mask-icon href=https://tqzhong.github.io/my-blog/safari-pinned-tab.svg><meta name=theme-color content="#2e2e33"><meta name=msapplication-TileColor content="#2e2e33"><link rel=alternate hreflang=en href=https://tqzhong.github.io/my-blog/posts/2025-01-29-deepseek-v3/><noscript><style>#theme-toggle,.top-link{display:none}</style><style>@media(prefers-color-scheme:dark){:root{--theme:rgb(29, 30, 32);--entry:rgb(46, 46, 51);--primary:rgb(218, 218, 219);--secondary:rgb(155, 156, 157);--tertiary:rgb(65, 66, 68);--content:rgb(196, 196, 197);--hljs-bg:rgb(46, 46, 51);--code-bg:rgb(55, 56, 62);--border:rgb(51, 51, 51)}.list{background:var(--theme)}.list:not(.dark)::-webkit-scrollbar-track{background:0 0}.list:not(.dark)::-webkit-scrollbar-thumb{border-color:var(--theme)}}</style></noscript><link rel=stylesheet href="/my-blog/css/custom.css?v=1.7"><meta property="og:title" content="DeepSeek-V3技术报告解读"><meta property="og:description" content="1. 摘要
 DeepSeek-V3，是一个Mixture-of-Experts（MoE）结构的大语言模型，参数量671B，其中每个token激活的参数量为37B。DeepSeek-V3主要采用Multi-head Latent Attention（MLA）和DeepSeekMoE结构，此外为了expert负载均衡引入了auxiliary-loss-free策略，为了更强的模型性能采用了multi-token prediction（MTP）训练策略。DeepSeek-V3预训练预料一共14.8T个token，并采用SFT和RL进一步对齐增强模型性能。DeepSeek-V3完整的训练一共仅需要2.788M H800 GPU hours。项目链接：DeepSeek-V3
 2. DeepSeek-V3模型结构
 2.1 Basic Architecture
@@ -146,15 +69,7 @@ $$
 \left[\mathbf{v}^C_{t,1}; \mathbf{v}^C_{t,2}; \dots; \mathbf{v}^C_{t,n_h} \right] = \mathbf{v}^C_t = W^{UV} \mathbf{c}^{KV}_t.
 $$
 
-其中$\bold{c}_t^{KV}\in\mathbb R^{d_c}$代表key和value压缩后的隐藏向量；$d_c(\ll d_n n_h)$表明key和value的压缩维度，$W^{DKV}\in\mathbb R^{d_c\times d}$为下投影矩阵，$W^{UK},W^{UV}\in\mathbb R^{d_hn_h\times d_c}$为key和value的上投影矩阵。$W^{KR}\in\mathbb R^{d_h^R\times d}$用于生成carry RoPE key向量的矩阵。在MLA中，只有标蓝的向量（$\textcolor{blue}{\bold{c}_t^{KV}}$和$\textcolor{blue}{\bold{k}_t^R}$）需要在推理阶段存储（相比Multi-Head Attention的KV-Cache开销小很多）。" />
-<meta property="og:type" content="article" />
-<meta property="og:url" content="https://tqzhong.github.io/my-blog/posts/2025-01-29-deepseek-v3/" /><meta property="article:section" content="posts" />
-<meta property="article:published_time" content="2025-01-29T00:00:00+00:00" />
-<meta property="article:modified_time" content="2025-01-29T00:00:00+00:00" />
-
-<meta name="twitter:card" content="summary"/>
-<meta name="twitter:title" content="DeepSeek-V3技术报告解读"/>
-<meta name="twitter:description" content="1. 摘要
+其中$\bold{c}_t^{KV}\in\mathbb R^{d_c}$代表key和value压缩后的隐藏向量；$d_c(\ll d_n n_h)$表明key和value的压缩维度，$W^{DKV}\in\mathbb R^{d_c\times d}$为下投影矩阵，$W^{UK},W^{UV}\in\mathbb R^{d_hn_h\times d_c}$为key和value的上投影矩阵。$W^{KR}\in\mathbb R^{d_h^R\times d}$用于生成carry RoPE key向量的矩阵。在MLA中，只有标蓝的向量（$\textcolor{blue}{\bold{c}_t^{KV}}$和$\textcolor{blue}{\bold{k}_t^R}$）需要在推理阶段存储（相比Multi-Head Attention的KV-Cache开销小很多）。"><meta property="og:type" content="article"><meta property="og:url" content="https://tqzhong.github.io/my-blog/posts/2025-01-29-deepseek-v3/"><meta property="article:section" content="posts"><meta property="article:published_time" content="2025-01-29T00:00:00+00:00"><meta property="article:modified_time" content="2025-01-29T00:00:00+00:00"><meta name=twitter:card content="summary"><meta name=twitter:title content="DeepSeek-V3技术报告解读"><meta name=twitter:description content="1. 摘要
 DeepSeek-V3，是一个Mixture-of-Experts（MoE）结构的大语言模型，参数量671B，其中每个token激活的参数量为37B。DeepSeek-V3主要采用Multi-head Latent Attention（MLA）和DeepSeekMoE结构，此外为了expert负载均衡引入了auxiliary-loss-free策略，为了更强的模型性能采用了multi-token prediction（MTP）训练策略。DeepSeek-V3预训练预料一共14.8T个token，并采用SFT和RL进一步对齐增强模型性能。DeepSeek-V3完整的训练一共仅需要2.788M H800 GPU hours。项目链接：DeepSeek-V3
 2. DeepSeek-V3模型结构
 2.1 Basic Architecture
@@ -189,336 +104,28 @@ $$
 \left[\mathbf{v}^C_{t,1}; \mathbf{v}^C_{t,2}; \dots; \mathbf{v}^C_{t,n_h} \right] = \mathbf{v}^C_t = W^{UV} \mathbf{c}^{KV}_t.
 $$
 
-其中$\bold{c}_t^{KV}\in\mathbb R^{d_c}$代表key和value压缩后的隐藏向量；$d_c(\ll d_n n_h)$表明key和value的压缩维度，$W^{DKV}\in\mathbb R^{d_c\times d}$为下投影矩阵，$W^{UK},W^{UV}\in\mathbb R^{d_hn_h\times d_c}$为key和value的上投影矩阵。$W^{KR}\in\mathbb R^{d_h^R\times d}$用于生成carry RoPE key向量的矩阵。在MLA中，只有标蓝的向量（$\textcolor{blue}{\bold{c}_t^{KV}}$和$\textcolor{blue}{\bold{k}_t^R}$）需要在推理阶段存储（相比Multi-Head Attention的KV-Cache开销小很多）。"/>
-
-
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "BreadcrumbList",
-  "itemListElement": [
-    {
-      "@type": "ListItem",
-      "position":  1 ,
-      "name": "Posts",
-      "item": "https://tqzhong.github.io/my-blog/posts/"
-    }, 
-    {
-      "@type": "ListItem",
-      "position":  2 ,
-      "name": "DeepSeek-V3技术报告解读",
-      "item": "https://tqzhong.github.io/my-blog/posts/2025-01-29-deepseek-v3/"
-    }
-  ]
-}
-</script>
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "BlogPosting",
-  "headline": "DeepSeek-V3技术报告解读",
-  "name": "DeepSeek-V3技术报告解读",
-  "description": "1. 摘要 DeepSeek-V3，是一个Mixture-of-Experts（MoE）结构的大语言模型，参数量671B，其中每个token激活的参数量为37B。DeepSeek-V3主要采用Multi-head Latent Attention（MLA）和DeepSeekMoE结构，此外为了expert负载均衡引入了auxiliary-loss-free策略，为了更强的模型性能采用了multi-token prediction（MTP）训练策略。DeepSeek-V3预训练预料一共14.8T个token，并采用SFT和RL进一步对齐增强模型性能。DeepSeek-V3完整的训练一共仅需要2.788M H800 GPU hours。项目链接：DeepSeek-V3\n2. DeepSeek-V3模型结构 2.1 Basic Architecture 图1: DeepSeek-V3基础结构图 DeepSeek-V3基本结构基于Transformer模型，为了高效推理并降低训练成本，DeepSeek-V3采用了DeepSeek-V2中的MLA和DeepSeekMoE结构。并给予DeepSeek-V2，团队添加了一个auxiliary-loss-free的专家负载均衡策略。图1为MLA和DeepSeekMoE的结构示意图。\n2.1.1 Multi-Head Latent Attention 定义$d$为词嵌入向量维度，$n_h$为注意力头数目，$d_h$为每个注意力头的维度，$\\bold{h}_t\\in\\mathbb R^d$表示给定注意力层的第$t$个token的注意力输入向量。MLA的关键在于在推理阶段使用low-rank joint compression技术来减少KV-Cache所占用的存储量：\n$$ \\textcolor{blue}{\\bold{c}_t^{KV}}=W^{DKV}\\bold{h}_t,\\\\ $$ $$ \\left[\\mathbf{k}_{t,1}; \\mathbf{k}^C_{t,2}; \\dots; \\mathbf{k}^C_{t,n_h} \\right] = \\mathbf{k}^C_t = W^{UK} \\mathbf{c}^{KV}_t, $$ $$ \\textcolor{blue}{\\mathbf{k}^R_t} = \\mathrm{RoPE}(W^{KR} \\mathbf{h}_t), $$ $$ \\mathbf{k}_{t,i} = \\left[\\mathbf{k}^C_{t,i}; \\mathbf{k}^R_t \\right], $$ $$ \\left[\\mathbf{v}^C_{t,1}; \\mathbf{v}^C_{t,2}; \\dots; \\mathbf{v}^C_{t,n_h} \\right] = \\mathbf{v}^C_t = W^{UV} \\mathbf{c}^{KV}_t. $$ 其中$\\bold{c}_t^{KV}\\in\\mathbb R^{d_c}$代表key和value压缩后的隐藏向量；$d_c(\\ll d_n n_h)$表明key和value的压缩维度，$W^{DKV}\\in\\mathbb R^{d_c\\times d}$为下投影矩阵，$W^{UK},W^{UV}\\in\\mathbb R^{d_hn_h\\times d_c}$为key和value的上投影矩阵。$W^{KR}\\in\\mathbb R^{d_h^R\\times d}$用于生成carry RoPE key向量的矩阵。在MLA中，只有标蓝的向量（$\\textcolor{blue}{\\bold{c}_t^{KV}}$和$\\textcolor{blue}{\\bold{k}_t^R}$）需要在推理阶段存储（相比Multi-Head Attention的KV-Cache开销小很多）。\n",
-  "keywords": [
-    "AI", "Paper Reading", "NLP", "LLM"
-  ],
-  "articleBody": "1. 摘要 DeepSeek-V3，是一个Mixture-of-Experts（MoE）结构的大语言模型，参数量671B，其中每个token激活的参数量为37B。DeepSeek-V3主要采用Multi-head Latent Attention（MLA）和DeepSeekMoE结构，此外为了expert负载均衡引入了auxiliary-loss-free策略，为了更强的模型性能采用了multi-token prediction（MTP）训练策略。DeepSeek-V3预训练预料一共14.8T个token，并采用SFT和RL进一步对齐增强模型性能。DeepSeek-V3完整的训练一共仅需要2.788M H800 GPU hours。项目链接：DeepSeek-V3\n2. DeepSeek-V3模型结构 2.1 Basic Architecture 图1: DeepSeek-V3基础结构图 DeepSeek-V3基本结构基于Transformer模型，为了高效推理并降低训练成本，DeepSeek-V3采用了DeepSeek-V2中的MLA和DeepSeekMoE结构。并给予DeepSeek-V2，团队添加了一个auxiliary-loss-free的专家负载均衡策略。图1为MLA和DeepSeekMoE的结构示意图。\n2.1.1 Multi-Head Latent Attention 定义$d$为词嵌入向量维度，$n_h$为注意力头数目，$d_h$为每个注意力头的维度，$\\bold{h}_t\\in\\mathbb R^d$表示给定注意力层的第$t$个token的注意力输入向量。MLA的关键在于在推理阶段使用low-rank joint compression技术来减少KV-Cache所占用的存储量：\n$$ \\textcolor{blue}{\\bold{c}_t^{KV}}=W^{DKV}\\bold{h}_t,\\\\ $$ $$ \\left[\\mathbf{k}_{t,1}; \\mathbf{k}^C_{t,2}; \\dots; \\mathbf{k}^C_{t,n_h} \\right] = \\mathbf{k}^C_t = W^{UK} \\mathbf{c}^{KV}_t, $$ $$ \\textcolor{blue}{\\mathbf{k}^R_t} = \\mathrm{RoPE}(W^{KR} \\mathbf{h}_t), $$ $$ \\mathbf{k}_{t,i} = \\left[\\mathbf{k}^C_{t,i}; \\mathbf{k}^R_t \\right], $$ $$ \\left[\\mathbf{v}^C_{t,1}; \\mathbf{v}^C_{t,2}; \\dots; \\mathbf{v}^C_{t,n_h} \\right] = \\mathbf{v}^C_t = W^{UV} \\mathbf{c}^{KV}_t. $$ 其中$\\bold{c}_t^{KV}\\in\\mathbb R^{d_c}$代表key和value压缩后的隐藏向量；$d_c(\\ll d_n n_h)$表明key和value的压缩维度，$W^{DKV}\\in\\mathbb R^{d_c\\times d}$为下投影矩阵，$W^{UK},W^{UV}\\in\\mathbb R^{d_hn_h\\times d_c}$为key和value的上投影矩阵。$W^{KR}\\in\\mathbb R^{d_h^R\\times d}$用于生成carry RoPE key向量的矩阵。在MLA中，只有标蓝的向量（$\\textcolor{blue}{\\bold{c}_t^{KV}}$和$\\textcolor{blue}{\\bold{k}_t^R}$）需要在推理阶段存储（相比Multi-Head Attention的KV-Cache开销小很多）。\n对于注意力中的query，团队同样执行low-rank compression，这可以减少训练时的激活缓存的开销：\n$$ \\begin{align*} \\bold c_t^Q \u0026= W^{DQ} \\bold h_t, \\\\ \\left[\\bold q_{t,1}^{C}; \\bold q_{t,2}^{C}; \\dots; \\bold q_{t,n_h}^{C} \\right] \u0026= \\bold q_t^C = W^{UQ} \\bold c_t^Q, \\\\ \\left[\\bold q_{t,1}^{R}; \\bold q_{t,2}^{R}; \\dots; \\bold q_{t,n_h}^{R} \\right] \u0026= \\bold q_t^R = \\text{RoPE}(W^{QR} \\bold c_t^Q), \\\\ \\bold q_{t,i} \u0026= \\left[\\bold q_{t,i}^C; \\bold q_{t,i}^R \\right], \\end{align*} $$ 其中$\\bold c_t^Q\\in\\mathbb R^{d_c^\\prime}$代表query压缩后的隐藏向量；$d_c^\\prime(\\ll d_hn_h)$为query压缩向量，$W^{DQ}\\in\\mathbb R^{d_c^\\prime\\times d},W^{UQ}\\in\\mathbb R^{d_hn_h\\times d_c^\\prime}$分别为query的下投影和上投影矩阵，$W^{QR}\\in\\mathbb R^{d_h^Rn_h\\times d_c^\\prime}$用于生成carry RoPE query向量的矩阵。\n最终，query($\\bold q_{t,i}$)，key($\\bold k_{j,i}$)，value($\\bold v_{j,i}^C$)被用于计算注意力输出$\\bold{u}_t$：\n$$ \\mathbf{o}_{t,i} = \\sum_{j=1}^t \\text{Softmax}_j \\left( \\frac{\\mathbf{q}_{t,i}^T \\mathbf{k}_{j,i}}{\\sqrt{d_h + d_h^R}} \\right) \\mathbf{v}_{j,i}^C,\\\\ \\mathbf{u}_t = W^O [\\mathbf{o}_{t,1}; \\mathbf{o}_{t,2}; \\ldots; \\mathbf{o}_{t,n_h}], $$ 其中$W^O\\in\\mathbb R^{d\\times d_hn_h}$表示输出投影矩阵。\n常规Multi-Head Attention的参数量计算，$W^K\\in\\mathbb R^{d_hn_h\\times d}$，$W^Q\\in\\mathbb R^{d_hn_h\\times d}$，$W^V\\in\\mathbb R^{d_hn_h\\times d}$，$W^O\\in\\mathbb R^{d\\times d_hn_h}$\n$$ \\begin{align*} \\bold{k}_t\u0026=W^K\\bold{h}_t\\\\ [\\bold{k}_{t,1},\\bold k_{t,2},\\cdots,\\bold k_{t,n_h}]\u0026=\\bold{k}_t\\\\ \\bold v_t\u0026=W^V\\bold h_t\\\\ [\\bold v_{t,1},\\bold v_{t,2},\\cdots,\\bold v_{t,n_h}]\u0026=\\bold{v}_t\\\\ \\bold q_t\u0026=W^Q\\bold h_t\\\\ [\\bold q_{t,1},\\bold q_{t,2},\\cdots,\\bold q_{t,n_h}]\u0026=\\bold q_t\\\\ \\bold o_{t,i}\u0026=\\sum_{j=1}^t\\text{Softmax}_j(\\frac{\\bold q_{t,i}^T\\bold k_{j,i}}{\\sqrt{d_h}})\\bold v_{j,i}\\\\ \\bold u_t\u0026=W^O[\\bold o_{t,1},\\bold o_{t,2},\\cdots,\\bold o_{t,n_h}] \\end{align*} $$ 因此对于Multi-Head Attention，一层的总参数量为：\n$$ 3\\times(d_hn_h\\times d + d) + d\\times d_hn_h + d_hn_h = 4d_hn_hd+3d + d_hn_h $$ 对于Multi-Head Latent Attention，一层的总参数量为（不计算RoPE相关的参数，假设$d_c=d_c^\\prime$）：\n$$ \\begin{align*} \u0026(d_c\\times d+d) + 2\\times(d_hn_h\\times d_c+d_c)+(d_c^\\prime\\times d+d)+(d_hn_h\\times d_c^\\prime+d_c^\\prime)\\\\ \u0026=2\\times(d_c\\times d+d)+3\\times(d_hn_h\\times d_c+d_c)\\\\ \u0026=d_c(3d_hn_h+2d)+2d+3d_c \\end{align*} $$ 忽略bias项，MLA参数量与MHA参数量之比：\n$$ \\delta=\\frac{d_c(3d_hn_h+2d)}{4d_hn_hd}=\\frac{3+\\frac{2d}{d_hn_h}}{4\\frac{d}{d_c}} $$ 由于$d_c\\ll d_hn_h, d_c\\ll d$，所以$\\delta\\ll 1$。\n2.1.2 DeepSeekMoE with Auxiliary-Loss-Free Load Balancing Basic Architecture of DeepSeekMoE. DeepSeekMoE同时使用了finer-grained experts和shared experts，即部分专家是所有token共享，部分是通过路由决定。令$\\bold u_t$表示第$t$个token的FFN层输入向量，通过如下公式计算FFN层的输出向量$\\bold h_t^\\prime$：\n$$ \\begin{align*} \\mathbf{h}_t' \u0026= \\mathbf{u}_t + \\sum_{i=1}^{N_s} \\text{FFN}_i^{(s)} (\\mathbf{u}_t) + \\sum_{i=1}^{N_r} g_{i,t} \\text{FFN}_i^{(r)} (\\mathbf{u}_t),\\\\ g_{i,t} \u0026= \\frac{g_{i,t}'}{\\sum_{j=1}^{N_r} g_{j,t}'},\\\\ g_{i,t}' \u0026= \\begin{cases} s_{i,t}, \u0026 s_{i,t} \\in \\text{Topk}(\\{s_{j,t}|1 \\leq j \\leq N_r\\}, K_r), \\\\ 0, \u0026 \\text{otherwise}, \\end{cases}\\\\ s_{i,t} \u0026= \\text{Sigmoid} (\\mathbf{u}_t^T e_i), \\end{align*} $$ 其中$N_s$和$N_r$分别为共享专家数目和路由专家数目，$\\text{FFN}_i^{(s)}(\\cdot)$和$\\text{FFN}_i^{(r)}(\\cdot)$分别为第$i$个共享专家网络和第$i$个路由专家网络，$K_r$表示每个token输入会被激活的路由专家数目，$g_{i,t}$表示第$i$个路由专家的门控值，$s_{i,t}$表示每个路由专家对该token的分数，$\\bold e_i$为第$i$个路由专家的重心向量。与DeepSeek-V2不同的是，DeepSeek-V3使用sigmoid函数来计算每个路由专家对token的分数，并使用一个归一化处理来得到门控值。\nAuxiliary-Loss-Free Load Balancing. 团队为了均衡每个路由专家的负载量，提出了一个无额外损失函数的负载均衡方法，具体来说，为每个路由专家引入一个偏置项$b_i$：\n$$ \\begin{align*} g_{i,t}' = \\begin{cases} s_{i,t}, \u0026 s_{i,t} + b_i \\in \\mathrm{Topk}(\\{s_{j,t} + b_j | 1 \\leq j \\leq N_r\\}, K_r), \\\\ 0, \u0026 \\text{otherwise.} \\end{cases} \\end{align*} $$ 注意偏置项只用于路由选取时，而不影响最终的门控值。对于具体控制方式，团队在训练过程中，以每个训练step为单位，在每个step结束后，如果当前路由专家过载，则会对该专家的偏置降低$\\gamma$，如果欠载，则偏置增加$\\gamma$，其中$\\gamma$为超参数（bias update speed），通过这种动态调整方式，DeepSeek-V3能在训练中保持每个专家负载均衡。\nComplementary Sequence-Wise Auxiliary Loss. 为了防止单个sequence出现极端不均衡的情况，团队还采用了一个balance loss：\n$$ \\mathcal{L}_{Bal} = \\alpha \\sum_{i=1}^{N_r} f_i P_i, \\\\ f_i = \\frac{N_r}{K_r T} \\sum_{t=1}^T \\mathbb 1 (s_{i,t} \\in \\text{Topk}( \\{ s_{j,t} | 1 \\leq j \\leq N_r \\}, K_r ) ), \\\\ s'_{i,t} = \\frac{s_{i,t}}{\\sum_{j=1}^{N_r} s_{j,t}}, \\\\ P_i = \\frac{1}{T} \\sum_{t=1}^T s'_{i,t}, $$ 其中balance factor $\\alpha$为超参数，会被赋予一个很小的值。$\\mathbb 1(\\cdot)$是示性函数，$T$表示一个句子中的token数量，损失$\\mathcal L_{Bal}$能够鼓励路由专家在句子层级上负载均衡。对于上面的损失计算过程，具体分析如下（不是很明白这个优化目标为啥能让负载均衡？？）：\n$$ \\sum_{i=1}^{N_r}P_i=\\frac{1}{T}\\sum_{t=1}^T\\sum_{i=1}^{N_r}\\frac{s_{i,t}}{\\sum_{j=1}^{N_r}s_{j,t}}=1 $$ $$ \\begin{align*} \\sum_{i=1}^{N_r}f_i\u0026=\\frac{N_r}{K_rT}\\sum_{t=1}^{T}\\sum_{i=1}^{N_r} 1(s_{i,t} \\in \\text{Topk}( \\{ s_{j,t} | 1 \\leq j \\leq N_r \\}, K_r ) )\\\\ \u0026=\\frac{N_r}{K_rT}\\sum_{t=1}^TK_r=N_r \\end{align*} $$ $$ \\mathcal L_{Bal}=\\alpha\\sum_{i=1}^{N_r}f_iP_i\\in[0,\\alpha N_r] $$ No Token-Dropping. 由于良好的专家负载均衡，DeepSeek-V3训练阶段不会丢弃任何tokens，此外团队对推理阶段的负载均衡也采取了相应策略，因此在推理阶段也不会丢弃任何tokens。\n2.2 Multi-Token Prediction 图2: DeepSeek-V3 Multi-Token Prediction结构示意图 DeepSeek-V3中的MTP结构如图2所示，其使用了$D$个MTP模块（不包含主模型）来同时预测额外的$D$个tokens（相当于每个token预测后面1+D个tokens）。其中第$k$（$1\\le k\\le D$）个MTP模块包含一个与主模型共享的词嵌入向量层$\\text{Emb}(\\cdot)$，一个与主模型共享的输出头$\\text{OutHead}(\\cdot)$，一层Transformer块$\\text{TRM}_k(\\cdot)$，和一个投影矩阵$M_k\\in\\mathbb R^{d\\times 2d}$，对于一个输入序列中的第$i$个输入token $t_i$，对$t_i$的第$k$个预测深度，团队首先结合第$i$个token $t_i$在第$(k-1)$预测深度的Transformer块输出隐藏表征向量 $\\bold{h}_i^{k-1}\\in\\mathbb R^d$ 和第$(i+k)$个token的词嵌入向量$\\text{Emb}(t_{i+k})\\in\\mathbb R^d$，并对结合后的向量进行投影：\n$$ \\bold{h}_i^{\\prime k}=M_k[\\text{RMSNorm}(\\bold{h}_i^{k-1});\\text{RMSNorm}(\\text{Emb}(t_{i+k}))], $$ 特别的，当$k=1$时，$\\bold{h}_i^{k-1}$为主模型输出的表征。结合后的向量$\\bold{h}_i^{\\prime k}$作为第$i$个token的第$k$预测深度的MTP模块中的Transformer块的输入，并输出第$i$个token在第$k$预测深度的Transformer块输出的隐藏表征向量$\\bold{h}_i^k$：\n$$ \\bold{h}^k_{i}=\\text{TRM}_k(\\bold{h}_{i}^{\\prime k})\\quad 1\\le i\\le T-k, $$ 其中$T$代表输入序列的长度，最终，将$\\bold{h}_i^k$作为输入，共享输出头计算第$i$个token在第$k$预测深度的预测token的词表维度分布$P_{i+1+k}^k\\in\\mathbb R^V$，其中$V$为词表大小：\n$$ P^k_{i+k+1}=\\text{OutHead}(\\bold{h}_i^k). $$ 经过$\\text{OutHead}(\\cdot)$后再过一个$\\text{Softmax}(\\cdot)$得到第$i$个token在第$k$预测深度的预测token的概率分布。\n结合图2中的示意图，假设输入序列长度$T=8$，最大额外预测深度$D=4$，即总的MTP结构包含一个主模型和4个MTP块。定义输入序列token为{${t_1,t_2,t_3,t_4,t_5,t_6,t_7,t_8}$}，下面来拆解MTP的损失函数计算过程：\n主模型：token {${t_1,t_2,t_3,t_4,t_5,t_6,t_7}$}经过主模型Embedding层和Transformer块输出得到隐藏表征{${\\bold{h}_1^0,\\bold{h}_2^0,\\bold{h}_3^0,\\bold{h}_4^0,\\bold{h}_5^0,\\bold{h}_6^0,\\bold{h}_7^0}$}，再经过Output头得到{${P_2^0,P_3^0,P_4^0,P_5^0,P_6^0,P_7^0,P_8^0 }$}，与Target Tokens {${t_2,t_3,t_4,t_5,t_6,t_7,t_8}$}做交叉熵损失得到$\\mathcal L_{\\text{Main}}$； 第一层MTP模块：输入token {${t_2,t_3,t_4,t_5,t_6,t_7}$}，Transformer块的输入向量为{${\\bold{h}_1^{\\prime 1},\\bold{h}_2^{\\prime 1},\\bold{h}_3^{\\prime 1},\\bold{h}_4^{\\prime 1},\\bold{h}_5^{\\prime 1},\\bold{h}_6^{\\prime 1}, }$}，输出为{${\\bold{h}_1^1,\\bold{h}_2^1,\\bold{h}_3^1,\\bold{h}_4^1,\\bold{h}_5^1,\\bold{h}_6^1 }$}，经过Output头得到{${P_3^1,P_4^1,P_5^1,P_6^1,P_7^1,P_8^1 }$}，与Target Tokens {${t_3,t_4,t_5,t_6,t_7,t_8 }$}做交叉熵损失得到$\\mathcal L^1_{\\text{MTP}}$； $$ \\bold{h}_i^{\\prime 1}=M_1[\\text{RMSNorm}(\\bold{h}_i^0);\\text{RMSNorm}(\\text{Emb}(t_{i+1}))]\\quad 1\\le i\\le 6, $$ $$ \\bold{h}^1_i=\\text{TRM}_1(\\bold{h}_i^{\\prime 1})\\quad 1\\le i\\le 6, $$ $$ P_{i+2}^1=\\text{OutHead}(\\bold{h}_i^1)\\quad 1\\le i\\le 6, $$ 第二层MTP模块：输入token {${t_3,t_4,t_5,t_6,t_7}$}，Transformer块的输入向量为{${\\bold{h}_1^{\\prime 2},\\bold{h}_2^{\\prime 2},\\bold{h}_3^{\\prime 2},\\bold{h}_4^{\\prime 2},\\bold{h}_5^{\\prime 2} }$}，输出为{${\\bold{h}_1^2,\\bold{h}_2^2,\\bold{h}_3^2,\\bold{h}_4^2,\\bold{h}_5^2 }$}，经过Output头得到{${P_4^2,P_5^2,P_6^2,P_7^2,P_8^2 }$}，与Target Tokens {${t_4,t_5,t_6,t_7,t_8 }$}做交叉熵损失得到$\\mathcal L^2_{\\text{MTP}}$； $$ \\bold{h}_i^{\\prime 2}=M_2[\\text{RMSNorm}(\\bold{h}_i^1);\\text{RMSNorm}(\\text{Emb}(t_{i+2}))]\\quad 1\\le i\\le 5, $$ $$ \\bold{h}^2_i=\\text{TRM}_2(\\bold{h}_i^{\\prime 2})\\quad 1\\le i\\le 5, $$ $$ P_{i+3}^2=\\text{OutHead}(\\bold{h}_i^2)\\quad 1\\le i\\le 5, $$ 第三层MTP模块：输入token {${t_4,t_5,t_6,t_7}$}，Transformer块的输入向量为{${\\bold{h}_1^{\\prime 3},\\bold{h}_2^{\\prime 3},\\bold{h}_3^{\\prime 3},\\bold{h}_4^{\\prime 3} }$}，输出为{${\\bold{h}_1^3,\\bold{h}_2^3,\\bold{h}_3^3,\\bold{h}_4^3 }$}，经过Output头得到{${P_5^3,P_6^3,P_7^3,P_8^3 }$}，与Target Tokens {${t_5,t_6,t_7,t_8 }$}做交叉熵损失得到$\\mathcal L^3_{\\text{MTP}}$； $$ \\bold{h}_i^{\\prime 3}=M_3[\\text{RMSNorm}(\\bold{h}_i^2);\\text{RMSNorm}(\\text{Emb}(t_{i+3}))]\\quad 1\\le i\\le 4, $$ $$ \\bold{h}^3_i=\\text{TRM}_3(\\bold{h}_i^{\\prime 3})\\quad 1\\le i\\le 4, $$ $$ P_{i+4}^3=\\text{OutHead}(\\bold{h}_i^3)\\quad 1\\le i\\le 4, $$ 第四层MTP模块：输入token {${t_5,t_6,t_7}$}，Transformer块的输入向量为{${\\bold{h}_1^{\\prime 4},\\bold{h}_2^{\\prime 4},\\bold{h}_3^{\\prime 4}}$}，输出为{${\\bold{h}_1^4,\\bold{h}_2^4,\\bold{h}_3^4 }$}，经过Output头得到{${P_6^4,P_7^4,P_8^4 }$}，与Target Tokens {${t_6,t_7,t_8 }$}做交叉熵损失得到$\\mathcal L^4_{\\text{MTP}}$； $$ \\bold{h}_i^{\\prime 4}=M_4[\\text{RMSNorm}(\\bold{h}_i^3);\\text{RMSNorm}(\\text{Emb}(t_{i+4}))]\\quad 1\\le i\\le 3, $$ $$ \\bold{h}^4_i=\\text{TRM}_4(\\bold{h}_i^{\\prime 4})\\quad 1\\le i\\le 3, $$ $$ P_{i+5}^4=\\text{OutHead}(\\bold{h}_i^4)\\quad 1\\le i\\le 3, $$ 综上，总的MTP训练目标函数为每一层预测深度的损失总和：\n$$ \\mathcal L_{\\text{MTP}}^1=\\text{CrossEntropy}(P^1_{3:8},t_{3:8})\\\\ \\mathcal L_{\\text{MTP}}^2=\\text{CrossEntropy}(P^2_{4:8},t_{4:8})\\\\ \\mathcal L_{\\text{MTP}}^3=\\text{CrossEntropy}(P^3_{5:8},t_{5:8})\\\\ \\mathcal L_{\\text{MTP}}^4=\\text{CrossEntropy}(P^4_{6:8},t_{6:8}) $$ 论文中的写法如下，用了$T+1$应该是对长度为T的句子开头补了eos token，本文的推导过程中的句子长度T就是包含了补token后的结果，特此区别。此外这边的每一层损失都是做了$\\frac{1}{T}$的归一化处理，这部分理解按照正常的交叉熵公式应该是用$\\frac{1}{T-k}$（按本文的$T$处理方式就是$\\frac{1}{T-1-k}$），这里需要看源码。\n$$ \\mathcal{L}_{\\text{MTP}}^k = \\text{CrossEntropy}(P_{2+k:T+1}^k, t_{2+k:T+1}) = - \\frac{1}{T} \\sum_{i=2+k}^{T+1} \\log P_i^k[t_i] $$ 最后对每一层的MTP损失进行均值处理，其中团队添加了一个权重因子$\\lambda$，整体的$\\mathcal L_{\\text{MTP}}$作为DeepSeek-V3的一个额外训练损失。\n$$ \\mathcal L_{MTP}=\\frac{\\lambda}{D}\\sum_{k=1}^D\\mathcal L_{\\text{MTP}}^k $$ 对于推理阶段中的MTP：由于MTP策略主要用于提升主模型的性能，因此在推理阶段，可以选择直接丢弃这些MTP模块。\nReferences [1] DeepSeek-AI. “DeepSeek-V3 Technical Report” arXiv preprint axXiv:2412.19437 (2024).\n",
-  "wordCount" : "657",
-  "inLanguage": "en",
-  "datePublished": "2025-01-29T00:00:00Z",
-  "dateModified": "2025-01-29T00:00:00Z",
-  "author":{
-    "@type": "Person",
-    "name": "Rs"
-  },
-  "mainEntityOfPage": {
-    "@type": "WebPage",
-    "@id": "https://tqzhong.github.io/my-blog/posts/2025-01-29-deepseek-v3/"
-  },
-  "publisher": {
-    "@type": "Organization",
-    "name": "Rs' Log",
-    "logo": {
-      "@type": "ImageObject",
-      "url": "https://tqzhong.github.io/my-blog/favicon.ico"
-    }
-  }
-}
-</script>
-</head>
-
-<body class="" id="top">
-<script>
-    if (localStorage.getItem("pref-theme") === "dark") {
-        document.body.classList.add('dark');
-    } else if (localStorage.getItem("pref-theme") === "light") {
-        document.body.classList.remove('dark');
-    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-        document.body.classList.add('dark');
-    }
-</script>
-
-<header class="header">
-    <script>
-        MathJax = {
-          tex: {
-            inlineMath: [['$', '$'], ['\\(', '\\)']],
-            displayMath: [['$$', '$$'], ['\\[', '\\]']],
-            processEscapes: true,
-            processEnvironments: true
-          },
-          svg: {
-            fontCache: 'global'
-          }
-        };
-    </script>
-    
-    
-    
-    <nav class="nav">
-        <div class="logo-logo-switches">
-        <div class="logo">
-            <a href="https://tqzhong.github.io/my-blog/" accesskey="h" title="Rs&#39; Log (Alt + H)">Rs&#39; Log</a>
-
-            <div class="logo-switches">
-                <button id="theme-toggle" accesskey="t" title="(Alt + T)">
-                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-                    </svg>
-                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="5"></circle>
-                        <line x1="12" y1="1" x2="12" y2="3"></line>
-                        <line x1="12" y1="21" x2="12" y2="23"></line>
-                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                        <line x1="1" y1="12" x2="3" y2="12"></line>
-                        <line x1="21" y1="12" x2="23" y2="12"></line>
-                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-                    </svg>
-                </button>
-                <ul class="lang-switch">
-                </ul>
-            </div>
-        </div>
-        </div>
-        <ul id="menu">
-            <li>
-                <a href="https://tqzhong.github.io/my-blog/" title="Posts">
-                    <span>Posts</span>
-                </a>
-            </li>
-            <li>
-                <a href="https://tqzhong.github.io/my-blog/archive/" title="Archive">
-                    <span>Archive</span>
-                </a>
-            </li>
-            <li>
-                <a href="https://tqzhong.github.io/my-blog/search/" title="Search (Alt &#43; /)" accesskey=/>
-                    <span>Search</span>
-                </a>
-            </li>
-            <li>
-                <a href="https://tqzhong.github.io/my-blog/tags/" title="Tags">
-                    <span>Tags</span>
-                </a>
-            </li>
-            <li>
-                <a href="https://tqzhong.github.io/my-blog/categories/" title="Categories">
-                    <span>Categories</span>
-                </a>
-            </li>
-            <li>
-                <a href="https://tqzhong.github.io/my-blog/faq/" title="FAQ">
-                    <span>FAQ</span>
-                </a>
-            </li>
-        </ul>
-    </nav>
-</header>
-
-
-    <main class="main">
-
-<article class="post-single">
-  <header class="post-header">
-    
-    <h1 class="post-title">
-      DeepSeek-V3技术报告解读
-    </h1>
-    <div class="post-meta">
-
-
-<i class="fas fa-calendar-alt blog-meta-icon"></i>&nbsp;2025-01-29 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <i class="fas fa-clock blog-meta-icon"></i>&nbsp;4 min &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <i class="fas fa-user blog-meta-icon"></i>&nbsp;Rs &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <i class="fas fa-eye blog-meta-icon"></i>&nbsp;<span id="view-counter"></span>
-
-<script src="https://cdn.jsdelivr.net/npm/leancloud-storage@4.12.0/dist/av-min.js"></script>
-<script>
-    
-    AV.initialize("AokLJzaIvwVNJW0b2F0YTLLy-MdYXbMMI", "fwZpRfBG259O3LscJFPW3ViH");
-
-    loadViewCount(location.pathname, "view-counter");
-
-    
-    
-    
-        
-    
-    
-    
-    
-    
-    
-    
-    
-    
-                
-    
-    
-    
-    
-    
-
-
-    var hasViewCounted = false;
-
-    
-    function loadViewCount(pageUrl, elementId) {
-        if (hasViewCounted) return;
-        hasViewCounted = true;       
-
-        var counter = document.getElementById(elementId);
-        var cachedViews = localStorage.getItem("view-count-" + pageUrl);
-
-        
-        if (cachedViews) {
-            counter.innerText = cachedViews;
-        } else {
-            counter.innerText = "0"; 
-        }
-
-        
-        var query = new AV.Query('Counter');
-        query.equalTo("url", pageUrl);
-        query.find().then(results => {
-            if (results.length > 0) {
-                var counterObj = results[0];
-                counterObj.increment("views", 1);
-                counterObj.save();
-                var views = counterObj.get("views");
-                counter.innerText = views;
-                localStorage.setItem("view-count-" + pageUrl, views); 
-            } else {
-                var Counter = AV.Object.extend("Counter");
-                var newCounter = new Counter();
-                newCounter.set("url", pageUrl);
-                newCounter.set("views", 1);
-                newCounter.save().then(() => {
-                    counter.innerText = "1";
-                    localStorage.setItem("view-count-" + pageUrl, 1); 
-                });
-            }
-        }).catch(function(error) {
-            console.error("error:", error);
-        });
-    }
-    
-</script>
-
-
-
-</div>
-  </header> <div class="toc">
-    <details >
-        <summary accesskey="c" title="(Alt + C)">
-            <span class="details">Table of Contents</span>
-        </summary>
-
-        <div class="inner"><ul>
-                <li>
-                    <a href="#1-%e6%91%98%e8%a6%81" aria-label="1. 摘要">1. 摘要</a></li>
-                <li>
-                    <a href="#2-deepseek-v3%e6%a8%a1%e5%9e%8b%e7%bb%93%e6%9e%84" aria-label="2. DeepSeek-V3模型结构">2. DeepSeek-V3模型结构</a><ul>
-                        
-                <li>
-                    <a href="#21-basic-architecture" aria-label="2.1 Basic Architecture">2.1 Basic Architecture</a><ul>
-                        
-                <li>
-                    <a href="#211-multi-head-latent-attention" aria-label="2.1.1 Multi-Head Latent Attention">2.1.1 Multi-Head Latent Attention</a></li>
-                <li>
-                    <a href="#212-deepseekmoe-with-auxiliary-loss-free-load-balancing" aria-label="2.1.2 DeepSeekMoE with Auxiliary-Loss-Free Load Balancing">2.1.2 DeepSeekMoE with Auxiliary-Loss-Free Load Balancing</a></li></ul>
-                </li>
-                <li>
-                    <a href="#22-multi-token-prediction" aria-label="2.2 Multi-Token Prediction">2.2 Multi-Token Prediction</a></li></ul>
-                </li>
-                <li>
-                    <a href="#references" aria-label="References">References</a>
-                </li>
-            </ul>
-        </div>
-    </details>
-</div>
-
-  <div class="post-content"><h3 id="1-摘要">1. 摘要<a hidden class="anchor" aria-hidden="true" href="#1-摘要">#</a></h3>
-<p>DeepSeek-V3，是一个Mixture-of-Experts（MoE）结构的大语言模型，参数量671B，其中每个token激活的参数量为37B。DeepSeek-V3主要采用Multi-head Latent Attention（MLA）和DeepSeekMoE结构，此外为了expert负载均衡引入了auxiliary-loss-free策略，为了更强的模型性能采用了multi-token prediction（MTP）训练策略。DeepSeek-V3预训练预料一共14.8T个token，并采用SFT和RL进一步对齐增强模型性能。DeepSeek-V3完整的训练一共仅需要2.788M H800 GPU hours。项目链接：<a href="https://github.com/deepseek-ai/DeepSeek-V3" class="entityLink">DeepSeek-V3</a></p>
-<h3 id="2-deepseek-v3模型结构">2. DeepSeek-V3模型结构<a hidden class="anchor" aria-hidden="true" href="#2-deepseek-v3模型结构">#</a></h3>
-<h4 id="21-basic-architecture">2.1 Basic Architecture<a hidden class="anchor" aria-hidden="true" href="#21-basic-architecture">#</a></h4>
-<p><img loading="lazy" src="/my-blog/images/2025-01-29-deepseek-v3/2025-01-29-image2.jpg" alt="deepseek-v3-architecture"  />
-</p>
-<div align='center' style="color: #999999">图1: DeepSeek-V3基础结构图</div>
-<p>DeepSeek-V3基本结构基于Transformer模型，为了高效推理并降低训练成本，DeepSeek-V3采用了DeepSeek-V2中的MLA和DeepSeekMoE结构。并给予DeepSeek-V2，团队添加了一个auxiliary-loss-free的专家负载均衡策略。图1为MLA和DeepSeekMoE的结构示意图。</p>
-<h5 id="211-multi-head-latent-attention">2.1.1 Multi-Head Latent Attention<a hidden class="anchor" aria-hidden="true" href="#211-multi-head-latent-attention">#</a></h5>
-<p>定义$d$为词嵌入向量维度，$n_h$为注意力头数目，$d_h$为每个注意力头的维度，$\bold{h}_t\in\mathbb R^d$表示给定注意力层的第$t$个token的注意力输入向量。MLA的关键在于在推理阶段使用low-rank joint compression技术来减少KV-Cache所占用的存储量：</p>
-<div class="scroll-container">
-$$
+其中$\bold{c}_t^{KV}\in\mathbb R^{d_c}$代表key和value压缩后的隐藏向量；$d_c(\ll d_n n_h)$表明key和value的压缩维度，$W^{DKV}\in\mathbb R^{d_c\times d}$为下投影矩阵，$W^{UK},W^{UV}\in\mathbb R^{d_hn_h\times d_c}$为key和value的上投影矩阵。$W^{KR}\in\mathbb R^{d_h^R\times d}$用于生成carry RoPE key向量的矩阵。在MLA中，只有标蓝的向量（$\textcolor{blue}{\bold{c}_t^{KV}}$和$\textcolor{blue}{\bold{k}_t^R}$）需要在推理阶段存储（相比Multi-Head Attention的KV-Cache开销小很多）。"><script type=application/ld+json>{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Posts","item":"https://tqzhong.github.io/my-blog/posts/"},{"@type":"ListItem","position":2,"name":"DeepSeek-V3技术报告解读","item":"https://tqzhong.github.io/my-blog/posts/2025-01-29-deepseek-v3/"}]}</script><script type=application/ld+json>{"@context":"https://schema.org","@type":"BlogPosting","headline":"DeepSeek-V3技术报告解读","name":"DeepSeek-V3技术报告解读","description":"1. 摘要 DeepSeek-V3，是一个Mixture-of-Experts（MoE）结构的大语言模型，参数量671B，其中每个token激活的参数量为37B。DeepSeek-V3主要采用Multi-head Latent Attention（MLA）和DeepSeekMoE结构，此外为了expert负载均衡引入了auxiliary-loss-free策略，为了更强的模型性能采用了multi-token prediction（MTP）训练策略。DeepSeek-V3预训练预料一共14.8T个token，并采用SFT和RL进一步对齐增强模型性能。DeepSeek-V3完整的训练一共仅需要2.788M H800 GPU hours。项目链接：DeepSeek-V3\n2. DeepSeek-V3模型结构 2.1 Basic Architecture 图1: DeepSeek-V3基础结构图 DeepSeek-V3基本结构基于Transformer模型，为了高效推理并降低训练成本，DeepSeek-V3采用了DeepSeek-V2中的MLA和DeepSeekMoE结构。并给予DeepSeek-V2，团队添加了一个auxiliary-loss-free的专家负载均衡策略。图1为MLA和DeepSeekMoE的结构示意图。\n2.1.1 Multi-Head Latent Attention 定义$d$为词嵌入向量维度，$n_h$为注意力头数目，$d_h$为每个注意力头的维度，$\\bold{h}_t\\in\\mathbb R^d$表示给定注意力层的第$t$个token的注意力输入向量。MLA的关键在于在推理阶段使用low-rank joint compression技术来减少KV-Cache所占用的存储量：\n$$ \\textcolor{blue}{\\bold{c}_t^{KV}}=W^{DKV}\\bold{h}_t,\\\\ $$ $$ \\left[\\mathbf{k}_{t,1}; \\mathbf{k}^C_{t,2}; \\dots; \\mathbf{k}^C_{t,n_h} \\right] = \\mathbf{k}^C_t = W^{UK} \\mathbf{c}^{KV}_t, $$ $$ \\textcolor{blue}{\\mathbf{k}^R_t} = \\mathrm{RoPE}(W^{KR} \\mathbf{h}_t), $$ $$ \\mathbf{k}_{t,i} = \\left[\\mathbf{k}^C_{t,i}; \\mathbf{k}^R_t \\right], $$ $$ \\left[\\mathbf{v}^C_{t,1}; \\mathbf{v}^C_{t,2}; \\dots; \\mathbf{v}^C_{t,n_h} \\right] = \\mathbf{v}^C_t = W^{UV} \\mathbf{c}^{KV}_t. $$ 其中$\\bold{c}_t^{KV}\\in\\mathbb R^{d_c}$代表key和value压缩后的隐藏向量；$d_c(\\ll d_n n_h)$表明key和value的压缩维度，$W^{DKV}\\in\\mathbb R^{d_c\\times d}$为下投影矩阵，$W^{UK},W^{UV}\\in\\mathbb R^{d_hn_h\\times d_c}$为key和value的上投影矩阵。$W^{KR}\\in\\mathbb R^{d_h^R\\times d}$用于生成carry RoPE key向量的矩阵。在MLA中，只有标蓝的向量（$\\textcolor{blue}{\\bold{c}_t^{KV}}$和$\\textcolor{blue}{\\bold{k}_t^R}$）需要在推理阶段存储（相比Multi-Head Attention的KV-Cache开销小很多）。\n","keywords":["AI","Paper Reading","NLP","LLM"],"articleBody":"1. 摘要 DeepSeek-V3，是一个Mixture-of-Experts（MoE）结构的大语言模型，参数量671B，其中每个token激活的参数量为37B。DeepSeek-V3主要采用Multi-head Latent Attention（MLA）和DeepSeekMoE结构，此外为了expert负载均衡引入了auxiliary-loss-free策略，为了更强的模型性能采用了multi-token prediction（MTP）训练策略。DeepSeek-V3预训练预料一共14.8T个token，并采用SFT和RL进一步对齐增强模型性能。DeepSeek-V3完整的训练一共仅需要2.788M H800 GPU hours。项目链接：DeepSeek-V3\n2. DeepSeek-V3模型结构 2.1 Basic Architecture 图1: DeepSeek-V3基础结构图 DeepSeek-V3基本结构基于Transformer模型，为了高效推理并降低训练成本，DeepSeek-V3采用了DeepSeek-V2中的MLA和DeepSeekMoE结构。并给予DeepSeek-V2，团队添加了一个auxiliary-loss-free的专家负载均衡策略。图1为MLA和DeepSeekMoE的结构示意图。\n2.1.1 Multi-Head Latent Attention 定义$d$为词嵌入向量维度，$n_h$为注意力头数目，$d_h$为每个注意力头的维度，$\\bold{h}_t\\in\\mathbb R^d$表示给定注意力层的第$t$个token的注意力输入向量。MLA的关键在于在推理阶段使用low-rank joint compression技术来减少KV-Cache所占用的存储量：\n$$ \\textcolor{blue}{\\bold{c}_t^{KV}}=W^{DKV}\\bold{h}_t,\\\\ $$ $$ \\left[\\mathbf{k}_{t,1}; \\mathbf{k}^C_{t,2}; \\dots; \\mathbf{k}^C_{t,n_h} \\right] = \\mathbf{k}^C_t = W^{UK} \\mathbf{c}^{KV}_t, $$ $$ \\textcolor{blue}{\\mathbf{k}^R_t} = \\mathrm{RoPE}(W^{KR} \\mathbf{h}_t), $$ $$ \\mathbf{k}_{t,i} = \\left[\\mathbf{k}^C_{t,i}; \\mathbf{k}^R_t \\right], $$ $$ \\left[\\mathbf{v}^C_{t,1}; \\mathbf{v}^C_{t,2}; \\dots; \\mathbf{v}^C_{t,n_h} \\right] = \\mathbf{v}^C_t = W^{UV} \\mathbf{c}^{KV}_t. $$ 其中$\\bold{c}_t^{KV}\\in\\mathbb R^{d_c}$代表key和value压缩后的隐藏向量；$d_c(\\ll d_n n_h)$表明key和value的压缩维度，$W^{DKV}\\in\\mathbb R^{d_c\\times d}$为下投影矩阵，$W^{UK},W^{UV}\\in\\mathbb R^{d_hn_h\\times d_c}$为key和value的上投影矩阵。$W^{KR}\\in\\mathbb R^{d_h^R\\times d}$用于生成carry RoPE key向量的矩阵。在MLA中，只有标蓝的向量（$\\textcolor{blue}{\\bold{c}_t^{KV}}$和$\\textcolor{blue}{\\bold{k}_t^R}$）需要在推理阶段存储（相比Multi-Head Attention的KV-Cache开销小很多）。\n对于注意力中的query，团队同样执行low-rank compression，这可以减少训练时的激活缓存的开销：\n$$ \\begin{align*} \\bold c_t^Q \u0026= W^{DQ} \\bold h_t, \\\\ \\left[\\bold q_{t,1}^{C}; \\bold q_{t,2}^{C}; \\dots; \\bold q_{t,n_h}^{C} \\right] \u0026= \\bold q_t^C = W^{UQ} \\bold c_t^Q, \\\\ \\left[\\bold q_{t,1}^{R}; \\bold q_{t,2}^{R}; \\dots; \\bold q_{t,n_h}^{R} \\right] \u0026= \\bold q_t^R = \\text{RoPE}(W^{QR} \\bold c_t^Q), \\\\ \\bold q_{t,i} \u0026= \\left[\\bold q_{t,i}^C; \\bold q_{t,i}^R \\right], \\end{align*} $$ 其中$\\bold c_t^Q\\in\\mathbb R^{d_c^\\prime}$代表query压缩后的隐藏向量；$d_c^\\prime(\\ll d_hn_h)$为query压缩向量，$W^{DQ}\\in\\mathbb R^{d_c^\\prime\\times d},W^{UQ}\\in\\mathbb R^{d_hn_h\\times d_c^\\prime}$分别为query的下投影和上投影矩阵，$W^{QR}\\in\\mathbb R^{d_h^Rn_h\\times d_c^\\prime}$用于生成carry RoPE query向量的矩阵。\n最终，query($\\bold q_{t,i}$)，key($\\bold k_{j,i}$)，value($\\bold v_{j,i}^C$)被用于计算注意力输出$\\bold{u}_t$：\n$$ \\mathbf{o}_{t,i} = \\sum_{j=1}^t \\text{Softmax}_j \\left( \\frac{\\mathbf{q}_{t,i}^T \\mathbf{k}_{j,i}}{\\sqrt{d_h + d_h^R}} \\right) \\mathbf{v}_{j,i}^C,\\\\ \\mathbf{u}_t = W^O [\\mathbf{o}_{t,1}; \\mathbf{o}_{t,2}; \\ldots; \\mathbf{o}_{t,n_h}], $$ 其中$W^O\\in\\mathbb R^{d\\times d_hn_h}$表示输出投影矩阵。\n常规Multi-Head Attention的参数量计算，$W^K\\in\\mathbb R^{d_hn_h\\times d}$，$W^Q\\in\\mathbb R^{d_hn_h\\times d}$，$W^V\\in\\mathbb R^{d_hn_h\\times d}$，$W^O\\in\\mathbb R^{d\\times d_hn_h}$\n$$ \\begin{align*} \\bold{k}_t\u0026=W^K\\bold{h}_t\\\\ [\\bold{k}_{t,1},\\bold k_{t,2},\\cdots,\\bold k_{t,n_h}]\u0026=\\bold{k}_t\\\\ \\bold v_t\u0026=W^V\\bold h_t\\\\ [\\bold v_{t,1},\\bold v_{t,2},\\cdots,\\bold v_{t,n_h}]\u0026=\\bold{v}_t\\\\ \\bold q_t\u0026=W^Q\\bold h_t\\\\ [\\bold q_{t,1},\\bold q_{t,2},\\cdots,\\bold q_{t,n_h}]\u0026=\\bold q_t\\\\ \\bold o_{t,i}\u0026=\\sum_{j=1}^t\\text{Softmax}_j(\\frac{\\bold q_{t,i}^T\\bold k_{j,i}}{\\sqrt{d_h}})\\bold v_{j,i}\\\\ \\bold u_t\u0026=W^O[\\bold o_{t,1},\\bold o_{t,2},\\cdots,\\bold o_{t,n_h}] \\end{align*} $$ 因此对于Multi-Head Attention，一层的总参数量为：\n$$ 3\\times(d_hn_h\\times d + d) + d\\times d_hn_h + d_hn_h = 4d_hn_hd+3d + d_hn_h $$ 对于Multi-Head Latent Attention，一层的总参数量为（不计算RoPE相关的参数，假设$d_c=d_c^\\prime$）：\n$$ \\begin{align*} \u0026(d_c\\times d+d) + 2\\times(d_hn_h\\times d_c+d_c)+(d_c^\\prime\\times d+d)+(d_hn_h\\times d_c^\\prime+d_c^\\prime)\\\\ \u0026=2\\times(d_c\\times d+d)+3\\times(d_hn_h\\times d_c+d_c)\\\\ \u0026=d_c(3d_hn_h+2d)+2d+3d_c \\end{align*} $$ 忽略bias项，MLA参数量与MHA参数量之比：\n$$ \\delta=\\frac{d_c(3d_hn_h+2d)}{4d_hn_hd}=\\frac{3+\\frac{2d}{d_hn_h}}{4\\frac{d}{d_c}} $$ 由于$d_c\\ll d_hn_h, d_c\\ll d$，所以$\\delta\\ll 1$。\n2.1.2 DeepSeekMoE with Auxiliary-Loss-Free Load Balancing Basic Architecture of DeepSeekMoE. DeepSeekMoE同时使用了finer-grained experts和shared experts，即部分专家是所有token共享，部分是通过路由决定。令$\\bold u_t$表示第$t$个token的FFN层输入向量，通过如下公式计算FFN层的输出向量$\\bold h_t^\\prime$：\n$$ \\begin{align*} \\mathbf{h}_t' \u0026= \\mathbf{u}_t + \\sum_{i=1}^{N_s} \\text{FFN}_i^{(s)} (\\mathbf{u}_t) + \\sum_{i=1}^{N_r} g_{i,t} \\text{FFN}_i^{(r)} (\\mathbf{u}_t),\\\\ g_{i,t} \u0026= \\frac{g_{i,t}'}{\\sum_{j=1}^{N_r} g_{j,t}'},\\\\ g_{i,t}' \u0026= \\begin{cases} s_{i,t}, \u0026 s_{i,t} \\in \\text{Topk}(\\{s_{j,t}|1 \\leq j \\leq N_r\\}, K_r), \\\\ 0, \u0026 \\text{otherwise}, \\end{cases}\\\\ s_{i,t} \u0026= \\text{Sigmoid} (\\mathbf{u}_t^T e_i), \\end{align*} $$ 其中$N_s$和$N_r$分别为共享专家数目和路由专家数目，$\\text{FFN}_i^{(s)}(\\cdot)$和$\\text{FFN}_i^{(r)}(\\cdot)$分别为第$i$个共享专家网络和第$i$个路由专家网络，$K_r$表示每个token输入会被激活的路由专家数目，$g_{i,t}$表示第$i$个路由专家的门控值，$s_{i,t}$表示每个路由专家对该token的分数，$\\bold e_i$为第$i$个路由专家的重心向量。与DeepSeek-V2不同的是，DeepSeek-V3使用sigmoid函数来计算每个路由专家对token的分数，并使用一个归一化处理来得到门控值。\nAuxiliary-Loss-Free Load Balancing. 团队为了均衡每个路由专家的负载量，提出了一个无额外损失函数的负载均衡方法，具体来说，为每个路由专家引入一个偏置项$b_i$：\n$$ \\begin{align*} g_{i,t}' = \\begin{cases} s_{i,t}, \u0026 s_{i,t} + b_i \\in \\mathrm{Topk}(\\{s_{j,t} + b_j | 1 \\leq j \\leq N_r\\}, K_r), \\\\ 0, \u0026 \\text{otherwise.} \\end{cases} \\end{align*} $$ 注意偏置项只用于路由选取时，而不影响最终的门控值。对于具体控制方式，团队在训练过程中，以每个训练step为单位，在每个step结束后，如果当前路由专家过载，则会对该专家的偏置降低$\\gamma$，如果欠载，则偏置增加$\\gamma$，其中$\\gamma$为超参数（bias update speed），通过这种动态调整方式，DeepSeek-V3能在训练中保持每个专家负载均衡。\nComplementary Sequence-Wise Auxiliary Loss. 为了防止单个sequence出现极端不均衡的情况，团队还采用了一个balance loss：\n$$ \\mathcal{L}_{Bal} = \\alpha \\sum_{i=1}^{N_r} f_i P_i, \\\\ f_i = \\frac{N_r}{K_r T} \\sum_{t=1}^T \\mathbb 1 (s_{i,t} \\in \\text{Topk}( \\{ s_{j,t} | 1 \\leq j \\leq N_r \\}, K_r ) ), \\\\ s'_{i,t} = \\frac{s_{i,t}}{\\sum_{j=1}^{N_r} s_{j,t}}, \\\\ P_i = \\frac{1}{T} \\sum_{t=1}^T s'_{i,t}, $$ 其中balance factor $\\alpha$为超参数，会被赋予一个很小的值。$\\mathbb 1(\\cdot)$是示性函数，$T$表示一个句子中的token数量，损失$\\mathcal L_{Bal}$能够鼓励路由专家在句子层级上负载均衡。对于上面的损失计算过程，具体分析如下（不是很明白这个优化目标为啥能让负载均衡？？）：\n$$ \\sum_{i=1}^{N_r}P_i=\\frac{1}{T}\\sum_{t=1}^T\\sum_{i=1}^{N_r}\\frac{s_{i,t}}{\\sum_{j=1}^{N_r}s_{j,t}}=1 $$ $$ \\begin{align*} \\sum_{i=1}^{N_r}f_i\u0026=\\frac{N_r}{K_rT}\\sum_{t=1}^{T}\\sum_{i=1}^{N_r} 1(s_{i,t} \\in \\text{Topk}( \\{ s_{j,t} | 1 \\leq j \\leq N_r \\}, K_r ) )\\\\ \u0026=\\frac{N_r}{K_rT}\\sum_{t=1}^TK_r=N_r \\end{align*} $$ $$ \\mathcal L_{Bal}=\\alpha\\sum_{i=1}^{N_r}f_iP_i\\in[0,\\alpha N_r] $$ No Token-Dropping. 由于良好的专家负载均衡，DeepSeek-V3训练阶段不会丢弃任何tokens，此外团队对推理阶段的负载均衡也采取了相应策略，因此在推理阶段也不会丢弃任何tokens。\n2.2 Multi-Token Prediction 图2: DeepSeek-V3 Multi-Token Prediction结构示意图 DeepSeek-V3中的MTP结构如图2所示，其使用了$D$个MTP模块（不包含主模型）来同时预测额外的$D$个tokens（相当于每个token预测后面1+D个tokens）。其中第$k$（$1\\le k\\le D$）个MTP模块包含一个与主模型共享的词嵌入向量层$\\text{Emb}(\\cdot)$，一个与主模型共享的输出头$\\text{OutHead}(\\cdot)$，一层Transformer块$\\text{TRM}_k(\\cdot)$，和一个投影矩阵$M_k\\in\\mathbb R^{d\\times 2d}$，对于一个输入序列中的第$i$个输入token $t_i$，对$t_i$的第$k$个预测深度，团队首先结合第$i$个token $t_i$在第$(k-1)$预测深度的Transformer块输出隐藏表征向量 $\\bold{h}_i^{k-1}\\in\\mathbb R^d$ 和第$(i+k)$个token的词嵌入向量$\\text{Emb}(t_{i+k})\\in\\mathbb R^d$，并对结合后的向量进行投影：\n$$ \\bold{h}_i^{\\prime k}=M_k[\\text{RMSNorm}(\\bold{h}_i^{k-1});\\text{RMSNorm}(\\text{Emb}(t_{i+k}))], $$ 特别的，当$k=1$时，$\\bold{h}_i^{k-1}$为主模型输出的表征。结合后的向量$\\bold{h}_i^{\\prime k}$作为第$i$个token的第$k$预测深度的MTP模块中的Transformer块的输入，并输出第$i$个token在第$k$预测深度的Transformer块输出的隐藏表征向量$\\bold{h}_i^k$：\n$$ \\bold{h}^k_{i}=\\text{TRM}_k(\\bold{h}_{i}^{\\prime k})\\quad 1\\le i\\le T-k, $$ 其中$T$代表输入序列的长度，最终，将$\\bold{h}_i^k$作为输入，共享输出头计算第$i$个token在第$k$预测深度的预测token的词表维度分布$P_{i+1+k}^k\\in\\mathbb R^V$，其中$V$为词表大小：\n$$ P^k_{i+k+1}=\\text{OutHead}(\\bold{h}_i^k). $$ 经过$\\text{OutHead}(\\cdot)$后再过一个$\\text{Softmax}(\\cdot)$得到第$i$个token在第$k$预测深度的预测token的概率分布。\n结合图2中的示意图，假设输入序列长度$T=8$，最大额外预测深度$D=4$，即总的MTP结构包含一个主模型和4个MTP块。定义输入序列token为{${t_1,t_2,t_3,t_4,t_5,t_6,t_7,t_8}$}，下面来拆解MTP的损失函数计算过程：\n主模型：token {${t_1,t_2,t_3,t_4,t_5,t_6,t_7}$}经过主模型Embedding层和Transformer块输出得到隐藏表征{${\\bold{h}_1^0,\\bold{h}_2^0,\\bold{h}_3^0,\\bold{h}_4^0,\\bold{h}_5^0,\\bold{h}_6^0,\\bold{h}_7^0}$}，再经过Output头得到{${P_2^0,P_3^0,P_4^0,P_5^0,P_6^0,P_7^0,P_8^0 }$}，与Target Tokens {${t_2,t_3,t_4,t_5,t_6,t_7,t_8}$}做交叉熵损失得到$\\mathcal L_{\\text{Main}}$； 第一层MTP模块：输入token {${t_2,t_3,t_4,t_5,t_6,t_7}$}，Transformer块的输入向量为{${\\bold{h}_1^{\\prime 1},\\bold{h}_2^{\\prime 1},\\bold{h}_3^{\\prime 1},\\bold{h}_4^{\\prime 1},\\bold{h}_5^{\\prime 1},\\bold{h}_6^{\\prime 1}, }$}，输出为{${\\bold{h}_1^1,\\bold{h}_2^1,\\bold{h}_3^1,\\bold{h}_4^1,\\bold{h}_5^1,\\bold{h}_6^1 }$}，经过Output头得到{${P_3^1,P_4^1,P_5^1,P_6^1,P_7^1,P_8^1 }$}，与Target Tokens {${t_3,t_4,t_5,t_6,t_7,t_8 }$}做交叉熵损失得到$\\mathcal L^1_{\\text{MTP}}$； $$ \\bold{h}_i^{\\prime 1}=M_1[\\text{RMSNorm}(\\bold{h}_i^0);\\text{RMSNorm}(\\text{Emb}(t_{i+1}))]\\quad 1\\le i\\le 6, $$ $$ \\bold{h}^1_i=\\text{TRM}_1(\\bold{h}_i^{\\prime 1})\\quad 1\\le i\\le 6, $$ $$ P_{i+2}^1=\\text{OutHead}(\\bold{h}_i^1)\\quad 1\\le i\\le 6, $$ 第二层MTP模块：输入token {${t_3,t_4,t_5,t_6,t_7}$}，Transformer块的输入向量为{${\\bold{h}_1^{\\prime 2},\\bold{h}_2^{\\prime 2},\\bold{h}_3^{\\prime 2},\\bold{h}_4^{\\prime 2},\\bold{h}_5^{\\prime 2} }$}，输出为{${\\bold{h}_1^2,\\bold{h}_2^2,\\bold{h}_3^2,\\bold{h}_4^2,\\bold{h}_5^2 }$}，经过Output头得到{${P_4^2,P_5^2,P_6^2,P_7^2,P_8^2 }$}，与Target Tokens {${t_4,t_5,t_6,t_7,t_8 }$}做交叉熵损失得到$\\mathcal L^2_{\\text{MTP}}$； $$ \\bold{h}_i^{\\prime 2}=M_2[\\text{RMSNorm}(\\bold{h}_i^1);\\text{RMSNorm}(\\text{Emb}(t_{i+2}))]\\quad 1\\le i\\le 5, $$ $$ \\bold{h}^2_i=\\text{TRM}_2(\\bold{h}_i^{\\prime 2})\\quad 1\\le i\\le 5, $$ $$ P_{i+3}^2=\\text{OutHead}(\\bold{h}_i^2)\\quad 1\\le i\\le 5, $$ 第三层MTP模块：输入token {${t_4,t_5,t_6,t_7}$}，Transformer块的输入向量为{${\\bold{h}_1^{\\prime 3},\\bold{h}_2^{\\prime 3},\\bold{h}_3^{\\prime 3},\\bold{h}_4^{\\prime 3} }$}，输出为{${\\bold{h}_1^3,\\bold{h}_2^3,\\bold{h}_3^3,\\bold{h}_4^3 }$}，经过Output头得到{${P_5^3,P_6^3,P_7^3,P_8^3 }$}，与Target Tokens {${t_5,t_6,t_7,t_8 }$}做交叉熵损失得到$\\mathcal L^3_{\\text{MTP}}$； $$ \\bold{h}_i^{\\prime 3}=M_3[\\text{RMSNorm}(\\bold{h}_i^2);\\text{RMSNorm}(\\text{Emb}(t_{i+3}))]\\quad 1\\le i\\le 4, $$ $$ \\bold{h}^3_i=\\text{TRM}_3(\\bold{h}_i^{\\prime 3})\\quad 1\\le i\\le 4, $$ $$ P_{i+4}^3=\\text{OutHead}(\\bold{h}_i^3)\\quad 1\\le i\\le 4, $$ 第四层MTP模块：输入token {${t_5,t_6,t_7}$}，Transformer块的输入向量为{${\\bold{h}_1^{\\prime 4},\\bold{h}_2^{\\prime 4},\\bold{h}_3^{\\prime 4}}$}，输出为{${\\bold{h}_1^4,\\bold{h}_2^4,\\bold{h}_3^4 }$}，经过Output头得到{${P_6^4,P_7^4,P_8^4 }$}，与Target Tokens {${t_6,t_7,t_8 }$}做交叉熵损失得到$\\mathcal L^4_{\\text{MTP}}$； $$ \\bold{h}_i^{\\prime 4}=M_4[\\text{RMSNorm}(\\bold{h}_i^3);\\text{RMSNorm}(\\text{Emb}(t_{i+4}))]\\quad 1\\le i\\le 3, $$ $$ \\bold{h}^4_i=\\text{TRM}_4(\\bold{h}_i^{\\prime 4})\\quad 1\\le i\\le 3, $$ $$ P_{i+5}^4=\\text{OutHead}(\\bold{h}_i^4)\\quad 1\\le i\\le 3, $$ 综上，总的MTP训练目标函数为每一层预测深度的损失总和：\n$$ \\mathcal L_{\\text{MTP}}^1=\\text{CrossEntropy}(P^1_{3:8},t_{3:8})\\\\ \\mathcal L_{\\text{MTP}}^2=\\text{CrossEntropy}(P^2_{4:8},t_{4:8})\\\\ \\mathcal L_{\\text{MTP}}^3=\\text{CrossEntropy}(P^3_{5:8},t_{5:8})\\\\ \\mathcal L_{\\text{MTP}}^4=\\text{CrossEntropy}(P^4_{6:8},t_{6:8}) $$ 论文中的写法如下，用了$T+1$应该是对长度为T的句子开头补了eos token，本文的推导过程中的句子长度T就是包含了补token后的结果，特此区别。此外这边的每一层损失都是做了$\\frac{1}{T}$的归一化处理，这部分理解按照正常的交叉熵公式应该是用$\\frac{1}{T-k}$（按本文的$T$处理方式就是$\\frac{1}{T-1-k}$），这里需要看源码。\n$$ \\mathcal{L}_{\\text{MTP}}^k = \\text{CrossEntropy}(P_{2+k:T+1}^k, t_{2+k:T+1}) = - \\frac{1}{T} \\sum_{i=2+k}^{T+1} \\log P_i^k[t_i] $$ 最后对每一层的MTP损失进行均值处理，其中团队添加了一个权重因子$\\lambda$，整体的$\\mathcal L_{\\text{MTP}}$作为DeepSeek-V3的一个额外训练损失。\n$$ \\mathcal L_{MTP}=\\frac{\\lambda}{D}\\sum_{k=1}^D\\mathcal L_{\\text{MTP}}^k $$ 对于推理阶段中的MTP：由于MTP策略主要用于提升主模型的性能，因此在推理阶段，可以选择直接丢弃这些MTP模块。\nReferences [1] DeepSeek-AI. “DeepSeek-V3 Technical Report” arXiv preprint axXiv:2412.19437 (2024).\n","wordCount":"657","inLanguage":"en","datePublished":"2025-01-29T00:00:00Z","dateModified":"2025-01-29T00:00:00Z","author":{"@type":"Person","name":"Rs"},"mainEntityOfPage":{"@type":"WebPage","@id":"https://tqzhong.github.io/my-blog/posts/2025-01-29-deepseek-v3/"},"publisher":{"@type":"Organization","name":"Rs' Log","logo":{"@type":"ImageObject","url":"https://tqzhong.github.io/my-blog/favicon.ico"}}}</script></head><body id=top><script>localStorage.getItem("pref-theme")==="dark"?document.body.classList.add("dark"):localStorage.getItem("pref-theme")==="light"?document.body.classList.remove("dark"):window.matchMedia("(prefers-color-scheme: dark)").matches&&document.body.classList.add("dark")</script><header class=header><script>MathJax={tex:{inlineMath:[["$","$"],["\\(","\\)"]],displayMath:[["$$","$$"],["\\[","\\]"]],processEscapes:!0,processEnvironments:!0},svg:{fontCache:"global"}}</script><nav class=nav><div class=logo-logo-switches><div class=logo><a href=https://tqzhong.github.io/my-blog/ accesskey=h title="Rs' Log (Alt + H)">Rs' Log</a><div class=logo-switches><button id=theme-toggle accesskey=t title="(Alt + T)"><svg id="moon" width="24" height="18" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg><svg id="sun" width="24" height="18" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg></button><ul class=lang-switch></ul></div></div></div><ul id=menu><li><a href=https://tqzhong.github.io/my-blog/ title=Posts><span>Posts</span></a></li><li><a href=https://tqzhong.github.io/my-blog/archive/ title=Archive><span>Archive</span></a></li><li><a href=https://tqzhong.github.io/my-blog/search/ title="Search (Alt + /)" accesskey=/><span>Search</span></a></li><li><a href=https://tqzhong.github.io/my-blog/tags/ title=Tags><span>Tags</span></a></li><li><a href=https://tqzhong.github.io/my-blog/categories/ title=Categories><span>Categories</span></a></li><li><a href=https://tqzhong.github.io/my-blog/faq/ title=FAQ><span>FAQ</span></a></li></ul></nav></header><main class=main><article class=post-single><header class=post-header><h1 class=post-title>DeepSeek-V3技术报告解读</h1><div class=post-meta><i class="fas fa-calendar-alt blog-meta-icon"></i>&nbsp;2025-01-29 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <i class="fas fa-clock blog-meta-icon"></i>&nbsp;4 min &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <i class="fas fa-user blog-meta-icon"></i>&nbsp;Rs &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <i class="fas fa-eye blog-meta-icon"></i>&nbsp;<span id=view-counter></span>
+<script src=https://cdn.jsdelivr.net/npm/leancloud-storage@4.12.0/dist/av-min.js></script><script>AV.initialize("AokLJzaIvwVNJW0b2F0YTLLy-MdYXbMMI","fwZpRfBG259O3LscJFPW3ViH"),loadViewCount(location.pathname,"view-counter");var hasViewCounted=!1;function loadViewCount(e,t){if(hasViewCounted)return;hasViewCounted=!0;var s,n=document.getElementById(t),o=localStorage.getItem("view-count-"+e);o?n.innerText=o:n.innerText="0",s=new AV.Query("Counter"),s.equalTo("url",e),s.find().then(t=>{if(t.length>0){var s,i,a,o=t[0];o.increment("views",1),o.save(),i=o.get("views"),n.innerText=i,localStorage.setItem("view-count-"+e,i)}else a=AV.Object.extend("Counter"),s=new a,s.set("url",e),s.set("views",1),s.save().then(()=>{n.innerText="1",localStorage.setItem("view-count-"+e,1)})}).catch(function(e){console.error("error:",e)})}</script></div></header><div class=toc><details><summary accesskey=c title="(Alt + C)"><span class=details>Table of Contents</span></summary><div class=inner><ul><li><a href=#1-%e6%91%98%e8%a6%81 aria-label="1. 摘要">1. 摘要</a></li><li><a href=#2-deepseek-v3%e6%a8%a1%e5%9e%8b%e7%bb%93%e6%9e%84 aria-label="2. DeepSeek-V3模型结构">2. DeepSeek-V3模型结构</a><ul><li><a href=#21-basic-architecture aria-label="2.1 Basic Architecture">2.1 Basic Architecture</a><ul><li><a href=#211-multi-head-latent-attention aria-label="2.1.1 Multi-Head Latent Attention">2.1.1 Multi-Head Latent Attention</a></li><li><a href=#212-deepseekmoe-with-auxiliary-loss-free-load-balancing aria-label="2.1.2 DeepSeekMoE with Auxiliary-Loss-Free Load Balancing">2.1.2 DeepSeekMoE with Auxiliary-Loss-Free Load Balancing</a></li></ul></li><li><a href=#22-multi-token-prediction aria-label="2.2 Multi-Token Prediction">2.2 Multi-Token Prediction</a></li></ul></li><li><a href=#references aria-label=References>References</a></li></ul></div></details></div><div class=post-content><h3 id=1-摘要>1. 摘要<a hidden class=anchor aria-hidden=true href=#1-摘要>#</a></h3><p>DeepSeek-V3，是一个Mixture-of-Experts（MoE）结构的大语言模型，参数量671B，其中每个token激活的参数量为37B。DeepSeek-V3主要采用Multi-head Latent Attention（MLA）和DeepSeekMoE结构，此外为了expert负载均衡引入了auxiliary-loss-free策略，为了更强的模型性能采用了multi-token prediction（MTP）训练策略。DeepSeek-V3预训练预料一共14.8T个token，并采用SFT和RL进一步对齐增强模型性能。DeepSeek-V3完整的训练一共仅需要2.788M H800 GPU hours。项目链接：<a href=https://github.com/deepseek-ai/DeepSeek-V3 class=entityLink>DeepSeek-V3</a></p><h3 id=2-deepseek-v3模型结构>2. DeepSeek-V3模型结构<a hidden class=anchor aria-hidden=true href=#2-deepseek-v3模型结构>#</a></h3><h4 id=21-basic-architecture>2.1 Basic Architecture<a hidden class=anchor aria-hidden=true href=#21-basic-architecture>#</a></h4><p><img loading=lazy src=/my-blog/images/2025-01-29-deepseek-v3/2025-01-29-image2.jpg alt=deepseek-v3-architecture></p><div align=center style=color:#999>图1: DeepSeek-V3基础结构图</div><p>DeepSeek-V3基本结构基于Transformer模型，为了高效推理并降低训练成本，DeepSeek-V3采用了DeepSeek-V2中的MLA和DeepSeekMoE结构。并给予DeepSeek-V2，团队添加了一个auxiliary-loss-free的专家负载均衡策略。图1为MLA和DeepSeekMoE的结构示意图。</p><h5 id=211-multi-head-latent-attention>2.1.1 Multi-Head Latent Attention<a hidden class=anchor aria-hidden=true href=#211-multi-head-latent-attention>#</a></h5><p>定义$d$为词嵌入向量维度，$n_h$为注意力头数目，$d_h$为每个注意力头的维度，$\bold{h}_t\in\mathbb R^d$表示给定注意力层的第$t$个token的注意力输入向量。MLA的关键在于在推理阶段使用low-rank joint compression技术来减少KV-Cache所占用的存储量：</p><div class=scroll-container>$$
 \textcolor{blue}{\bold{c}_t^{KV}}=W^{DKV}\bold{h}_t,\\
-$$
-</div>
-<div class="scroll-container">
-$$
+$$</div><div class=scroll-container>$$
 \left[\mathbf{k}_{t,1}; \mathbf{k}^C_{t,2}; \dots; \mathbf{k}^C_{t,n_h} \right] = \mathbf{k}^C_t = W^{UK} \mathbf{c}^{KV}_t,
-$$
-</div>
-<div class="scroll-container">
-$$
+$$</div><div class=scroll-container>$$
 \textcolor{blue}{\mathbf{k}^R_t} = \mathrm{RoPE}(W^{KR} \mathbf{h}_t),
-$$
-</div>
-<div class="scroll-container">
-$$
+$$</div><div class=scroll-container>$$
 \mathbf{k}_{t,i} = \left[\mathbf{k}^C_{t,i}; \mathbf{k}^R_t \right],
-$$
-</div>
-<div class="scroll-container">
-$$
+$$</div><div class=scroll-container>$$
 \left[\mathbf{v}^C_{t,1}; \mathbf{v}^C_{t,2}; \dots; \mathbf{v}^C_{t,n_h} \right] = \mathbf{v}^C_t = W^{UV} \mathbf{c}^{KV}_t.
-$$
-</div>
-<p>其中$\bold{c}_t^{KV}\in\mathbb R^{d_c}$代表key和value压缩后的隐藏向量；$d_c(\ll d_n n_h)$表明key和value的压缩维度，$W^{DKV}\in\mathbb R^{d_c\times d}$为下投影矩阵，$W^{UK},W^{UV}\in\mathbb R^{d_hn_h\times d_c}$为key和value的上投影矩阵。$W^{KR}\in\mathbb R^{d_h^R\times d}$用于生成carry RoPE key向量的矩阵。在MLA中，只有标蓝的向量（$\textcolor{blue}{\bold{c}_t^{KV}}$和$\textcolor{blue}{\bold{k}_t^R}$）需要在推理阶段存储（相比Multi-Head Attention的KV-Cache开销小很多）。</p>
-<p>对于注意力中的query，团队同样执行low-rank compression，这可以减少训练时的激活缓存的开销：</p>
-<div class="scroll-container">
-$$
+$$</div><p>其中$\bold{c}_t^{KV}\in\mathbb R^{d_c}$代表key和value压缩后的隐藏向量；$d_c(\ll d_n n_h)$表明key和value的压缩维度，$W^{DKV}\in\mathbb R^{d_c\times d}$为下投影矩阵，$W^{UK},W^{UV}\in\mathbb R^{d_hn_h\times d_c}$为key和value的上投影矩阵。$W^{KR}\in\mathbb R^{d_h^R\times d}$用于生成carry RoPE key向量的矩阵。在MLA中，只有标蓝的向量（$\textcolor{blue}{\bold{c}_t^{KV}}$和$\textcolor{blue}{\bold{k}_t^R}$）需要在推理阶段存储（相比Multi-Head Attention的KV-Cache开销小很多）。</p><p>对于注意力中的query，团队同样执行low-rank compression，这可以减少训练时的激活缓存的开销：</p><div class=scroll-container>$$
 \begin{align*}
 \bold c_t^Q &= W^{DQ} \bold h_t, \\
 \left[\bold q_{t,1}^{C}; \bold q_{t,2}^{C}; \dots; \bold q_{t,n_h}^{C} \right] &= \bold q_t^C = W^{UQ} \bold c_t^Q, \\
 \left[\bold q_{t,1}^{R}; \bold q_{t,2}^{R}; \dots; \bold q_{t,n_h}^{R} \right] &= \bold q_t^R = \text{RoPE}(W^{QR} \bold c_t^Q), \\
 \bold q_{t,i} &= \left[\bold q_{t,i}^C; \bold q_{t,i}^R \right],
 \end{align*}
-$$
-</div>
-<p>其中$\bold c_t^Q\in\mathbb R^{d_c^\prime}$代表query压缩后的隐藏向量；$d_c^\prime(\ll d_hn_h)$为query压缩向量，$W^{DQ}\in\mathbb R^{d_c^\prime\times d},W^{UQ}\in\mathbb R^{d_hn_h\times d_c^\prime}$分别为query的下投影和上投影矩阵，$W^{QR}\in\mathbb R^{d_h^Rn_h\times d_c^\prime}$用于生成carry RoPE query向量的矩阵。</p>
-<p>最终，query($\bold q_{t,i}$)，key($\bold k_{j,i}$)，value($\bold v_{j,i}^C$)被用于计算注意力输出$\bold{u}_t$：</p>
-<div class="scroll-container">
-$$
+$$</div><p>其中$\bold c_t^Q\in\mathbb R^{d_c^\prime}$代表query压缩后的隐藏向量；$d_c^\prime(\ll d_hn_h)$为query压缩向量，$W^{DQ}\in\mathbb R^{d_c^\prime\times d},W^{UQ}\in\mathbb R^{d_hn_h\times d_c^\prime}$分别为query的下投影和上投影矩阵，$W^{QR}\in\mathbb R^{d_h^Rn_h\times d_c^\prime}$用于生成carry RoPE query向量的矩阵。</p><p>最终，query($\bold q_{t,i}$)，key($\bold k_{j,i}$)，value($\bold v_{j,i}^C$)被用于计算注意力输出$\bold{u}_t$：</p><div class=scroll-container>$$
 \mathbf{o}_{t,i} = \sum_{j=1}^t \text{Softmax}_j \left( \frac{\mathbf{q}_{t,i}^T \mathbf{k}_{j,i}}{\sqrt{d_h + d_h^R}} \right) \mathbf{v}_{j,i}^C,\\
 \mathbf{u}_t = W^O [\mathbf{o}_{t,1}; \mathbf{o}_{t,2}; \ldots; \mathbf{o}_{t,n_h}],
-$$
-</div>
-<p>其中$W^O\in\mathbb R^{d\times d_hn_h}$表示输出投影矩阵。</p>
-<p>常规Multi-Head Attention的参数量计算，$W^K\in\mathbb R^{d_hn_h\times d}$，$W^Q\in\mathbb R^{d_hn_h\times d}$，$W^V\in\mathbb R^{d_hn_h\times d}$，$W^O\in\mathbb R^{d\times d_hn_h}$</p>
-<div class="scroll-container">
-$$
+$$</div><p>其中$W^O\in\mathbb R^{d\times d_hn_h}$表示输出投影矩阵。</p><p>常规Multi-Head Attention的参数量计算，$W^K\in\mathbb R^{d_hn_h\times d}$，$W^Q\in\mathbb R^{d_hn_h\times d}$，$W^V\in\mathbb R^{d_hn_h\times d}$，$W^O\in\mathbb R^{d\times d_hn_h}$</p><div class=scroll-container>$$
 \begin{align*}
 \bold{k}_t&=W^K\bold{h}_t\\
 [\bold{k}_{t,1},\bold k_{t,2},\cdots,\bold k_{t,n_h}]&=\bold{k}_t\\
@@ -529,35 +136,17 @@ $$
 \bold o_{t,i}&=\sum_{j=1}^t\text{Softmax}_j(\frac{\bold q_{t,i}^T\bold k_{j,i}}{\sqrt{d_h}})\bold v_{j,i}\\
 \bold u_t&=W^O[\bold o_{t,1},\bold o_{t,2},\cdots,\bold o_{t,n_h}]
 \end{align*}
-$$
-</div>
-<p>因此对于Multi-Head Attention，一层的总参数量为：</p>
-<div class="scroll-container">
-$$
+$$</div><p>因此对于Multi-Head Attention，一层的总参数量为：</p><div class=scroll-container>$$
 3\times(d_hn_h\times d + d) + d\times d_hn_h + d_hn_h = 4d_hn_hd+3d + d_hn_h
-$$
-</div>
-<p>对于Multi-Head Latent Attention，一层的总参数量为（不计算RoPE相关的参数，假设$d_c=d_c^\prime$）：</p>
-<div class="scroll-container">
-$$
+$$</div><p>对于Multi-Head Latent Attention，一层的总参数量为（不计算RoPE相关的参数，假设$d_c=d_c^\prime$）：</p><div class=scroll-container>$$
 \begin{align*}
 &(d_c\times d+d) + 2\times(d_hn_h\times d_c+d_c)+(d_c^\prime\times d+d)+(d_hn_h\times d_c^\prime+d_c^\prime)\\
 &=2\times(d_c\times d+d)+3\times(d_hn_h\times d_c+d_c)\\
 &=d_c(3d_hn_h+2d)+2d+3d_c
 \end{align*}
-$$
-</div>
-<p>忽略bias项，MLA参数量与MHA参数量之比：</p>
-<div class="scroll-container">
-$$
+$$</div><p>忽略bias项，MLA参数量与MHA参数量之比：</p><div class=scroll-container>$$
 \delta=\frac{d_c(3d_hn_h+2d)}{4d_hn_hd}=\frac{3+\frac{2d}{d_hn_h}}{4\frac{d}{d_c}}
-$$
-</div>
-<p>由于$d_c\ll d_hn_h, d_c\ll d$，所以$\delta\ll 1$。</p>
-<h5 id="212-deepseekmoe-with-auxiliary-loss-free-load-balancing">2.1.2 DeepSeekMoE with Auxiliary-Loss-Free Load Balancing<a hidden class="anchor" aria-hidden="true" href="#212-deepseekmoe-with-auxiliary-loss-free-load-balancing">#</a></h5>
-<p><strong>Basic Architecture of DeepSeekMoE.</strong> DeepSeekMoE同时使用了finer-grained experts和shared experts，即部分专家是所有token共享，部分是通过路由决定。令$\bold u_t$表示第$t$个token的FFN层输入向量，通过如下公式计算FFN层的输出向量$\bold h_t^\prime$：</p>
-<div class="scroll-container">
-$$
+$$</div><p>由于$d_c\ll d_hn_h, d_c\ll d$，所以$\delta\ll 1$。</p><h5 id=212-deepseekmoe-with-auxiliary-loss-free-load-balancing>2.1.2 DeepSeekMoE with Auxiliary-Loss-Free Load Balancing<a hidden class=anchor aria-hidden=true href=#212-deepseekmoe-with-auxiliary-loss-free-load-balancing>#</a></h5><p><strong>Basic Architecture of DeepSeekMoE.</strong> DeepSeekMoE同时使用了finer-grained experts和shared experts，即部分专家是所有token共享，部分是通过路由决定。令$\bold u_t$表示第$t$个token的FFN层输入向量，通过如下公式计算FFN层的输出向量$\bold h_t^\prime$：</p><div class=scroll-container>$$
 \begin{align*}
 \mathbf{h}_t' &= \mathbf{u}_t + \sum_{i=1}^{N_s} \text{FFN}_i^{(s)} (\mathbf{u}_t) + \sum_{i=1}^{N_r} g_{i,t} \text{FFN}_i^{(r)} (\mathbf{u}_t),\\
 g_{i,t} &= \frac{g_{i,t}'}{\sum_{j=1}^{N_r} g_{j,t}'},\\
@@ -568,331 +157,74 @@ s_{i,t}, & s_{i,t} \in \text{Topk}(\{s_{j,t}|1 \leq j \leq N_r\}, K_r), \\
 \end{cases}\\
 s_{i,t} &= \text{Sigmoid} (\mathbf{u}_t^T e_i),
 \end{align*}
-$$
-</div>
-<p>其中$N_s$和$N_r$分别为共享专家数目和路由专家数目，$\text{FFN}_i^{(s)}(\cdot)$和$\text{FFN}_i^{(r)}(\cdot)$分别为第$i$个共享专家网络和第$i$个路由专家网络，$K_r$表示每个token输入会被激活的路由专家数目，$g_{i,t}$表示第$i$个路由专家的门控值，$s_{i,t}$表示每个路由专家对该token的分数，$\bold e_i$为第$i$个路由专家的重心向量。与DeepSeek-V2不同的是，DeepSeek-V3使用sigmoid函数来计算每个路由专家对token的分数，并使用一个归一化处理来得到门控值。</p>
-<p><strong>Auxiliary-Loss-Free Load Balancing.</strong> 团队为了均衡每个路由专家的负载量，提出了一个无额外损失函数的负载均衡方法，具体来说，为每个路由专家引入一个偏置项$b_i$：</p>
-<div class="scroll-container">
-$$
+$$</div><p>其中$N_s$和$N_r$分别为共享专家数目和路由专家数目，$\text{FFN}_i^{(s)}(\cdot)$和$\text{FFN}_i^{(r)}(\cdot)$分别为第$i$个共享专家网络和第$i$个路由专家网络，$K_r$表示每个token输入会被激活的路由专家数目，$g_{i,t}$表示第$i$个路由专家的门控值，$s_{i,t}$表示每个路由专家对该token的分数，$\bold e_i$为第$i$个路由专家的重心向量。与DeepSeek-V2不同的是，DeepSeek-V3使用sigmoid函数来计算每个路由专家对token的分数，并使用一个归一化处理来得到门控值。</p><p><strong>Auxiliary-Loss-Free Load Balancing.</strong> 团队为了均衡每个路由专家的负载量，提出了一个无额外损失函数的负载均衡方法，具体来说，为每个路由专家引入一个偏置项$b_i$：</p><div class=scroll-container>$$
 \begin{align*}
-g_{i,t}' = 
-\begin{cases} 
+g_{i,t}' =
+\begin{cases}
 s_{i,t}, & s_{i,t} + b_i \in \mathrm{Topk}(\{s_{j,t} + b_j | 1 \leq j \leq N_r\}, K_r), \\
 0, & \text{otherwise.}
 \end{cases}
 \end{align*}
-$$
-</div>
-<p>注意偏置项只用于路由选取时，而不影响最终的门控值。对于具体控制方式，团队在训练过程中，以每个训练step为单位，在每个step结束后，如果当前路由专家过载，则会对该专家的偏置降低$\gamma$，如果欠载，则偏置增加$\gamma$，其中$\gamma$为超参数（bias update speed），通过这种动态调整方式，DeepSeek-V3能在训练中保持每个专家负载均衡。</p>
-<p><strong>Complementary Sequence-Wise Auxiliary Loss.</strong> 为了防止单个sequence出现极端不均衡的情况，团队还采用了一个balance loss：</p>
-<div class="scroll-container">
-$$
+$$</div><p>注意偏置项只用于路由选取时，而不影响最终的门控值。对于具体控制方式，团队在训练过程中，以每个训练step为单位，在每个step结束后，如果当前路由专家过载，则会对该专家的偏置降低$\gamma$，如果欠载，则偏置增加$\gamma$，其中$\gamma$为超参数（bias update speed），通过这种动态调整方式，DeepSeek-V3能在训练中保持每个专家负载均衡。</p><p><strong>Complementary Sequence-Wise Auxiliary Loss.</strong> 为了防止单个sequence出现极端不均衡的情况，团队还采用了一个balance loss：</p><div class=scroll-container>$$
 \mathcal{L}_{Bal} = \alpha \sum_{i=1}^{N_r} f_i P_i, \\
 f_i = \frac{N_r}{K_r T} \sum_{t=1}^T \mathbb 1 (s_{i,t} \in \text{Topk}( \{ s_{j,t} | 1 \leq j \leq N_r \}, K_r ) ), \\
 s'_{i,t} = \frac{s_{i,t}}{\sum_{j=1}^{N_r} s_{j,t}}, \\
 P_i = \frac{1}{T} \sum_{t=1}^T s'_{i,t},
-$$
-</div>
-<p>其中balance factor $\alpha$为超参数，会被赋予一个很小的值。$\mathbb 1(\cdot)$是示性函数，$T$表示一个句子中的token数量，损失$\mathcal L_{Bal}$能够鼓励路由专家在句子层级上负载均衡。对于上面的损失计算过程，具体分析如下（不是很明白这个优化目标为啥能让负载均衡？？）：</p>
-<div class="scroll-container">
-$$
+$$</div><p>其中balance factor $\alpha$为超参数，会被赋予一个很小的值。$\mathbb 1(\cdot)$是示性函数，$T$表示一个句子中的token数量，损失$\mathcal L_{Bal}$能够鼓励路由专家在句子层级上负载均衡。对于上面的损失计算过程，具体分析如下（不是很明白这个优化目标为啥能让负载均衡？？）：</p><div class=scroll-container>$$
 \sum_{i=1}^{N_r}P_i=\frac{1}{T}\sum_{t=1}^T\sum_{i=1}^{N_r}\frac{s_{i,t}}{\sum_{j=1}^{N_r}s_{j,t}}=1
-$$
-</div>
-<div class="scroll-container">
-$$
+$$</div><div class=scroll-container>$$
 \begin{align*}
 \sum_{i=1}^{N_r}f_i&=\frac{N_r}{K_rT}\sum_{t=1}^{T}\sum_{i=1}^{N_r} 1(s_{i,t} \in \text{Topk}( \{ s_{j,t} | 1 \leq j \leq N_r \}, K_r ) )\\
 &=\frac{N_r}{K_rT}\sum_{t=1}^TK_r=N_r
 \end{align*}
-$$
-</div>
-<div class="scroll-container">
-$$
+$$</div><div class=scroll-container>$$
 \mathcal L_{Bal}=\alpha\sum_{i=1}^{N_r}f_iP_i\in[0,\alpha N_r]
-$$
-</div>
-<p><strong>No Token-Dropping.</strong> 由于良好的专家负载均衡，DeepSeek-V3训练阶段不会丢弃任何tokens，此外团队对推理阶段的负载均衡也采取了相应策略，因此在推理阶段也不会丢弃任何tokens。</p>
-<h4 id="22-multi-token-prediction">2.2 Multi-Token Prediction<a hidden class="anchor" aria-hidden="true" href="#22-multi-token-prediction">#</a></h4>
-<p><img loading="lazy" src="/my-blog/images/2025-01-29-deepseek-v3/2025-01-29-image1.jpg" alt="deepseek-v3-mtp"  />
-</p>
-<div align='center' style="color: #999999">图2: DeepSeek-V3 Multi-Token Prediction结构示意图</div>
-<p>DeepSeek-V3中的MTP结构如图2所示，其使用了$D$个MTP模块（不包含主模型）来同时预测额外的$D$个tokens（相当于每个token预测后面1+D个tokens）。其中第$k$（$1\le k\le D$）个MTP模块包含一个与主模型共享的词嵌入向量层$\text{Emb}(\cdot)$，一个与主模型共享的输出头$\text{OutHead}(\cdot)$，一层Transformer块$\text{TRM}_k(\cdot)$，和一个投影矩阵$M_k\in\mathbb R^{d\times 2d}$，对于一个输入序列中的第$i$个输入token $t_i$，对$t_i$的第$k$个预测深度，团队首先结合第$i$个token $t_i$在第$(k-1)$预测深度的Transformer块输出隐藏表征向量 $\bold{h}_i^{k-1}\in\mathbb R^d$ 和第$(i+k)$个token的词嵌入向量$\text{Emb}(t_{i+k})\in\mathbb R^d$，并对结合后的向量进行投影：</p>
-<div class="scroll-container">
-$$
+$$</div><p><strong>No Token-Dropping.</strong> 由于良好的专家负载均衡，DeepSeek-V3训练阶段不会丢弃任何tokens，此外团队对推理阶段的负载均衡也采取了相应策略，因此在推理阶段也不会丢弃任何tokens。</p><h4 id=22-multi-token-prediction>2.2 Multi-Token Prediction<a hidden class=anchor aria-hidden=true href=#22-multi-token-prediction>#</a></h4><p><img loading=lazy src=/my-blog/images/2025-01-29-deepseek-v3/2025-01-29-image1.jpg alt=deepseek-v3-mtp></p><div align=center style=color:#999>图2: DeepSeek-V3 Multi-Token Prediction结构示意图</div><p>DeepSeek-V3中的MTP结构如图2所示，其使用了$D$个MTP模块（不包含主模型）来同时预测额外的$D$个tokens（相当于每个token预测后面1+D个tokens）。其中第$k$（$1\le k\le D$）个MTP模块包含一个与主模型共享的词嵌入向量层$\text{Emb}(\cdot)$，一个与主模型共享的输出头$\text{OutHead}(\cdot)$，一层Transformer块$\text{TRM}_k(\cdot)$，和一个投影矩阵$M_k\in\mathbb R^{d\times 2d}$，对于一个输入序列中的第$i$个输入token $t_i$，对$t_i$的第$k$个预测深度，团队首先结合第$i$个token $t_i$在第$(k-1)$预测深度的Transformer块输出隐藏表征向量 $\bold{h}_i^{k-1}\in\mathbb R^d$ 和第$(i+k)$个token的词嵌入向量$\text{Emb}(t_{i+k})\in\mathbb R^d$，并对结合后的向量进行投影：</p><div class=scroll-container>$$
 \bold{h}_i^{\prime k}=M_k[\text{RMSNorm}(\bold{h}_i^{k-1});\text{RMSNorm}(\text{Emb}(t_{i+k}))],
-$$
-</div>
-<p>特别的，当$k=1$时，$\bold{h}_i^{k-1}$为主模型输出的表征。结合后的向量$\bold{h}_i^{\prime k}$作为第$i$个token的第$k$预测深度的MTP模块中的Transformer块的输入，并输出第$i$个token在第$k$预测深度的Transformer块输出的隐藏表征向量$\bold{h}_i^k$：</p>
-<div class="scroll-container">
-$$
+$$</div><p>特别的，当$k=1$时，$\bold{h}_i^{k-1}$为主模型输出的表征。结合后的向量$\bold{h}_i^{\prime k}$作为第$i$个token的第$k$预测深度的MTP模块中的Transformer块的输入，并输出第$i$个token在第$k$预测深度的Transformer块输出的隐藏表征向量$\bold{h}_i^k$：</p><div class=scroll-container>$$
 \bold{h}^k_{i}=\text{TRM}_k(\bold{h}_{i}^{\prime k})\quad 1\le i\le T-k,
-$$
-</div>
-<p>其中$T$代表输入序列的长度，最终，将$\bold{h}_i^k$作为输入，共享输出头计算第$i$个token在第$k$预测深度的预测token的词表维度分布$P_{i+1+k}^k\in\mathbb R^V$，其中$V$为词表大小：</p>
-<div class="scroll-container">
-$$
+$$</div><p>其中$T$代表输入序列的长度，最终，将$\bold{h}_i^k$作为输入，共享输出头计算第$i$个token在第$k$预测深度的预测token的词表维度分布$P_{i+1+k}^k\in\mathbb R^V$，其中$V$为词表大小：</p><div class=scroll-container>$$
 P^k_{i+k+1}=\text{OutHead}(\bold{h}_i^k).
-$$
-</div>
-<p>经过$\text{OutHead}(\cdot)$后再过一个$\text{Softmax}(\cdot)$得到第$i$个token在第$k$预测深度的预测token的概率分布。</p>
-<p>结合图2中的示意图，假设输入序列长度$T=8$，最大额外预测深度$D=4$，即总的MTP结构包含一个主模型和4个MTP块。定义输入序列token为{${t_1,t_2,t_3,t_4,t_5,t_6,t_7,t_8}$}，下面来拆解MTP的损失函数计算过程：</p>
-<ul>
-<li>主模型：token {${t_1,t_2,t_3,t_4,t_5,t_6,t_7}$}经过主模型Embedding层和Transformer块输出得到隐藏表征{${\bold{h}_1^0,\bold{h}_2^0,\bold{h}_3^0,\bold{h}_4^0,\bold{h}_5^0,\bold{h}_6^0,\bold{h}_7^0}$}，再经过Output头得到{${P_2^0,P_3^0,P_4^0,P_5^0,P_6^0,P_7^0,P_8^0 }$}，与Target Tokens {${t_2,t_3,t_4,t_5,t_6,t_7,t_8}$}做交叉熵损失得到$\mathcal L_{\text{Main}}$；</li>
-<li>第一层MTP模块：输入token {${t_2,t_3,t_4,t_5,t_6,t_7}$}，Transformer块的输入向量为{${\bold{h}_1^{\prime 1},\bold{h}_2^{\prime 1},\bold{h}_3^{\prime 1},\bold{h}_4^{\prime 1},\bold{h}_5^{\prime 1},\bold{h}_6^{\prime 1}, }$}，输出为{${\bold{h}_1^1,\bold{h}_2^1,\bold{h}_3^1,\bold{h}_4^1,\bold{h}_5^1,\bold{h}_6^1 }$}，经过Output头得到{${P_3^1,P_4^1,P_5^1,P_6^1,P_7^1,P_8^1 }$}，与Target Tokens {${t_3,t_4,t_5,t_6,t_7,t_8 }$}做交叉熵损失得到$\mathcal L^1_{\text{MTP}}$；</li>
-</ul>
-<div class="scroll-container">
-$$
+$$</div><p>经过$\text{OutHead}(\cdot)$后再过一个$\text{Softmax}(\cdot)$得到第$i$个token在第$k$预测深度的预测token的概率分布。</p><p>结合图2中的示意图，假设输入序列长度$T=8$，最大额外预测深度$D=4$，即总的MTP结构包含一个主模型和4个MTP块。定义输入序列token为{${t_1,t_2,t_3,t_4,t_5,t_6,t_7,t_8}$}，下面来拆解MTP的损失函数计算过程：</p><ul><li>主模型：token {${t_1,t_2,t_3,t_4,t_5,t_6,t_7}$}经过主模型Embedding层和Transformer块输出得到隐藏表征{${\bold{h}_1^0,\bold{h}_2^0,\bold{h}_3^0,\bold{h}_4^0,\bold{h}_5^0,\bold{h}_6^0,\bold{h}_7^0}$}，再经过Output头得到{${P_2^0,P_3^0,P_4^0,P_5^0,P_6^0,P_7^0,P_8^0 }$}，与Target Tokens {${t_2,t_3,t_4,t_5,t_6,t_7,t_8}$}做交叉熵损失得到$\mathcal L_{\text{Main}}$；</li><li>第一层MTP模块：输入token {${t_2,t_3,t_4,t_5,t_6,t_7}$}，Transformer块的输入向量为{${\bold{h}_1^{\prime 1},\bold{h}_2^{\prime 1},\bold{h}_3^{\prime 1},\bold{h}_4^{\prime 1},\bold{h}_5^{\prime 1},\bold{h}_6^{\prime 1}, }$}，输出为{${\bold{h}_1^1,\bold{h}_2^1,\bold{h}_3^1,\bold{h}_4^1,\bold{h}_5^1,\bold{h}_6^1 }$}，经过Output头得到{${P_3^1,P_4^1,P_5^1,P_6^1,P_7^1,P_8^1 }$}，与Target Tokens {${t_3,t_4,t_5,t_6,t_7,t_8 }$}做交叉熵损失得到$\mathcal L^1_{\text{MTP}}$；</li></ul><div class=scroll-container>$$
 \bold{h}_i^{\prime 1}=M_1[\text{RMSNorm}(\bold{h}_i^0);\text{RMSNorm}(\text{Emb}(t_{i+1}))]\quad 1\le i\le 6,
-$$
-</div>
-<div class="scroll-container">
-$$
+$$</div><div class=scroll-container>$$
 \bold{h}^1_i=\text{TRM}_1(\bold{h}_i^{\prime 1})\quad 1\le i\le 6,
-$$
-</div>
-<div class="scroll-container">
-$$
+$$</div><div class=scroll-container>$$
 P_{i+2}^1=\text{OutHead}(\bold{h}_i^1)\quad 1\le i\le 6,
-$$
-</div>
-<ul>
-<li>第二层MTP模块：输入token {${t_3,t_4,t_5,t_6,t_7}$}，Transformer块的输入向量为{${\bold{h}_1^{\prime 2},\bold{h}_2^{\prime 2},\bold{h}_3^{\prime 2},\bold{h}_4^{\prime 2},\bold{h}_5^{\prime 2} }$}，输出为{${\bold{h}_1^2,\bold{h}_2^2,\bold{h}_3^2,\bold{h}_4^2,\bold{h}_5^2 }$}，经过Output头得到{${P_4^2,P_5^2,P_6^2,P_7^2,P_8^2 }$}，与Target Tokens {${t_4,t_5,t_6,t_7,t_8 }$}做交叉熵损失得到$\mathcal L^2_{\text{MTP}}$；</li>
-</ul>
-<div class="scroll-container">
-$$
+$$</div><ul><li>第二层MTP模块：输入token {${t_3,t_4,t_5,t_6,t_7}$}，Transformer块的输入向量为{${\bold{h}_1^{\prime 2},\bold{h}_2^{\prime 2},\bold{h}_3^{\prime 2},\bold{h}_4^{\prime 2},\bold{h}_5^{\prime 2} }$}，输出为{${\bold{h}_1^2,\bold{h}_2^2,\bold{h}_3^2,\bold{h}_4^2,\bold{h}_5^2 }$}，经过Output头得到{${P_4^2,P_5^2,P_6^2,P_7^2,P_8^2 }$}，与Target Tokens {${t_4,t_5,t_6,t_7,t_8 }$}做交叉熵损失得到$\mathcal L^2_{\text{MTP}}$；</li></ul><div class=scroll-container>$$
 \bold{h}_i^{\prime 2}=M_2[\text{RMSNorm}(\bold{h}_i^1);\text{RMSNorm}(\text{Emb}(t_{i+2}))]\quad 1\le i\le 5,
-$$
-</div>
-<div class="scroll-container">
-$$
+$$</div><div class=scroll-container>$$
 \bold{h}^2_i=\text{TRM}_2(\bold{h}_i^{\prime 2})\quad 1\le i\le 5,
-$$
-</div>
-<div class="scroll-container">
-$$
+$$</div><div class=scroll-container>$$
 P_{i+3}^2=\text{OutHead}(\bold{h}_i^2)\quad 1\le i\le 5,
-$$
-</div>
-<ul>
-<li>第三层MTP模块：输入token {${t_4,t_5,t_6,t_7}$}，Transformer块的输入向量为{${\bold{h}_1^{\prime 3},\bold{h}_2^{\prime 3},\bold{h}_3^{\prime 3},\bold{h}_4^{\prime 3} }$}，输出为{${\bold{h}_1^3,\bold{h}_2^3,\bold{h}_3^3,\bold{h}_4^3 }$}，经过Output头得到{${P_5^3,P_6^3,P_7^3,P_8^3 }$}，与Target Tokens {${t_5,t_6,t_7,t_8 }$}做交叉熵损失得到$\mathcal L^3_{\text{MTP}}$；</li>
-</ul>
-<div class="scroll-container">
-$$
+$$</div><ul><li>第三层MTP模块：输入token {${t_4,t_5,t_6,t_7}$}，Transformer块的输入向量为{${\bold{h}_1^{\prime 3},\bold{h}_2^{\prime 3},\bold{h}_3^{\prime 3},\bold{h}_4^{\prime 3} }$}，输出为{${\bold{h}_1^3,\bold{h}_2^3,\bold{h}_3^3,\bold{h}_4^3 }$}，经过Output头得到{${P_5^3,P_6^3,P_7^3,P_8^3 }$}，与Target Tokens {${t_5,t_6,t_7,t_8 }$}做交叉熵损失得到$\mathcal L^3_{\text{MTP}}$；</li></ul><div class=scroll-container>$$
 \bold{h}_i^{\prime 3}=M_3[\text{RMSNorm}(\bold{h}_i^2);\text{RMSNorm}(\text{Emb}(t_{i+3}))]\quad 1\le i\le 4,
-$$
-</div>
-<div class="scroll-container">
-$$
+$$</div><div class=scroll-container>$$
 \bold{h}^3_i=\text{TRM}_3(\bold{h}_i^{\prime 3})\quad 1\le i\le 4,
-$$
-</div>
-<div class="scroll-container">
-$$
+$$</div><div class=scroll-container>$$
 P_{i+4}^3=\text{OutHead}(\bold{h}_i^3)\quad 1\le i\le 4,
-$$
-</div>
-<ul>
-<li>第四层MTP模块：输入token {${t_5,t_6,t_7}$}，Transformer块的输入向量为{${\bold{h}_1^{\prime 4},\bold{h}_2^{\prime 4},\bold{h}_3^{\prime 4}}$}，输出为{${\bold{h}_1^4,\bold{h}_2^4,\bold{h}_3^4 }$}，经过Output头得到{${P_6^4,P_7^4,P_8^4 }$}，与Target Tokens {${t_6,t_7,t_8 }$}做交叉熵损失得到$\mathcal L^4_{\text{MTP}}$；</li>
-</ul>
-<div class="scroll-container">
-$$
+$$</div><ul><li>第四层MTP模块：输入token {${t_5,t_6,t_7}$}，Transformer块的输入向量为{${\bold{h}_1^{\prime 4},\bold{h}_2^{\prime 4},\bold{h}_3^{\prime 4}}$}，输出为{${\bold{h}_1^4,\bold{h}_2^4,\bold{h}_3^4 }$}，经过Output头得到{${P_6^4,P_7^4,P_8^4 }$}，与Target Tokens {${t_6,t_7,t_8 }$}做交叉熵损失得到$\mathcal L^4_{\text{MTP}}$；</li></ul><div class=scroll-container>$$
 \bold{h}_i^{\prime 4}=M_4[\text{RMSNorm}(\bold{h}_i^3);\text{RMSNorm}(\text{Emb}(t_{i+4}))]\quad 1\le i\le 3,
-$$
-</div>
-<div class="scroll-container">
-$$
+$$</div><div class=scroll-container>$$
 \bold{h}^4_i=\text{TRM}_4(\bold{h}_i^{\prime 4})\quad 1\le i\le 3,
-$$
-</div>
-<div class="scroll-container">
-$$
+$$</div><div class=scroll-container>$$
 P_{i+5}^4=\text{OutHead}(\bold{h}_i^4)\quad 1\le i\le 3,
-$$
-</div>
-<p>综上，总的MTP训练目标函数为每一层预测深度的损失总和：</p>
-<div class="scroll-container">
-$$
+$$</div><p>综上，总的MTP训练目标函数为每一层预测深度的损失总和：</p><div class=scroll-container>$$
 \mathcal L_{\text{MTP}}^1=\text{CrossEntropy}(P^1_{3:8},t_{3:8})\\
 \mathcal L_{\text{MTP}}^2=\text{CrossEntropy}(P^2_{4:8},t_{4:8})\\
 \mathcal L_{\text{MTP}}^3=\text{CrossEntropy}(P^3_{5:8},t_{5:8})\\
 \mathcal L_{\text{MTP}}^4=\text{CrossEntropy}(P^4_{6:8},t_{6:8})
-$$
-</div>
-<p>论文中的写法如下，用了$T+1$应该是对长度为T的句子开头补了eos token，本文的推导过程中的句子长度T就是包含了补token后的结果，特此区别。此外这边的每一层损失都是做了$\frac{1}{T}$的归一化处理，这部分理解按照正常的交叉熵公式应该是用$\frac{1}{T-k}$（按本文的$T$处理方式就是$\frac{1}{T-1-k}$），这里需要看源码。</p>
-<div class="scroll-container">
-$$
-\mathcal{L}_{\text{MTP}}^k = \text{CrossEntropy}(P_{2+k:T+1}^k, t_{2+k:T+1}) 
+$$</div><p>论文中的写法如下，用了$T+1$应该是对长度为T的句子开头补了eos token，本文的推导过程中的句子长度T就是包含了补token后的结果，特此区别。此外这边的每一层损失都是做了$\frac{1}{T}$的归一化处理，这部分理解按照正常的交叉熵公式应该是用$\frac{1}{T-k}$（按本文的$T$处理方式就是$\frac{1}{T-1-k}$），这里需要看源码。</p><div class=scroll-container>$$
+\mathcal{L}_{\text{MTP}}^k = \text{CrossEntropy}(P_{2+k:T+1}^k, t_{2+k:T+1})
 = - \frac{1}{T} \sum_{i=2+k}^{T+1} \log P_i^k[t_i]
-$$
-</div>
-<p>最后对每一层的MTP损失进行均值处理，其中团队添加了一个权重因子$\lambda$，整体的$\mathcal L_{\text{MTP}}$作为DeepSeek-V3的一个额外训练损失。</p>
-<div class="scroll-container">
-$$
+$$</div><p>最后对每一层的MTP损失进行均值处理，其中团队添加了一个权重因子$\lambda$，整体的$\mathcal L_{\text{MTP}}$作为DeepSeek-V3的一个额外训练损失。</p><div class=scroll-container>$$
 \mathcal L_{MTP}=\frac{\lambda}{D}\sum_{k=1}^D\mathcal L_{\text{MTP}}^k
-$$
-</div>
-<p>对于推理阶段中的MTP：由于MTP策略主要用于提升主模型的性能，因此在推理阶段，可以选择直接丢弃这些MTP模块。</p>
-<h3 id="references">References<a hidden class="anchor" aria-hidden="true" href="#references">#</a></h3>
-<p>[1] DeepSeek-AI. <a href="https://arxiv.org/pdf/2412.19437v1" class="entityLink">“DeepSeek-V3 Technical Report”</a> arXiv preprint axXiv:2412.19437 (2024).</p>
-
-
-  </div>
-
-  <footer class="post-footer">
-      <ul class="post-tags">
-        <li><a href="https://tqzhong.github.io/my-blog/tags/ai/">AI</a></li>
-        <li><a href="https://tqzhong.github.io/my-blog/tags/paper-reading/">Paper Reading</a></li>
-        <li><a href="https://tqzhong.github.io/my-blog/tags/nlp/">NLP</a></li>
-        <li><a href="https://tqzhong.github.io/my-blog/tags/llm/">LLM</a></li>
-      </ul>
-<nav class="paginav">
-  <a class="prev" href="https://tqzhong.github.io/my-blog/posts/2025-03-05-grpo/">
-    <span class="title">« Prev</span>
-    <br>
-    <span>GRPO From Scratch</span>
-  </a>
-  <a class="next" href="https://tqzhong.github.io/my-blog/posts/2025-01-27-deepseek-r1/">
-    <span class="title">Next »</span>
-    <br>
-    <span>DeepSeek-R1技术报告解读</span>
-  </a>
-</nav>
-
-  </footer>
-  
-</article>
-
-
-
-
-  <div class="social-icons">
-    
-        
-            
-        
-    
-        
-            <a href="https://github.com/tqzhong" target="_blank" rel="noopener noreferrer">
-            <i class="fab fa-github"></i>
-            </a>
-        
-    
-        
-            <a href="https://x.com/rs1047g" target="_blank" rel="noopener noreferrer">
-            <i class="fab fa-twitter"></i>
-            </a>
-        
-    
-        
-            <a href="https://scholar.google.com/citations?hl=en&amp;user=UNNLJX4AAAAJ" target="_blank" rel="noopener noreferrer">
-            <i class="fab fa-google"></i>
-            </a>
-        
-    
-        
-            <a href="https://tqzhong.github.io" target="_blank" rel="noopener noreferrer">
-            <i class="fas fa-user"></i>  
-            </a>
-        
-    
-  </div>
-
-
-
-<script src="https://utteranc.es/client.js"
-        repo="tqzhong/my-blog"
-        issue-term="pathname"
-        label="hugo-comment"
-        theme="github-dark"
-        crossorigin="anonymous"
-        async>
-</script>
-
-    </main>
-    
-<footer class="footer">
-    <span>&copy; 2025 <a href="https://tqzhong.github.io/my-blog/">Rs&#39; Log</a></span>
-    <span>
-        Powered by
-        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
-        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
-    </span>
-</footer>
-<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
-        <path d="M12 6H0l6-6z" />
-    </svg>
-</a>
-
-<script>
-    let menu = document.getElementById('menu')
-    if (menu) {
-        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
-        menu.onscroll = function () {
-            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
-        }
-    }
-
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener("click", function (e) {
-            e.preventDefault();
-            var id = this.getAttribute("href").substr(1);
-            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
-                    behavior: "smooth"
-                });
-            } else {
-                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
-            }
-            if (id === "top") {
-                history.replaceState(null, null, " ");
-            } else {
-                history.pushState(null, null, `#${id}`);
-            }
-        });
-    });
-
-</script>
-<script>
-    var mybutton = document.getElementById("top-link");
-    window.onscroll = function () {
-        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
-            mybutton.style.visibility = "visible";
-            mybutton.style.opacity = "1";
-        } else {
-            mybutton.style.visibility = "hidden";
-            mybutton.style.opacity = "0";
-        }
-    };
-
-</script>
-<script>
-    document.getElementById("theme-toggle").addEventListener("click", () => {
-        if (document.body.className.includes("dark")) {
-            document.body.classList.remove('dark');
-            localStorage.setItem("pref-theme", 'light');
-        } else {
-            document.body.classList.add('dark');
-            localStorage.setItem("pref-theme", 'dark');
-        }
-    })
-
-</script>
-<script src="https://cdn.jsdelivr.net/npm/katex@0.13.0/dist/katex.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/katex@0.13.0/dist/contrib/auto-render.min.js"></script>
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            renderMathInElement(document.body, {
-                delimiters: [
-                    {left: "$$", right: "$$", display: true},
-                    {left: "\\(", right: "\\)", display: false},
-                    {left: "$", right: "$", display: false}
-                ]
-            });
-        });
-    </script>    
-
-</body>
-
-</html>
+$$</div><p>对于推理阶段中的MTP：由于MTP策略主要用于提升主模型的性能，因此在推理阶段，可以选择直接丢弃这些MTP模块。</p><h3 id=references>References<a hidden class=anchor aria-hidden=true href=#references>#</a></h3><p>[1] DeepSeek-AI. <a href=https://arxiv.org/pdf/2412.19437v1 class=entityLink>“DeepSeek-V3 Technical Report”</a> arXiv preprint axXiv:2412.19437 (2024).</p></div><footer class=post-footer><ul class=post-tags><li><a href=https://tqzhong.github.io/my-blog/tags/ai/>AI</a></li><li><a href=https://tqzhong.github.io/my-blog/tags/paper-reading/>Paper Reading</a></li><li><a href=https://tqzhong.github.io/my-blog/tags/nlp/>NLP</a></li><li><a href=https://tqzhong.github.io/my-blog/tags/llm/>LLM</a></li></ul><nav class=paginav><a class=prev href=https://tqzhong.github.io/my-blog/posts/2025-03-05-grpo/><span class=title>« Prev</span><br><span>GRPO From Scratch</span>
+</a><a class=next href=https://tqzhong.github.io/my-blog/posts/2025-01-27-deepseek-r1/><span class=title>Next »</span><br><span>DeepSeek-R1技术报告解读</span></a></nav></footer></article><div class=social-icons><a href=https://github.com/tqzhong target=_blank rel="noopener noreferrer"><i class="fab fa-github"></i>
+</a><a href=https://x.com/rs1047g target=_blank rel="noopener noreferrer"><i class="fab fa-twitter"></i>
+</a><a href="https://scholar.google.com/citations?hl=en&amp;user=UNNLJX4AAAAJ" target=_blank rel="noopener noreferrer"><i class="fab fa-google"></i>
+</a><a href=https://tqzhong.github.io target=_blank rel="noopener noreferrer"><i class="fas fa-user"></i></a></div><script src=https://utteranc.es/client.js repo=tqzhong/my-blog issue-term=pathname label=hugo-comment theme=github-dark crossorigin=anonymous async></script></main><footer class=footer><span>&copy; 2025 <a href=https://tqzhong.github.io/my-blog/>Rs' Log</a></span>
+<span>Powered by
+<a href=https://gohugo.io/ rel="noopener noreferrer" target=_blank>Hugo</a> &
+        <a href=https://github.com/adityatelange/hugo-PaperMod/ rel=noopener target=_blank>PaperMod</a></span></footer><a href=#top aria-label="go to top" title="Go to Top (Alt + G)" class=top-link id=top-link accesskey=g><svg viewBox="0 0 12 6" fill="currentcolor"><path d="M12 6H0l6-6z"/></svg>
+</a><script>let menu=document.getElementById("menu");menu&&(menu.scrollLeft=localStorage.getItem("menu-scroll-position"),menu.onscroll=function(){localStorage.setItem("menu-scroll-position",menu.scrollLeft)}),document.querySelectorAll('a[href^="#"]').forEach(e=>{e.addEventListener("click",function(e){e.preventDefault();var t=this.getAttribute("href").substr(1);window.matchMedia("(prefers-reduced-motion: reduce)").matches?document.querySelector(`[id='${decodeURIComponent(t)}']`).scrollIntoView():document.querySelector(`[id='${decodeURIComponent(t)}']`).scrollIntoView({behavior:"smooth"}),t==="top"?history.replaceState(null,null," "):history.pushState(null,null,`#${t}`)})})</script><script>var mybutton=document.getElementById("top-link");window.onscroll=function(){document.body.scrollTop>800||document.documentElement.scrollTop>800?(mybutton.style.visibility="visible",mybutton.style.opacity="1"):(mybutton.style.visibility="hidden",mybutton.style.opacity="0")}</script><script>document.getElementById("theme-toggle").addEventListener("click",()=>{document.body.className.includes("dark")?(document.body.classList.remove("dark"),localStorage.setItem("pref-theme","light")):(document.body.classList.add("dark"),localStorage.setItem("pref-theme","dark"))})</script><script src=https://cdn.jsdelivr.net/npm/katex@0.13.0/dist/katex.min.js></script><script src=https://cdn.jsdelivr.net/npm/katex@0.13.0/dist/contrib/auto-render.min.js></script><script>document.addEventListener("DOMContentLoaded",function(){renderMathInElement(document.body,{delimiters:[{left:"$$",right:"$$",display:!0},{left:"\\(",right:"\\)",display:!1},{left:"$",right:"$",display:!1}]})})</script></body></html>

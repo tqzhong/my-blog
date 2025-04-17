@@ -1,127 +1,99 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?>
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
-  <channel>
-    <title>Reasoning on Rs&#39; Log</title>
-    <link>https://tqzhong.github.io/my-blog/tags/reasoning/</link>
-    <description>Recent content in Reasoning on Rs&#39; Log</description>
-    <generator>Hugo -- gohugo.io</generator>
-    <language>en-us</language>
-    <lastBuildDate>Wed, 19 Mar 2025 00:00:00 +0000</lastBuildDate><atom:link href="https://tqzhong.github.io/my-blog/tags/reasoning/index.xml" rel="self" type="application/rss+xml" />
-    <item>
-      <title>大模型post-training方法——强化学习篇</title>
-      <link>https://tqzhong.github.io/my-blog/posts/2025-03-19-llm-post-training-via-reinforcement-learning/</link>
-      <pubDate>Wed, 19 Mar 2025 00:00:00 +0000</pubDate>
-      
-      <guid>https://tqzhong.github.io/my-blog/posts/2025-03-19-llm-post-training-via-reinforcement-learning/</guid>
-      <description>&lt;h3 id=&#34;ppo&#34;&gt;PPO&lt;/h3&gt;
-&lt;!-- #### Algorithm --&gt;
-&lt;p&gt;PPO（Proximal Policy Optimization）算法出自&lt;a href=&#34;https://arxiv.org/abs/1707.06347&#34; class=&#34;entityLink&#34;&gt;Schulman et al.&lt;/a&gt;，在微调大模型中，该算法通过最大化以下目标函数来优化模型参数：&lt;/p&gt;
-&lt;div class=&#34;scroll-container&#34;&gt;
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>Reasoning on Rs' Log</title><link>https://tqzhong.github.io/my-blog/tags/reasoning/</link><description>Recent content in Reasoning on Rs' Log</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Wed, 19 Mar 2025 00:00:00 +0000</lastBuildDate><atom:link href="https://tqzhong.github.io/my-blog/tags/reasoning/index.xml" rel="self" type="application/rss+xml"/><item><title>大模型post-training方法——强化学习篇</title><link>https://tqzhong.github.io/my-blog/posts/2025-03-19-llm-post-training-via-reinforcement-learning/</link><pubDate>Wed, 19 Mar 2025 00:00:00 +0000</pubDate><guid>https://tqzhong.github.io/my-blog/posts/2025-03-19-llm-post-training-via-reinforcement-learning/</guid><description>&lt;h3 id="ppo">PPO&lt;/h3>
+&lt;!-- #### Algorithm -->
+&lt;p>PPO（Proximal Policy Optimization）算法出自&lt;a href="https://arxiv.org/abs/1707.06347" class="entityLink">Schulman et al.&lt;/a>，在微调大模型中，该算法通过最大化以下目标函数来优化模型参数：&lt;/p>
+&lt;div class="scroll-container">
 $$
 \mathcal J_{PPO}(\theta)=\mathbb E_{[q\sim P(Q),o\sim \pi_{\theta_{old}}(O\vert q)]}\frac{1}{\vert o\vert}\sum_{t=1}^{\vert o\vert}\min\left[\frac{\pi_\theta(o_t\vert q,o_{&lt; t})}{\pi_{\theta_{old}}(o_t\vert q,o_{&lt; t})}A_t,\text{clip}\left(\frac{\pi_\theta(o_t\vert q,o_{&lt; t})}{\pi_{\theta_{old}}(o_t\vert q,o_{&lt; t})},1-\epsilon,1+\epsilon\right)A_t\right]
 $$
-&lt;/div&gt;
-&lt;p&gt;其中优势函数$A_t$通过使用GAE（Generalized Advantage Estimation）算法计算得到：&lt;/p&gt;
-&lt;div class=&#34;scroll-container&#34;&gt;
+&lt;/div>
+&lt;p>其中优势函数$A_t$通过使用GAE（Generalized Advantage Estimation）算法计算得到：&lt;/p>
+&lt;div class="scroll-container">
 $$
 r_t=r_\phi(q,o_{1:\vert o\vert}) - \beta \log\frac{\pi_\theta(o_t\vert q,o_{&lt; t})}{\pi_{ref}(o_t\vert q,o_{&lt; t})}
 $$
-&lt;/div&gt;
-&lt;div class=&#34;scroll-container&#34;&gt;
+&lt;/div>
+&lt;div class="scroll-container">
 $$
 A_t=\delta_t + (\gamma\lambda)\delta_{t+1} + (\gamma\lambda)^2\delta_{t+2}+\cdots=\sum_{l=0}^\infty (\gamma\lambda)^l\delta_{t+l}
 $$
-&lt;/div&gt;
-&lt;div class=&#34;scroll-container&#34;&gt;
+&lt;/div>
+&lt;div class="scroll-container">
 $$
 \delta_t=r_t+\gamma V(s_{t+1}) - V(s_t)
 $$
-&lt;/div&gt;
-&lt;p&gt;针对大模型微调的场景，$q$为问题（或者prompt），假设其最大长度为max_prompt_len，生成的$o_{1:\vert o\vert}$为答案（或者generation sentence），假设其最大长度为max_seq_len。上式中$r_t$为奖励，$r_\phi$为reward model（PPO优化中参数不更新），该模型输入$q$和$o_{1:\vert o\vert}$得到每个句子的最后一个有效token上的reward score，因此$r_\phi(q,o_{1:\vert o\vert})$的维度可以记作(bs,)（$bs$为ppo批量大小），KL惩罚项使用估计项$\log\frac{\pi_\theta(\cdot)}{\pi_{ref}(\cdot)}$，该项得到的维度为(bs, max_seq_len)，因此最终的奖励向量$r_t$维度为(bs, max_seq_len)。接着看一下DeepSpeed中对优势函数和回报实现的代码：&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
-&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
-&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code&gt;&lt;span class=&#34;lnt&#34;&gt; 1
-&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 2
-&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 3
-&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 4
-&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 5
-&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 6
-&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 7
-&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 8
-&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 9
-&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;10
-&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;11
-&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;12
-&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
-&lt;td class=&#34;lntd&#34;&gt;
-&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;k&#34;&gt;def&lt;/span&gt; &lt;span class=&#34;nf&#34;&gt;get_advantages_and_returns&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;bp&#34;&gt;self&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;values&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;rewards&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;):&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;    &lt;span class=&#34;n&#34;&gt;lastgaelam&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;mi&#34;&gt;0&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;    &lt;span class=&#34;n&#34;&gt;advantages_reversed&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;[]&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;    &lt;span class=&#34;n&#34;&gt;max_seq_len&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;rewards&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;shape&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;[&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;-&lt;/span&gt;&lt;span class=&#34;mi&#34;&gt;1&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;]&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;    &lt;span class=&#34;k&#34;&gt;for&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;t&lt;/span&gt; &lt;span class=&#34;ow&#34;&gt;in&lt;/span&gt; &lt;span class=&#34;nb&#34;&gt;reversed&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;nb&#34;&gt;range&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;max_seq_len&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)):&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;        &lt;span class=&#34;n&#34;&gt;nextvalues&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;values&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;[:,&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;t&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;+&lt;/span&gt; &lt;span class=&#34;mi&#34;&gt;1&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;]&lt;/span&gt; &lt;span class=&#34;k&#34;&gt;if&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;t&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;&amp;lt;&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;max_seq_len&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;-&lt;/span&gt; &lt;span class=&#34;mi&#34;&gt;1&lt;/span&gt; &lt;span class=&#34;k&#34;&gt;else&lt;/span&gt; &lt;span class=&#34;mf&#34;&gt;0.0&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;        &lt;span class=&#34;n&#34;&gt;delta&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;rewards&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;[:,&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;t&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;]&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;+&lt;/span&gt; &lt;span class=&#34;bp&#34;&gt;self&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;gamma&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;*&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;nextvalues&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;-&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;values&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;[:,&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;t&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;]&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;        &lt;span class=&#34;n&#34;&gt;lastgaelam&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;delta&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;+&lt;/span&gt; &lt;span class=&#34;bp&#34;&gt;self&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;gamma&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;*&lt;/span&gt; &lt;span class=&#34;bp&#34;&gt;self&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;lam&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;*&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;lastgaelam&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;        &lt;span class=&#34;n&#34;&gt;advantages_reversed&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;append&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;lastgaelam&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;    &lt;span class=&#34;n&#34;&gt;advantages&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;torch&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;stack&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;advantages_reversed&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;[::&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;-&lt;/span&gt;&lt;span class=&#34;mi&#34;&gt;1&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;],&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;dim&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;mi&#34;&gt;1&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;    &lt;span class=&#34;n&#34;&gt;returns&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;advantages&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;+&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;values&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;    &lt;span class=&#34;k&#34;&gt;return&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;advantages&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;returns&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
-&lt;/div&gt;
-&lt;/div&gt;&lt;p&gt;经过一次for循环得到的分别是（令max_seq_len为$\vert o\vert$）：&lt;/p&gt;</description>
-    </item>
-    
-    <item>
-      <title>DeepSeek-R1技术报告解读</title>
-      <link>https://tqzhong.github.io/my-blog/posts/2025-01-27-deepseek-r1/</link>
-      <pubDate>Mon, 27 Jan 2025 00:00:00 +0000</pubDate>
-      
-      <guid>https://tqzhong.github.io/my-blog/posts/2025-01-27-deepseek-r1/</guid>
-      <description>&lt;h3 id=&#34;1-摘要&#34;&gt;1. 摘要&lt;/h3&gt;
-&lt;p&gt;本次更新开源了DeepSeek-R1-Zero和DeepSeek-R1两个新旗舰reasoning模型，主要使用large-scale reinforcement learning且不需要SFT即完成训练，为开源社区给出了一个完全新颖且行之有效的reasoning LLM训练方案。其中DeepSeek-R1在reasoning任务上和OpenAI-o1-1217性能相当。除此之外，团队还开源了不同size的稠密模型（1.5B,7B,8B,14B,32B,70B），这些小模型是基于Qwen和Llama开源模型通过蒸馏DeepSeek-R1得到。&lt;/p&gt;
-&lt;h3 id=&#34;2-主要贡献&#34;&gt;2. 主要贡献&lt;/h3&gt;
-&lt;p&gt;新的后训练范式：在Base Model上直接使用Large-Scale RL&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;不使用SFT而直接基于base model做RL，让模型能够探索CoT来解决复杂问题。其中得到的DeepSeek-R1-Zero模型展现出了&lt;strong&gt;自我验证，反思，生成长的CoT&lt;/strong&gt;的能力。&lt;/li&gt;
-&lt;li&gt;团队给出了DeepSeek-R1的详细训练pipeline，该pipeline包含两段RL阶段，分别用于提升reasoning能力和用于提升通用能力；以及包含两段SFT阶段，分别为模型获取reasoning和non-reasoning能力提供冷启动。&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;蒸馏：小模型也可以很强大&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;开源了多个size的基于Qwen2.5和Llama3系列模型使用DeepSeek-R1蒸馏得到的小模型，并且均在reasoning任务上展现了比同size最强开源模型更强的能力。在AIME2024、MATH-500、LiveCodeBench等基准上取得很高成绩。&lt;/li&gt;
-&lt;/ul&gt;
-&lt;h3 id=&#34;3-方法&#34;&gt;3. 方法&lt;/h3&gt;
-&lt;h4 id=&#34;31-deepseek-r1-zero-reinforcement-learning-on-the-base-model&#34;&gt;3.1 DeepSeek-R1-Zero: Reinforcement Learning on the Base Model&lt;/h4&gt;
-&lt;p&gt;DeepSeek-R1-Zero模型不实用任何有监督数据，不做SFT，仅使用纯粹的强化学习过程让模型自我进化。&lt;/p&gt;
-&lt;h5 id=&#34;311-reinforcement-learning-algorithm&#34;&gt;3.1.1 Reinforcement Learning Algorithm&lt;/h5&gt;
-&lt;p&gt;团队采用Croup Relative Policy Optimization（GRPO）强化学习算法。使critic model和policy model具有相同模型大小，具体来说，对每个问题$q$，GRPO从旧策略$\pi_{\theta_{old}}$采样一组输出${o_1,o_2,\cdots,o_G}$，然后使用如下优化目标优化策略模型$\pi_\theta$：&lt;/p&gt;
-&lt;div class=&#34;scroll-container&#34;&gt;
+&lt;/div>
+&lt;p>针对大模型微调的场景，$q$为问题（或者prompt），假设其最大长度为max_prompt_len，生成的$o_{1:\vert o\vert}$为答案（或者generation sentence），假设其最大长度为max_seq_len。上式中$r_t$为奖励，$r_\phi$为reward model（PPO优化中参数不更新），该模型输入$q$和$o_{1:\vert o\vert}$得到每个句子的最后一个有效token上的reward score，因此$r_\phi(q,o_{1:\vert o\vert})$的维度可以记作(bs,)（$bs$为ppo批量大小），KL惩罚项使用估计项$\log\frac{\pi_\theta(\cdot)}{\pi_{ref}(\cdot)}$，该项得到的维度为(bs, max_seq_len)，因此最终的奖励向量$r_t$维度为(bs, max_seq_len)。接着看一下DeepSpeed中对优势函数和回报实现的代码：&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
+&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-python" data-lang="python">&lt;span class="line">&lt;span class="cl">&lt;span class="k">def&lt;/span> &lt;span class="nf">get_advantages_and_returns&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="bp">self&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">values&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">rewards&lt;/span>&lt;span class="p">):&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">lastgaelam&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="mi">0&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">advantages_reversed&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="p">[]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">max_seq_len&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">rewards&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">shape&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">for&lt;/span> &lt;span class="n">t&lt;/span> &lt;span class="ow">in&lt;/span> &lt;span class="nb">reversed&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nb">range&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">max_seq_len&lt;/span>&lt;span class="p">)):&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">nextvalues&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">values&lt;/span>&lt;span class="p">[:,&lt;/span> &lt;span class="n">t&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="mi">1&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="k">if&lt;/span> &lt;span class="n">t&lt;/span> &lt;span class="o">&amp;lt;&lt;/span> &lt;span class="n">max_seq_len&lt;/span> &lt;span class="o">-&lt;/span> &lt;span class="mi">1&lt;/span> &lt;span class="k">else&lt;/span> &lt;span class="mf">0.0&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">delta&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">rewards&lt;/span>&lt;span class="p">[:,&lt;/span> &lt;span class="n">t&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="bp">self&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">gamma&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="n">nextvalues&lt;/span> &lt;span class="o">-&lt;/span> &lt;span class="n">values&lt;/span>&lt;span class="p">[:,&lt;/span> &lt;span class="n">t&lt;/span>&lt;span class="p">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">lastgaelam&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">delta&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="bp">self&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">gamma&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="bp">self&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">lam&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="n">lastgaelam&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">advantages_reversed&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">append&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">lastgaelam&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">advantages&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">torch&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">stack&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">advantages_reversed&lt;/span>&lt;span class="p">[::&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">],&lt;/span> &lt;span class="n">dim&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">returns&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">advantages&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="n">values&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">return&lt;/span> &lt;span class="n">advantages&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">returns&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>经过一次for循环得到的分别是（令max_seq_len为$\vert o\vert$）：&lt;/p></description></item><item><title>DeepSeek-R1技术报告解读</title><link>https://tqzhong.github.io/my-blog/posts/2025-01-27-deepseek-r1/</link><pubDate>Mon, 27 Jan 2025 00:00:00 +0000</pubDate><guid>https://tqzhong.github.io/my-blog/posts/2025-01-27-deepseek-r1/</guid><description>&lt;h3 id="1-摘要">1. 摘要&lt;/h3>
+&lt;p>本次更新开源了DeepSeek-R1-Zero和DeepSeek-R1两个新旗舰reasoning模型，主要使用large-scale reinforcement learning且不需要SFT即完成训练，为开源社区给出了一个完全新颖且行之有效的reasoning LLM训练方案。其中DeepSeek-R1在reasoning任务上和OpenAI-o1-1217性能相当。除此之外，团队还开源了不同size的稠密模型（1.5B,7B,8B,14B,32B,70B），这些小模型是基于Qwen和Llama开源模型通过蒸馏DeepSeek-R1得到。&lt;/p>
+&lt;h3 id="2-主要贡献">2. 主要贡献&lt;/h3>
+&lt;p>新的后训练范式：在Base Model上直接使用Large-Scale RL&lt;/p>
+&lt;ul>
+&lt;li>不使用SFT而直接基于base model做RL，让模型能够探索CoT来解决复杂问题。其中得到的DeepSeek-R1-Zero模型展现出了&lt;strong>自我验证，反思，生成长的CoT&lt;/strong>的能力。&lt;/li>
+&lt;li>团队给出了DeepSeek-R1的详细训练pipeline，该pipeline包含两段RL阶段，分别用于提升reasoning能力和用于提升通用能力；以及包含两段SFT阶段，分别为模型获取reasoning和non-reasoning能力提供冷启动。&lt;/li>
+&lt;/ul>
+&lt;p>蒸馏：小模型也可以很强大&lt;/p>
+&lt;ul>
+&lt;li>开源了多个size的基于Qwen2.5和Llama3系列模型使用DeepSeek-R1蒸馏得到的小模型，并且均在reasoning任务上展现了比同size最强开源模型更强的能力。在AIME2024、MATH-500、LiveCodeBench等基准上取得很高成绩。&lt;/li>
+&lt;/ul>
+&lt;h3 id="3-方法">3. 方法&lt;/h3>
+&lt;h4 id="31-deepseek-r1-zero-reinforcement-learning-on-the-base-model">3.1 DeepSeek-R1-Zero: Reinforcement Learning on the Base Model&lt;/h4>
+&lt;p>DeepSeek-R1-Zero模型不实用任何有监督数据，不做SFT，仅使用纯粹的强化学习过程让模型自我进化。&lt;/p>
+&lt;h5 id="311-reinforcement-learning-algorithm">3.1.1 Reinforcement Learning Algorithm&lt;/h5>
+&lt;p>团队采用Croup Relative Policy Optimization（GRPO）强化学习算法。使critic model和policy model具有相同模型大小，具体来说，对每个问题$q$，GRPO从旧策略$\pi_{\theta_{old}}$采样一组输出${o_1,o_2,\cdots,o_G}$，然后使用如下优化目标优化策略模型$\pi_\theta$：&lt;/p>
+&lt;div class="scroll-container">
 $$
 \begin{align*}
 \mathcal{J}_{\text{GRPO}}(\theta) &amp;= \mathbb{E}\left[q \sim P(Q), \{o_i\}_{i=1}^G \sim \pi_{\theta_{\text{old}}}(O|q)\right]\\
-&amp;=\frac{1}{G} \sum_{i=1}^G \left( 
-\min \left( 
-\frac{\pi_{\theta}(o_i | q)}{\pi_{\theta_{\text{old}}}(o_i | q)} A_i, 
-\text{clip}\left( \frac{\pi_{\theta}(o_i | q)}{\pi_{\theta_{\text{old}}}(o_i | q)}, 1 - \epsilon, 1 + \epsilon \right) A_i 
-\right) 
+&amp;=\frac{1}{G} \sum_{i=1}^G \left(
+\min \left(
+\frac{\pi_{\theta}(o_i | q)}{\pi_{\theta_{\text{old}}}(o_i | q)} A_i,
+\text{clip}\left( \frac{\pi_{\theta}(o_i | q)}{\pi_{\theta_{\text{old}}}(o_i | q)}, 1 - \epsilon, 1 + \epsilon \right) A_i
+\right)
 - \beta D_{\text{KL}}(\pi_{\theta} \| \pi_{\text{ref}})
 \right),
 \end{align*}
 $$
-&lt;/div&gt;
-&lt;div class=&#34;scroll-container&#34;&gt;
+&lt;/div>
+&lt;div class="scroll-container">
 $$
-D_{\text{KL}}(\pi_{\theta} \| \pi_{\text{ref}}) = 
-\frac{\pi_{\text{ref}}(o_i | q)}{\pi_{\theta}(o_i | q)} 
+D_{\text{KL}}(\pi_{\theta} \| \pi_{\text{ref}}) =
+\frac{\pi_{\text{ref}}(o_i | q)}{\pi_{\theta}(o_i | q)}
 - \log \frac{\pi_{\text{ref}}(o_i | q)}{\pi_{\theta}(o_i | q)} - 1,
 $$
-&lt;/div&gt;
-&lt;div class=&#34;scroll-container&#34;&gt;
+&lt;/div>
+&lt;div class="scroll-container">
 $$
 A_i = \frac{r_i - \text{mean}(\{r_1, r_2, \cdots, r_G\})}{\text{std}(\{r_1, r_2, \cdots, r_G\})}.
 $$
-&lt;/div&gt;
-&lt;p&gt;其中$\epsilon$和$\beta$为超参数，$A_i$为advantage，使用每个输出对应的奖励${r_1,r_2,\cdots,r_G}$计算得到。&lt;/p&gt;</description>
-    </item>
-    
-  </channel>
-</rss>
+&lt;/div>
+&lt;p>其中$\epsilon$和$\beta$为超参数，$A_i$为advantage，使用每个输出对应的奖励${r_1,r_2,\cdots,r_G}$计算得到。&lt;/p></description></item></channel></rss>

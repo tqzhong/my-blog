@@ -1,644 +1,185 @@
-<!DOCTYPE html>
-<html lang="en" dir="auto">
-<a href="https://yourpersonalwebsite.com" target="_blank">
-
-<head>
-    <script src="https://cdn.jsdelivr.net/npm/fuse.js/dist/fuse.min.js"></script>
-    <link rel="stylesheet" href="https://unpkg.com/@waline/client@v3/dist/waline.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.13.0/dist/katex.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/default.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
-    <script>hljs.initHighlightingOnLoad();</script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/plugins/line-numbers.min.js"></script>
-
-<meta charset="utf-8">
-<meta http-equiv="X-UA-Compatible" content="IE=edge">
-<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<meta name="robots" content="index, follow">
-<title>强化学习笔记 | Rs&#39; Log</title>
-<meta name="keywords" content="AI, RL">
-<meta name="description" content="1. 基本概念，公式
+<!doctype html><html lang=en dir=auto><a href=https://yourpersonalwebsite.com target=_blank><head><script src=https://cdn.jsdelivr.net/npm/fuse.js/dist/fuse.min.js></script><link rel=stylesheet href=https://unpkg.com/@waline/client@v3/dist/waline.css><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/katex@0.13.0/dist/katex.min.css><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/default.min.css><script src=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js></script><script>hljs.initHighlightingOnLoad()</script><script src=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/plugins/line-numbers.min.js></script><meta charset=utf-8><meta http-equiv=X-UA-Compatible content="IE=edge"><meta name=viewport content="width=device-width,initial-scale=1,shrink-to-fit=no"><meta name=robots content="index, follow"><title>强化学习笔记 | Rs' Log</title>
+<meta name=keywords content="AI,RL"><meta name=description content="1. 基本概念，公式
 策略$\pi$，状态$s\in\mathcal S$，动作$a\in\mathcal A$，奖励$r\in\mathcal R$
 转移函数$P$给出当采取行动$a$从状态$s$转移到$s^\prime$，同时获得奖励$r$的概率
 
-$$P(s^\prime,r\vert s,a)=\mathbb P[S_{t&#43;1}=s^\prime,R_{t&#43;1}=r\vert S_t=s,A_t=a]$$
-
-状态转移函数$P^a_{ss^\prime}$
-
-$$P^a_{ss^\prime}=P(s^\prime\vert s,a)=\mathbb P[S_{t&#43;1}=s^\prime|S_t=s,A_t=a]=\sum_{r\in\mathcal R}P(s^\prime,r\vert s,a)$$
-
-奖励函数$R$预测给定状态和动作后的下一个奖励值
-
-$$R(s,a)=\mathbb E[R_{t&#43;1}\vert S_t=s,A_t=a]=\sum_{r\in\mathcal R}r\sum_{s^\prime\in\mathcal S}P(s^\prime,r\vert s,a)$$
-
-
-策略$\pi$给出在状态$s$下会采取何种行动，分为两种
-
-确定性：$\pi(s)=a$
-随机性：$\pi(a\vert s)=\mathbb P_\pi[A=a\vert S=s]$
-
-回报$G_t$，即未来的奖励之和，其中$\gamma\in[0,1]$为惩罚因子
-
-$$G_t=R_{t&#43;1}&#43;\gamma R_{t&#43;2}&#43;\dots=\sum_{k=0}^\infty \gamma^k R_{t&#43;k&#43;1}$$
-
-状态价值函数$V_\pi(s)$给出在状态$s$下的期望回报
-
-$$V_\pi(s)=\mathbb E_\pi[G_t\vert S_t=s]$$
-
-动作价值函数$Q_\pi(s,a)$给出在状态$s$下采取动作$a$的期望回报
-
-$$Q_\pi(s,a)=\mathbb E_\pi[G_t\vert S_t=s, A_t=a]$$
-
-状态价值和动作价值的关系
-
-$$V_\pi(s)=\sum_{a\in\mathcal A}Q_\pi(s,a)\pi(a|s)=\mathbb E_{a\sim\pi}Q_\pi(s,a)$$
-
-优势函数$A_\pi(s,a)$定义为动作价值与状态价值的差
-
-$$A_\pi(s,a)=Q_\pi(s,a)-V_\pi(s)$$
-
-最优价值函数定义为在最优策略下的价值函数，即能够产生最大回报
-
-$$V_*(s)=\max_\pi V_\pi(s)\\
-Q_*(s,a)=\max_\pi Q_\pi(s,a)$$
-
-最优策略定义为实现最优价值的策略，即对任意状态$s$都有$V_\pi(s)\ge V_{\pi^\prime}(s)$，最优策略可能有多个，都将其表示为$\pi_*(s)$
-
-$$\pi_*=\arg\max_\pi V_\pi(s)\\
-\pi_*=\arg\max_\pi Q_\pi(s,a)$$
-
-因此，以下关系是成立的
-
-$$V_{\pi_*}(s)=V_*(s)\\
-Q_{\pi_*}(s,a)=Q_*(s,a)$$
-
-2. 马尔可夫过程（MDPs）
-几乎所有RL问题都可以划在马尔可夫过程内，马尔可夫过程内的所有状态都有同一个特性，即未来的状态只取决于当下的状态，与历史状态无关
-$$\mathbb P[S_{t&#43;1}\vert S_t]=\mathbb P[S_{t&#43;1}\vert S_1,\dots S_t]$$
-一个马尔可夫决策过程包含五个元素$\mathcal M=\langle \mathcal S,\mathcal A,\mathcal P,\mathcal R,\gamma\rangle$，对应的符号与基本符号含义相同">
-<meta name="author" content="Rs">
-<link rel="canonical" href="https://tqzhong.github.io/my-blog/posts/2024-11-21-reinforcement-learning/">
-
-
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-<link crossorigin="anonymous" href="/my-blog/assets/css/stylesheet.6a98292fb8fa8cf0f3ba4042d4b75515c04267550f3ad49ff6271b5af9562443.css" integrity="sha256-apgpL7j6jPDzukBC1LdVFcBCZ1UPOtSf9icbWvlWJEM=" rel="preload stylesheet" as="style">
-
-
-<script defer crossorigin="anonymous" src="/my-blog/assets/js/highlight.f413e19d0714851f6474e7ee9632408e58ac146fbdbe62747134bea2fa3415e0.js" integrity="sha256-9BPhnQcUhR9kdOfuljJAjlisFG&#43;9vmJ0cTS&#43;ovo0FeA="
-    onload="hljs.initHighlightingOnLoad();"></script>
-<link rel="icon" type="image/x-icon" sizes="48x48" href="images/favicon.ico">
-<link rel="icon" type="image/png" sizes="16x16" href="images/favicon-16x16.png">
-<link rel="icon" type="image/png" sizes="32x32" href="images/favicon-32x32.png">
-<link rel="apple-touch-icon" href="images/apple-touch-icon.png">
-<link rel="icon" sizes="512x512" href="images/android-chrome-512x512.png" type="image/png">
-<link rel="icon" sizes="192x192" href="images/android-chrome-192x192.png" type="image/png">
-<link rel="mask-icon" href="https://tqzhong.github.io/my-blog/safari-pinned-tab.svg">
-<meta name="theme-color" content="#2e2e33">
-<meta name="msapplication-TileColor" content="#2e2e33">
-<link rel="alternate" hreflang="en" href="https://tqzhong.github.io/my-blog/posts/2024-11-21-reinforcement-learning/">
-<noscript>
-    <style>
-        #theme-toggle,
-        .top-link {
-            display: none;
-        }
-
-    </style>
-    <style>
-        @media (prefers-color-scheme: dark) {
-            :root {
-                --theme: rgb(29, 30, 32);
-                --entry: rgb(46, 46, 51);
-                --primary: rgb(218, 218, 219);
-                --secondary: rgb(155, 156, 157);
-                --tertiary: rgb(65, 66, 68);
-                --content: rgb(196, 196, 197);
-                --hljs-bg: rgb(46, 46, 51);
-                --code-bg: rgb(55, 56, 62);
-                --border: rgb(51, 51, 51);
-            }
-
-            .list {
-                background: var(--theme);
-            }
-
-            .list:not(.dark)::-webkit-scrollbar-track {
-                background: 0 0;
-            }
-
-            .list:not(.dark)::-webkit-scrollbar-thumb {
-                border-color: var(--theme);
-            }
-        }
-
-    </style>
-</noscript>
-<link rel="stylesheet" href="/my-blog/css/custom.css?v=1.7"><meta property="og:title" content="强化学习笔记" />
-<meta property="og:description" content="1. 基本概念，公式
-策略$\pi$，状态$s\in\mathcal S$，动作$a\in\mathcal A$，奖励$r\in\mathcal R$
-转移函数$P$给出当采取行动$a$从状态$s$转移到$s^\prime$，同时获得奖励$r$的概率
-
-$$P(s^\prime,r\vert s,a)=\mathbb P[S_{t&#43;1}=s^\prime,R_{t&#43;1}=r\vert S_t=s,A_t=a]$$
-
-状态转移函数$P^a_{ss^\prime}$
-
-$$P^a_{ss^\prime}=P(s^\prime\vert s,a)=\mathbb P[S_{t&#43;1}=s^\prime|S_t=s,A_t=a]=\sum_{r\in\mathcal R}P(s^\prime,r\vert s,a)$$
-
-奖励函数$R$预测给定状态和动作后的下一个奖励值
-
-$$R(s,a)=\mathbb E[R_{t&#43;1}\vert S_t=s,A_t=a]=\sum_{r\in\mathcal R}r\sum_{s^\prime\in\mathcal S}P(s^\prime,r\vert s,a)$$
-
-
-策略$\pi$给出在状态$s$下会采取何种行动，分为两种
-
-确定性：$\pi(s)=a$
-随机性：$\pi(a\vert s)=\mathbb P_\pi[A=a\vert S=s]$
-
-回报$G_t$，即未来的奖励之和，其中$\gamma\in[0,1]$为惩罚因子
-
-$$G_t=R_{t&#43;1}&#43;\gamma R_{t&#43;2}&#43;\dots=\sum_{k=0}^\infty \gamma^k R_{t&#43;k&#43;1}$$
-
-状态价值函数$V_\pi(s)$给出在状态$s$下的期望回报
-
-$$V_\pi(s)=\mathbb E_\pi[G_t\vert S_t=s]$$
-
-动作价值函数$Q_\pi(s,a)$给出在状态$s$下采取动作$a$的期望回报
-
-$$Q_\pi(s,a)=\mathbb E_\pi[G_t\vert S_t=s, A_t=a]$$
-
-状态价值和动作价值的关系
-
-$$V_\pi(s)=\sum_{a\in\mathcal A}Q_\pi(s,a)\pi(a|s)=\mathbb E_{a\sim\pi}Q_\pi(s,a)$$
-
-优势函数$A_\pi(s,a)$定义为动作价值与状态价值的差
-
-$$A_\pi(s,a)=Q_\pi(s,a)-V_\pi(s)$$
-
-最优价值函数定义为在最优策略下的价值函数，即能够产生最大回报
-
-$$V_*(s)=\max_\pi V_\pi(s)\\
-Q_*(s,a)=\max_\pi Q_\pi(s,a)$$
-
-最优策略定义为实现最优价值的策略，即对任意状态$s$都有$V_\pi(s)\ge V_{\pi^\prime}(s)$，最优策略可能有多个，都将其表示为$\pi_*(s)$
-
-$$\pi_*=\arg\max_\pi V_\pi(s)\\
-\pi_*=\arg\max_\pi Q_\pi(s,a)$$
-
-因此，以下关系是成立的
-
-$$V_{\pi_*}(s)=V_*(s)\\
-Q_{\pi_*}(s,a)=Q_*(s,a)$$
-
-2. 马尔可夫过程（MDPs）
-几乎所有RL问题都可以划在马尔可夫过程内，马尔可夫过程内的所有状态都有同一个特性，即未来的状态只取决于当下的状态，与历史状态无关
-$$\mathbb P[S_{t&#43;1}\vert S_t]=\mathbb P[S_{t&#43;1}\vert S_1,\dots S_t]$$
-一个马尔可夫决策过程包含五个元素$\mathcal M=\langle \mathcal S,\mathcal A,\mathcal P,\mathcal R,\gamma\rangle$，对应的符号与基本符号含义相同" />
-<meta property="og:type" content="article" />
-<meta property="og:url" content="https://tqzhong.github.io/my-blog/posts/2024-11-21-reinforcement-learning/" /><meta property="article:section" content="posts" />
-<meta property="article:published_time" content="2024-11-21T00:00:00+00:00" />
-<meta property="article:modified_time" content="2024-11-21T00:00:00+00:00" />
-
-<meta name="twitter:card" content="summary"/>
-<meta name="twitter:title" content="强化学习笔记"/>
-<meta name="twitter:description" content="1. 基本概念，公式
-策略$\pi$，状态$s\in\mathcal S$，动作$a\in\mathcal A$，奖励$r\in\mathcal R$
-转移函数$P$给出当采取行动$a$从状态$s$转移到$s^\prime$，同时获得奖励$r$的概率
-
-$$P(s^\prime,r\vert s,a)=\mathbb P[S_{t&#43;1}=s^\prime,R_{t&#43;1}=r\vert S_t=s,A_t=a]$$
-
-状态转移函数$P^a_{ss^\prime}$
-
-$$P^a_{ss^\prime}=P(s^\prime\vert s,a)=\mathbb P[S_{t&#43;1}=s^\prime|S_t=s,A_t=a]=\sum_{r\in\mathcal R}P(s^\prime,r\vert s,a)$$
-
-奖励函数$R$预测给定状态和动作后的下一个奖励值
-
-$$R(s,a)=\mathbb E[R_{t&#43;1}\vert S_t=s,A_t=a]=\sum_{r\in\mathcal R}r\sum_{s^\prime\in\mathcal S}P(s^\prime,r\vert s,a)$$
-
-
-策略$\pi$给出在状态$s$下会采取何种行动，分为两种
-
-确定性：$\pi(s)=a$
-随机性：$\pi(a\vert s)=\mathbb P_\pi[A=a\vert S=s]$
-
-回报$G_t$，即未来的奖励之和，其中$\gamma\in[0,1]$为惩罚因子
-
-$$G_t=R_{t&#43;1}&#43;\gamma R_{t&#43;2}&#43;\dots=\sum_{k=0}^\infty \gamma^k R_{t&#43;k&#43;1}$$
-
-状态价值函数$V_\pi(s)$给出在状态$s$下的期望回报
-
-$$V_\pi(s)=\mathbb E_\pi[G_t\vert S_t=s]$$
-
-动作价值函数$Q_\pi(s,a)$给出在状态$s$下采取动作$a$的期望回报
-
-$$Q_\pi(s,a)=\mathbb E_\pi[G_t\vert S_t=s, A_t=a]$$
-
-状态价值和动作价值的关系
-
-$$V_\pi(s)=\sum_{a\in\mathcal A}Q_\pi(s,a)\pi(a|s)=\mathbb E_{a\sim\pi}Q_\pi(s,a)$$
-
-优势函数$A_\pi(s,a)$定义为动作价值与状态价值的差
-
-$$A_\pi(s,a)=Q_\pi(s,a)-V_\pi(s)$$
-
-最优价值函数定义为在最优策略下的价值函数，即能够产生最大回报
-
-$$V_*(s)=\max_\pi V_\pi(s)\\
-Q_*(s,a)=\max_\pi Q_\pi(s,a)$$
-
-最优策略定义为实现最优价值的策略，即对任意状态$s$都有$V_\pi(s)\ge V_{\pi^\prime}(s)$，最优策略可能有多个，都将其表示为$\pi_*(s)$
-
-$$\pi_*=\arg\max_\pi V_\pi(s)\\
-\pi_*=\arg\max_\pi Q_\pi(s,a)$$
-
-因此，以下关系是成立的
-
-$$V_{\pi_*}(s)=V_*(s)\\
-Q_{\pi_*}(s,a)=Q_*(s,a)$$
-
-2. 马尔可夫过程（MDPs）
-几乎所有RL问题都可以划在马尔可夫过程内，马尔可夫过程内的所有状态都有同一个特性，即未来的状态只取决于当下的状态，与历史状态无关
-$$\mathbb P[S_{t&#43;1}\vert S_t]=\mathbb P[S_{t&#43;1}\vert S_1,\dots S_t]$$
-一个马尔可夫决策过程包含五个元素$\mathcal M=\langle \mathcal S,\mathcal A,\mathcal P,\mathcal R,\gamma\rangle$，对应的符号与基本符号含义相同"/>
-
-
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "BreadcrumbList",
-  "itemListElement": [
-    {
-      "@type": "ListItem",
-      "position":  1 ,
-      "name": "Posts",
-      "item": "https://tqzhong.github.io/my-blog/posts/"
-    }, 
-    {
-      "@type": "ListItem",
-      "position":  2 ,
-      "name": "强化学习笔记",
-      "item": "https://tqzhong.github.io/my-blog/posts/2024-11-21-reinforcement-learning/"
-    }
-  ]
-}
-</script>
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "BlogPosting",
-  "headline": "强化学习笔记",
-  "name": "强化学习笔记",
-  "description": "1. 基本概念，公式 策略$\\pi$，状态$s\\in\\mathcal S$，动作$a\\in\\mathcal A$，奖励$r\\in\\mathcal R$\n转移函数$P$给出当采取行动$a$从状态$s$转移到$s^\\prime$，同时获得奖励$r$的概率\n$$P(s^\\prime,r\\vert s,a)=\\mathbb P[S_{t+1}=s^\\prime,R_{t+1}=r\\vert S_t=s,A_t=a]$$ 状态转移函数$P^a_{ss^\\prime}$\n$$P^a_{ss^\\prime}=P(s^\\prime\\vert s,a)=\\mathbb P[S_{t+1}=s^\\prime|S_t=s,A_t=a]=\\sum_{r\\in\\mathcal R}P(s^\\prime,r\\vert s,a)$$ 奖励函数$R$预测给定状态和动作后的下一个奖励值\n$$R(s,a)=\\mathbb E[R_{t+1}\\vert S_t=s,A_t=a]=\\sum_{r\\in\\mathcal R}r\\sum_{s^\\prime\\in\\mathcal S}P(s^\\prime,r\\vert s,a)$$ 策略$\\pi$给出在状态$s$下会采取何种行动，分为两种\n确定性：$\\pi(s)=a$ 随机性：$\\pi(a\\vert s)=\\mathbb P_\\pi[A=a\\vert S=s]$ 回报$G_t$，即未来的奖励之和，其中$\\gamma\\in[0,1]$为惩罚因子\n$$G_t=R_{t+1}+\\gamma R_{t+2}+\\dots=\\sum_{k=0}^\\infty \\gamma^k R_{t+k+1}$$ 状态价值函数$V_\\pi(s)$给出在状态$s$下的期望回报\n$$V_\\pi(s)=\\mathbb E_\\pi[G_t\\vert S_t=s]$$ 动作价值函数$Q_\\pi(s,a)$给出在状态$s$下采取动作$a$的期望回报\n$$Q_\\pi(s,a)=\\mathbb E_\\pi[G_t\\vert S_t=s, A_t=a]$$ 状态价值和动作价值的关系\n$$V_\\pi(s)=\\sum_{a\\in\\mathcal A}Q_\\pi(s,a)\\pi(a|s)=\\mathbb E_{a\\sim\\pi}Q_\\pi(s,a)$$ 优势函数$A_\\pi(s,a)$定义为动作价值与状态价值的差 $$A_\\pi(s,a)=Q_\\pi(s,a)-V_\\pi(s)$$ 最优价值函数定义为在最优策略下的价值函数，即能够产生最大回报 $$V_*(s)=\\max_\\pi V_\\pi(s)\\\\ Q_*(s,a)=\\max_\\pi Q_\\pi(s,a)$$ 最优策略定义为实现最优价值的策略，即对任意状态$s$都有$V_\\pi(s)\\ge V_{\\pi^\\prime}(s)$，最优策略可能有多个，都将其表示为$\\pi_*(s)$\n$$\\pi_*=\\arg\\max_\\pi V_\\pi(s)\\\\ \\pi_*=\\arg\\max_\\pi Q_\\pi(s,a)$$ 因此，以下关系是成立的\n$$V_{\\pi_*}(s)=V_*(s)\\\\ Q_{\\pi_*}(s,a)=Q_*(s,a)$$ 2. 马尔可夫过程（MDPs） 几乎所有RL问题都可以划在马尔可夫过程内，马尔可夫过程内的所有状态都有同一个特性，即未来的状态只取决于当下的状态，与历史状态无关 $$\\mathbb P[S_{t+1}\\vert S_t]=\\mathbb P[S_{t+1}\\vert S_1,\\dots S_t]$$ 一个马尔可夫决策过程包含五个元素$\\mathcal M=\\langle \\mathcal S,\\mathcal A,\\mathcal P,\\mathcal R,\\gamma\\rangle$，对应的符号与基本符号含义相同\n",
-  "keywords": [
-    "AI", "RL"
-  ],
-  "articleBody": "1. 基本概念，公式 策略$\\pi$，状态$s\\in\\mathcal S$，动作$a\\in\\mathcal A$，奖励$r\\in\\mathcal R$\n转移函数$P$给出当采取行动$a$从状态$s$转移到$s^\\prime$，同时获得奖励$r$的概率\n$$P(s^\\prime,r\\vert s,a)=\\mathbb P[S_{t+1}=s^\\prime,R_{t+1}=r\\vert S_t=s,A_t=a]$$ 状态转移函数$P^a_{ss^\\prime}$\n$$P^a_{ss^\\prime}=P(s^\\prime\\vert s,a)=\\mathbb P[S_{t+1}=s^\\prime|S_t=s,A_t=a]=\\sum_{r\\in\\mathcal R}P(s^\\prime,r\\vert s,a)$$ 奖励函数$R$预测给定状态和动作后的下一个奖励值\n$$R(s,a)=\\mathbb E[R_{t+1}\\vert S_t=s,A_t=a]=\\sum_{r\\in\\mathcal R}r\\sum_{s^\\prime\\in\\mathcal S}P(s^\\prime,r\\vert s,a)$$ 策略$\\pi$给出在状态$s$下会采取何种行动，分为两种\n确定性：$\\pi(s)=a$ 随机性：$\\pi(a\\vert s)=\\mathbb P_\\pi[A=a\\vert S=s]$ 回报$G_t$，即未来的奖励之和，其中$\\gamma\\in[0,1]$为惩罚因子\n$$G_t=R_{t+1}+\\gamma R_{t+2}+\\dots=\\sum_{k=0}^\\infty \\gamma^k R_{t+k+1}$$ 状态价值函数$V_\\pi(s)$给出在状态$s$下的期望回报\n$$V_\\pi(s)=\\mathbb E_\\pi[G_t\\vert S_t=s]$$ 动作价值函数$Q_\\pi(s,a)$给出在状态$s$下采取动作$a$的期望回报\n$$Q_\\pi(s,a)=\\mathbb E_\\pi[G_t\\vert S_t=s, A_t=a]$$ 状态价值和动作价值的关系\n$$V_\\pi(s)=\\sum_{a\\in\\mathcal A}Q_\\pi(s,a)\\pi(a|s)=\\mathbb E_{a\\sim\\pi}Q_\\pi(s,a)$$ 优势函数$A_\\pi(s,a)$定义为动作价值与状态价值的差 $$A_\\pi(s,a)=Q_\\pi(s,a)-V_\\pi(s)$$ 最优价值函数定义为在最优策略下的价值函数，即能够产生最大回报 $$V_*(s)=\\max_\\pi V_\\pi(s)\\\\ Q_*(s,a)=\\max_\\pi Q_\\pi(s,a)$$ 最优策略定义为实现最优价值的策略，即对任意状态$s$都有$V_\\pi(s)\\ge V_{\\pi^\\prime}(s)$，最优策略可能有多个，都将其表示为$\\pi_*(s)$\n$$\\pi_*=\\arg\\max_\\pi V_\\pi(s)\\\\ \\pi_*=\\arg\\max_\\pi Q_\\pi(s,a)$$ 因此，以下关系是成立的\n$$V_{\\pi_*}(s)=V_*(s)\\\\ Q_{\\pi_*}(s,a)=Q_*(s,a)$$ 2. 马尔可夫过程（MDPs） 几乎所有RL问题都可以划在马尔可夫过程内，马尔可夫过程内的所有状态都有同一个特性，即未来的状态只取决于当下的状态，与历史状态无关 $$\\mathbb P[S_{t+1}\\vert S_t]=\\mathbb P[S_{t+1}\\vert S_1,\\dots S_t]$$ 一个马尔可夫决策过程包含五个元素$\\mathcal M=\\langle \\mathcal S,\\mathcal A,\\mathcal P,\\mathcal R,\\gamma\\rangle$，对应的符号与基本符号含义相同\n$\\mathcal S$：状态集合 $\\mathcal A$：动作集合 $\\mathcal P$：转移概率函数 $\\mathcal R$：奖励函数 $\\gamma$：惩罚因子 3. 贝尔曼方程（Bellman Equations） 贝尔曼方程主要将价值函数分解成及时奖励和折扣后的未来价值\n$$ \\begin{align*} V(s)\u0026=\\mathbb E[G_t\\vert S_t=s]\\\\ \u0026=\\mathbb E[R_{t+1}+\\gamma R_{t+2}+\\gamma^2 R_{t+3}+\\dots\\vert S_t=s]\\\\ \u0026=\\mathbb E[R_{t+1}+\\gamma(R_{t+2}+\\gamma R_{t+3}+\\dots)\\vert S_t=s]\\\\ \u0026=\\mathbb E[R_{t+1}+\\gamma G_{t+1}\\vert S_t=s]\\\\ \u0026=\\mathbb E[R_{t+1}\\vert S_t=s] + \\gamma\\mathbb E[G_{t+1}\\vert S_t=s]\\\\ \u0026=R(s) + \\gamma\\mathbb E[V_{t+1}\\vert S_t=s]\\\\ \u0026=R(s) + \\gamma\\sum_{s^\\prime\\in\\mathcal S}\\mathbb P(S_{t+1}=s^\\prime\\vert S_t=s)V(s^\\prime) \\end{align*} $$ 写成矩阵形式，假设$\\mathcal S={s_1,s_2,\\dots,s_n}$\n$$ \\left[ \\begin{array}{c} V(s_1) \\\\ V(s_2) \\\\ \\vdots \\\\ V(s_n) \\end{array} \\right] = \\left[ \\begin{array}{c} R(s_1) \\\\ R(s_2) \\\\ \\vdots \\\\ R(s_n) \\end{array} \\right] + \\gamma \\left[ \\begin{array}{cccc} \\mathbb{P}(s_1 | s_1) \u0026 \\mathbb{P}(s_2 | s_1) \u0026 \\cdots \u0026 \\mathbb{P}(s_n | s_1) \\\\ \\mathbb{P}(s_1 | s_2) \u0026 \\mathbb{P}(s_2 | s_2) \u0026 \\cdots \u0026 \\mathbb{P}(s_n | s_2) \\\\ \\vdots \u0026 \\vdots \u0026 \\ddots \u0026 \\vdots \\\\ \\mathbb{P}(s_1 | s_n) \u0026 \\mathbb{P}(s_2 | s_n) \u0026 \\cdots \u0026 \\mathbb{P}(s_n | s_n) \\end{array} \\right] \\left[ \\begin{array}{c} V(s_1) \\\\ V(s_2) \\\\ \\vdots \\\\ V(s_n) \\end{array} \\right] $$ 关于$\\mathbb E[G_{t+1}\\vert S_t=s]=\\mathbb E[V_{t+1}\\vert S_t=s]$的推导过程如下，主要关注的点：从第一行到第二行为对随机变量$G_{t+1}$的期望进行求和展开，从第三行到第四行为对随机变量$S_{t+1}$进行求和展开\n$$\\begin{align*} \\mathbb E[V_{t+1}\\vert S_t=s]\u0026=\\mathbb E[\\mathbb E[G_{t+1}\\vert S_{t+1}]\\vert S_t=s]\\\\ \u0026=\\mathbb E[\\sum_{g^\\prime\\in\\mathcal G}g^\\prime\\mathbb P(G_{t+1}=g^\\prime\\vert S_{t+1})\\vert S_t=s]\\\\ \u0026=\\sum_{g^\\prime\\in\\mathcal G}g^\\prime\\mathbb E[\\mathbb P(G_{t+1}=g^\\prime\\vert S_{t+1})\\vert S_t=s] \\\\ \u0026=\\sum_{s^\\prime\\in\\mathcal S}\\sum_{g^\\prime\\in\\mathcal G}g^\\prime\\mathbb P(G_{t+1}=g^\\prime\\vert S_{t+1}=s^\\prime,S_t=s)\\mathbb P(S_{t+1}=s^\\prime\\vert S_t=s)\\\\ \u0026=\\sum_{s^\\prime\\in\\mathcal S}\\sum_{g^\\prime\\in\\mathcal G}\\frac{g^\\prime\\mathbb P(G_{t+1}=g^\\prime\\vert S_{t+1}=s^\\prime,S_t=s)\\mathbb P(S_{t+1}=s^\\prime, S_t=s)}{\\mathbb P(S_t=s)}\\\\ \u0026=\\sum_{s\\prime\\in\\mathcal S}\\sum_{g^\\prime\\in\\mathcal G}\\frac{g^\\prime\\mathbb P(G_{t+1}=g^\\prime,S_{t+1}=s^\\prime,S_t=s)}{\\mathbb P(S_t=s)}\\\\ \u0026=\\sum_{s\\prime\\in\\mathcal S}\\sum_{g^\\prime\\in\\mathcal G}g^\\prime\\mathbb P(G_{t+1}=g^\\prime,S_{t+1}=s^\\prime\\vert S_t=s)\\\\ \u0026=\\sum_{g^\\prime\\in\\mathcal G}g^\\prime\\sum_{s^\\prime\\in\\mathcal S}\\mathbb P(G_{t+1}=g^\\prime, S_{t+1}=s^\\prime\\vert S_t=s)\\\\ \u0026=\\sum_{g^\\prime\\in\\mathcal G}g^\\prime\\mathbb P(G_{t+1}=g^\\prime\\vert S_t=s)\\\\ \u0026=\\mathbb E[G_{t+1}\\vert S_t=s] \\end{align*}$$ 基于上述的推导同理可以对$Q(s,a)$进行分解\n$$\\begin{align*} Q(s,a)\u0026=\\mathbb E[G_t\\vert S_t=s,A_t=a]\\\\ \u0026=\\mathbb E[R_{t+1} + \\gamma V_{t+1}\\vert S_t=s, A_t=a]\\\\ \u0026=R(s, a) + \\gamma \\mathbb E[V_{t+1}\\vert S_t=s, A_t=a]\\\\ \u0026=R(s, a) + \\gamma \\mathbb E[\\mathbb E_{a\\sim\\pi}Q(S_{t+1},a)\\vert S_t=s, A_t=a] \\end{align*}$$ 3.1 贝尔曼期望方程 贝尔曼期望方程公式如下，这两个方程给出了当前状态的价值与未来状态价值之间的关联以及当前时刻的动作价值函数Q与未来时刻的动作价值函数Q之间的关联。\n$V_\\pi(s)=\\sum_{a\\in\\mathcal A}\\pi(a|s)(R(s,a) + \\gamma\\sum_{s^\\prime\\in\\mathcal S}P^a_{ss^\\prime}V_\\pi(s^\\prime))$ $Q_\\pi(s,a)=R(s,a) + \\gamma\\sum_{s^\\prime\\in\\mathcal S}P^a_{ss^\\prime}\\sum_{a^\\prime\\in\\mathcal A}\\pi(a^\\prime\\vert s^\\prime)Q_\\pi(s^\\prime, a^\\prime)$ 由贝尔曼方程的结果，引入策略$\\pi$进一步推导\n$$\\begin{align*} V_\\pi(s)\u0026=\\sum_{a\\in\\mathcal A}\\pi(a\\vert s)Q_\\pi(s,a)\\\\ \u0026=\\sum_{a\\in\\mathcal A}\\pi(a\\vert s)(R(s,a) + \\gamma\\mathbb E[V_{\\pi}(s^\\prime)\\vert S_t=s, A_t=a])\\\\ \u0026=\\sum_{a\\in\\mathcal A}\\pi(a|s)(R(s,a) + \\gamma\\sum_{s^\\prime\\in\\mathcal S}P^a_{ss^\\prime}V_\\pi(s^\\prime)) \\\\ Q_\\pi(s,a)\u0026=R(s,a) + \\gamma\\sum_{s^\\prime\\in\\mathcal S}P^a_{ss^\\prime}V_\\pi(s^\\prime)\\\\ \u0026=R(s,a) + \\gamma\\sum_{s^\\prime\\in\\mathcal S}P^a_{ss^\\prime}\\sum_{a^\\prime\\in\\mathcal A}\\pi(a^\\prime\\vert s^\\prime)Q_\\pi(s^\\prime, a^\\prime) \\end{align*}$$ 3.2 贝尔曼最优方程 $$\\begin{align*} V_*(s)\u0026=\\max_{a\\in\\mathcal A}Q_*(s,a)\\\\ Q_*(s,a)\u0026=R(s,a) + \\gamma\\sum_{s^\\prime\\in\\mathcal S}P_{ss^\\prime}^a V_*(s^\\prime)\\\\ V_*(s)\u0026=\\max_{a\\in\\mathcal A}(R(s,a) + \\gamma\\sum_{s^\\prime\\in\\mathcal S}P^a_{ss^\\prime}V_*(s^\\prime))\\\\ Q_*(s,a)\u0026=R(s,a) + \\gamma\\sum_{s^\\prime\\in\\mathcal S}P^a_{ss^\\prime}\\max_{a^\\prime\\in\\mathcal A}Q_*(s^\\prime,a^\\prime) \\end{align*}$$ 第一个式子理解：当智能体来到状态$s$时，接下来假设有两个动作$a_1,a_2$可供选择，采取动作$a_1$后，能够得到的最优价值是$Q_*(s,a_1)$（在最优策略的前提下），采取动作$a_2$后，能够得到的最优价值是$Q_*(s, a_2)$，如果智能体想获得尽可能大的价值，那么它会采取更高价值相关的动作，因此使用最优策略时，在状态$s$下，$V_*(s)=\\max_{a\\in\\mathcal A}Q_*(s,a)$。\n第二个式子理解：基于贝尔曼期望方程$Q_\\pi(s,a)=R(s,a) + \\gamma\\sum_{s^\\prime\\in\\mathcal S}P^a_{ss^\\prime}V_\\pi(s^\\prime)$，智能体在状态$s$采取动作$a$后，到达的每一个新的状态都有最优价值$V_*(s^\\prime)$（在最优策略下），因此得到(12)式。\n第三、四式子理解：将第二式带入第一式得到第三式，将第一式带入第二式得到第四式。\n4. 动态规划（Dynamic Programming） 当模型已知，根据贝尔曼方程，可以使用动态规划迭代求解价值函数并优化策略。\n4.1 策略评估 价值函数的贝尔曼期望方程表示，当策略$\\pi$固定时，$V_\\pi$是一个“最终的收敛值”，满足某种平衡关系，这意味着，$V_\\pi(s)$是所有状态的值函数在多次迭代后的稳定结果。策略评估的迭代公式完全由价值函数的贝尔曼期望方程改写成迭代形式得到\n$$\\begin{align*}V_{t+1}(s)\u0026=\\sum_{a\\in\\mathcal A}\\pi(a|s)(R(s,a) + \\gamma\\sum_{s^\\prime\\in\\mathcal S}P(s^\\prime\\vert s, a)V_t(s^\\prime))\\\\ \u0026=\\mathbb E_\\pi[r+\\gamma V_t(s^\\prime)\\vert S_t=s]=\\sum_a\\pi(a\\vert s)\\sum_{s^\\prime, r}P(s^\\prime,r\\vert s,a)(r+\\gamma V_t(s^\\prime)) \\end{align*}$$ 4.2 策略优化 当我们计算完状态价值函数后，对于当前策略，可以通过动作价值函数Q的贝尔曼期望方程计算当前动作价值函数Q\n$$\\begin{align*}Q_{\\pi_i}(s,a)\u0026=R(s,a) + \\gamma\\sum_{s^\\prime\\in\\mathcal S}P^a_{ss^\\prime}V_{\\pi_i}(s^\\prime)\\\\ \u0026=\\mathbb E[R_{t+1}+\\gamma V_{\\pi_i}(S_{t+1})\\vert S_t=s,A_t=a]\\\\ \u0026=\\sum_{s^\\prime, r}P(s^\\prime,r\\vert s,a)(r+\\gamma V_{\\pi_i}(s^\\prime)) \\end{align*}$$ 对于每个状态，我们取使其得到最大Q价值的动作，从而更新策略\n$$\\pi_{i+1}(s)=\\argmax_a Q_{\\pi_i}(s,a)$$ 4.3 策略迭代过程 基于策略评估和策略优化，实现策略迭代过程。假设有初始策略$\\pi_0$、初始状态价值函数$V_0(s)$、奖励函数$R(s,a)$、状态转移函数$P^a_{ss^\\prime}$，首先通过策略评估迭代状态价值函数得到$V_{\\pi_0}$，然后计算动作价值函数Q$Q_{\\pi_0}(s,a)$，并基于最新动作价值函数Q更新策略得到$\\pi_1$，基于这个流程不断迭代策略和状态价值函数最终收敛得到$V_*, \\pi_*$。\n$$\\pi_0\\xrightarrow[V_0]{\\text{evaluation}}V_{\\pi_0}\\xrightarrow[\\text{improve}]{Q_{\\pi_0}(s,a)}\\pi_1\\xrightarrow[V_{\\pi_0}]{\\text{evaluation}}V_{\\pi_1}\\xrightarrow[\\text{improve}]{Q_{\\pi_1}(s,a)}\\pi_2\\xrightarrow[V_{\\pi_1}]{\\text{evaluation}}\\dots\\xrightarrow[\\text{improve}]{}\\pi_*\\xrightarrow[]{\\text{evaluation}}V_*$$ 5. 蒙特卡洛方法（Monte-Carlo Methods） 蒙特卡洛方法（MC）使用对真实环境的结果做均值计算得到价值状态函数和动作价值函数Q，需要模型完整学完一个episode $S_1,A_1,R_2,\\dots,S_T$来计算$G_t=\\sum_{k=0}^{T-t-1}\\gamma^kR_{t+k+1}$，根据$V(s)=\\mathbb E[G_t\\vert S_t=s]$以及$Q(s,a)=\\mathbb E[G_t\\vert S_t=s, A_t=a]$计算$V(s)$和$Q(s,a)$，是一个model-free的方法。\n$$V(s)=\\frac{\\sum_{t=1}^T\\mathbb 1[S_t=s]G_t}{\\sum_{t=1}^T\\mathbb 1[S_t=s]}\\\\ Q(s,a)=\\frac{\\sum_{t=1}^T\\mathbb 1[S_t=s, A_t=a]G_t}{\\sum_{t=1}^T\\mathbb 1[S_t=s,A_t=a]}$$ 为了通过MC学习最优策略，我们采取和动态规划中使用的GPI (Generalized Policy Iteration)相类似的方法：\n根据计算的$Q_{\\pi_i}(s,a)$更新策略：$\\pi_{i+1}(s)=\\argmax_{a\\in\\mathcal A}Q(s,a)$。 使用新策略$\\pi_{i+1}$生成一个新的episode：$S^{i+1}_1,A^{i+1}_1,R^{i+1}_2,\\dots,S^{i+1}_T$。 根据新的episode估计新的动作价值函数Q：$Q_{\\pi_{i+1}}(s,a)=\\frac{\\sum_{t=1}^T(\\mathbb 1[S_t=s,A_t=a]\\sum_{k=0}^{T-t-1}\\gamma^k R_{t+k+1})}{\\sum_{t=1}^T\\mathbb 1[S_t=s, A_t=a]}$ 6. 时序差分学习（Temporal-Difference Learning） 时序差分（TD）也是一种model-free方法，从经验episodes中学习，但与MC不同的是，TD可以从不完整的episodes中学习。价值函数更新：\n$$V(S_t)\\leftarrow V(S_t) + \\alpha [G_t - V(S_t)]\\\\ V(S_t)\\leftarrow V(S_t) + \\alpha[R_{t+1} + \\gamma V(S_{t+1}) - V(S_t)]$$ 其中 $R_{t+1} + \\gamma V(S_{t+1})-V(S_t)$ 称为时序差分误差（TD-error）$\\alpha$ 表示更新的步长。蒙特卡洛方法用上面第一个式子作为更新目标，需要计算$G_t$从而需要完整的episodes，时序差分方法用第二个式子作为更新目标，不需要完整的episodes。\n6.1 $\\epsilon-\\text{greedy}$算法 在更新策略时一般使用广义策略迭代（GPI）的思想，但如果在策略提升中一直使用贪婪算法得到一个确定性策略，可能会导致某些状态动作对$(s,a)$永远没有在序列中出现，以至于无法对其动作价值进行估计，进而无法保证策略提升后的策略比之前的好，对此常用的解决方案是采用$\\epsilon-\\text{greedy}$ 算法：即有$1-\\epsilon$的概率采用动作价值最大的动作，另外有$\\epsilon$的概率从动作空间中的其他动作随即采取一个。\n$$\\pi(a\\vert s)=\\begin{cases} \\epsilon/|\\mathcal A| + 1 - \\epsilon \u0026 a=\\argmax_{a^\\prime}Q(s,a^\\prime)\\\\ \\epsilon/|\\mathcal A| \u0026 \\text{other action} \\end{cases}$$ 6.2 Sarsa算法（On-Policy TD control） 使用时序差分算法来估计动作价值函数Q：\n$$Q(S_t,A_t)\\leftarrow Q(S_t,A_t)+\\alpha(R_{t+1} + \\gamma Q(S_{t+1},A_{t+1})-Q(S_t,A_t))$$ 初始化$t=0$ 从$S_0$开始，选择动作$A_0=\\argmax_{a\\in\\mathcal A}Q(S_0,a)$，一般使用$\\epsilon-\\text{greedy}$ 在$t$时刻，采取动作$A_t$，得到奖励$R_{t+1}$，进入下一个状态$S_{t+1}$ $A_{t+1}=\\argmax_{a\\in\\mathcal A}Q(S_{t+1},a)$ 更新动作价值函数Q：$Q(S_t,A_t)\\leftarrow Q(S_t,A_t)+\\alpha(R_{t+1} + \\gamma Q(S_{t+1},A_{t+1})-Q(S_t,A_t))$ $t=t+1$，重复step3-step5 6.3 Q-Learning算法（Off-Policy TD control） Q-Learning中动作价值函数Q的更新方法：\n$$Q(S_t,A_t)\\leftarrow Q(S_t, A_t)+\\alpha(R_{t+1}+\\gamma\\max_{a\\in\\mathcal A}Q(S_{t+1},a)-Q(S_t,A_t))$$ 初始化$t=0$ 从$S_0$状态开始 在$t$时刻，根据动作价值函数Q选取动作$A_t=\\argmax_{a\\in\\mathcal A}Q(S_t, a)$，一般使用$\\epsilon-\\text{greedy}$ 执行动作$A_t$后，得到奖励$R_{t+1}$，进入下一个状态$S_{t+1}$ 更新动作价值函数Q：$Q(S_t,A_t)\\leftarrow Q(S_t, A_t)+\\alpha(R_{t+1}+\\gamma\\max_{a\\in\\mathcal A}Q(S_{t+1},a)-Q(S_t,A_t))$ $t=t+1$，重复step3-step5 Q-Learning算法与Sarsa算法主要区别在于，Q-Learning算法在进入状态$S_{t+1}$后便更新动作价值函数，不需要获取动作$A_{t+1}$，而Sarsa则当获取到动作$A_{t+1}$才更新动作价值函数，且二者的更新算法有差异。 6.4 Deep Q-Network 当状态动作空间很大或者状态空间是连续的时候，往往采用函数来估计动作价值函数Q，例如，使用含参数$\\theta$的函数来计算Q值，即$Q(s,a;\\theta)$。DQN采取时序差分中的Q函数更新值来设计损失函数，具体来说\n$$\\theta_*=\\arg\\min_\\theta\\frac{1}{2N}\\sum_{i=1}^N[Q(s_i,a_i;\\theta)-(r_i+\\gamma\\max_{a^\\prime}Q(s^\\prime_i,a^\\prime;\\theta))]^2$$ 观察上面的优化式会发现拟合的target值$r_i+\\gamma\\max_{a^\\prime}Q(s^\\prime_i,a^\\prime;\\theta)$也随着参数$\\theta$的更新而变化，经验上来看这会导致训练的不稳定，针对该问题，DQN采用两套网络函数，一个是用于训练更新的网络$Q(s,a;\\theta)$，一个是目标网络$Q(s,a;\\theta^-)$。对于训练网络，使用上面的损失函数优化并正常使用梯度下降更新参数，对于目标网络，用于计算target值$r_i+\\gamma\\max_{a^\\prime}Q(s^\\prime_i,a^\\prime;\\theta^-)$，为了让更新目标更稳定，目标网络不回每一步都更新，而是每隔$C$步与训练网络同步一次，即$\\theta^-\\leftarrow\\theta$。\n在Q-Learning算法中，每个数据只会用来更新一次Q函数，在DQN中，采用了经验回放（experience replay）方法，具体做法是维护一个经验池，每次从环境中采样得到的四元组数据（状态、动作、奖励、下一状态）存储到经验池中，当经验池达到一定大小开始训练，训练从经验池中随机采样进行训练，一批经验数据训练完成后再进行经验数据的获取。DQN算法具体流程如下：\n用随机网络参数$\\theta$初始化网络$Q(s,a;\\theta)$ 复制相同的参数$\\theta^-\\leftarrow\\theta$初始化目标网络$Q(s,a;\\theta^-)$ 初始化经验池$R$ 获取环境初始状态$s_0$ 时间步循环$t=0\\rightarrow T$，根据当前网络$Q(s,a;\\theta)$使用$\\epsilon-\\text{greedy}$策略选择动作$a_t$，执行动作$a_t$获取回报$r_{t+1}$，环境状态变为$s_{t+1}$，将$(s_t,a_t,r_{t+1},s_{t+1})$存储进经验池$R$中，当$R$中数据足够，从$R$中逐批采样$N$个数据 $(s_i,a_i,r_i, s_i^\\prime)_{i=1,\\dots,N}$，对每个数据，用目标网络计算$y_i=r_i+\\gamma\\max_{a^\\prime}Q(s_i^\\prime,a^\\prime;\\theta^-)$，最小化目标损失$\\mathcal L=\\frac{1}{2N}\\sum_{i}(y_i-Q(s_i,a_i;\\theta))^2$，更新目标网络 对不同序列重复step4-step5 6.5 结合TD与MC 前面的Sarsa以及Q-Learning中的价值估计更新都是只使用了一步动作后的回报，即$G_t=R_{t+1}+\\gamma V(S_{t+1})$，基于此可以延伸至多步的回报来更新价值。假设$n$步回报为$G^{(n)}_t, n=1,\\dots,\\infty$，有\n$n$ $G_t$ $\\text{notes}$ $n=1$ $G^{(1)}_t = R_{t+1}+\\gamma V(S_{t+1})$ TD Learning $n=2$ $G^{(2)}_t = R_{t+1}+\\gamma R_{t+2} + \\gamma^2 V(S_{t+2})$ $\\dots$ $n=n$ $G^{(n)}_t=R_{t+1}+\\gamma R_{t+2} + \\dots + \\gamma^{n-1}R_{t+n} + \\gamma^n V(S_{t+n})$ $\\dots$ $n=\\infty$ $G^{(\\infty)}_t=R_{t+1}+\\gamma R_{t+2} + \\dots + \\gamma^{T-t-1}R_T + \\gamma^{T-t}V(S_T)$ MC estimation 从而，$n$步的TD-Learning将采用下面的式子更新状态价值函数\n$$V(S_t)\\leftarrow V(S_t) + \\alpha(G^{(n)}_t-V(S_t))$$ 这显然存在一个问题，即$n$使用哪一个值，一个简单的做法是对所有可能的$n$进行加权求和得到所有回报的加权求和值，称作$\\lambda$-回报：$G^\\lambda_t=(1-\\lambda)\\sum_{n=1}^\\infty\\lambda^{n-1}G_t^{(n)}$，采用这种回报用于更新的记作$\\text{TD}(\\lambda)$，原始版本等价于$\\text{TD}(0)$。$G_t^\\lambda$中乘上的$(1-\\lambda)$系数主要用于归一化，因为$1+\\lambda+\\lambda^2+\\dots=1/(1-\\lambda)$。\n7. 策略梯度算法（Policy Gradient） 上述介绍的方法都是通过学习状态/动作价值函数然后选择最优动作不断迭代。策略梯度方法直接学习策略函数本身$\\pi_\\theta(a\\vert s)$，其中$\\theta$为可学习参数。梯度策略的目的是最大化在这个策略在环境中的期望回报，目标函数定义为\n$$J(\\theta)=\\mathbb E_{s_0}[V_{\\pi_\\theta}(s_0)]$$ 其中$s_0$表示初始状态，通过将目标函数对策略中参数$\\theta$求导，并使用梯度上升法最大化目标函数，从而得到最优策略。\n7.1 状态访问分布 在求解目标函数对$\\theta$的梯度前，先介绍一个状态访问分布。在MDP中定义初始状态分布为$v_0(s)$，定义$P_t^\\pi(s)$表示采取策略$\\pi$使得智能体在$t$时刻状态为$s$的概率，所以有$P^\\pi_0(s)=v_0(s)$，然后定义一个策略的状态访问分布（state visitation distribution）：\n$$v_\\pi(s)=(1-\\gamma)\\sum_{t=0}^\\infty\\gamma^tP^\\pi_t(s)$$ 其中$1-\\gamma$为使得概率和为1的归一化因子，$v_{\\pi}(s)$可以理解成一个MDP稳定后的状态概率分布。\n7.2 策略梯度推导 $J(\\theta)$对$\\theta$的梯度有以下公式\n$$\\begin{align*} \\nabla_\\theta J(\\theta)\u0026\\propto\\sum_{s\\in\\mathcal S}v_{\\pi_\\theta}(s)\\sum_{a\\in\\mathcal A}Q_{\\pi_\\theta}(s,a)\\nabla_\\theta\\pi_\\theta(a\\vert s)\\\\ \u0026=\\sum_{s\\in\\mathcal S}v_{\\pi_\\theta}(s)\\sum_{a\\in\\mathcal A}\\pi_\\theta(a\\vert s)Q_{\\pi_\\theta}(s,a)\\frac{\\nabla_\\theta\\pi_{\\theta}(a\\vert s)}{\\pi_\\theta(a\\vert s)}\\\\ \u0026=\\mathbb E_{\\pi_\\theta}[Q_{\\pi_\\theta}(s,a)\\nabla_\\theta\\ln\\pi_\\theta(a\\vert s)] \\end{align*}$$ 先从状态价值函数推导开始：\n$$\\begin{align*} \\nabla_\\theta V_{\\pi_\\theta}(s)\u0026=\\nabla_\\theta(\\sum_{a\\in\\mathcal A}\\pi_\\theta(a\\vert s)Q_{\\pi_\\theta}(s,a))\\\\ \u0026=\\sum_{a\\in\\mathcal A}(\\nabla_\\theta\\pi_\\theta(a\\vert s)Q_{\\pi_\\theta}(s,a) + \\pi_\\theta(a\\vert s)\\nabla_\\theta Q_{\\pi_\\theta}(s,a))\\\\ \u0026=\\sum_{a\\in\\mathcal A}(\\nabla_\\theta\\pi_\\theta(a\\vert s)Q_{\\pi_\\theta}(s,a) + \\pi_\\theta(a\\vert s)\\nabla_\\theta\\sum_{s^\\prime,r}P(s^\\prime,r\\vert s,a)(r+\\gamma V_{\\pi_\\theta}(s^\\prime)))\\\\ \u0026=\\sum_{a\\in\\mathcal A}(\\nabla_\\theta\\pi_\\theta(a\\vert s)Q_{\\pi_\\theta}(s,a) + \\gamma\\pi_\\theta(a\\vert s)\\sum_{s^\\prime,r}P(s^\\prime,r\\vert s,a)\\nabla_\\theta V_{\\pi_\\theta}(s^\\prime))\\\\ \u0026=\\sum_{a\\in\\mathcal A}(\\nabla_\\theta\\pi_\\theta(a\\vert s)Q_{\\pi_\\theta}(s,a) + \\gamma\\pi_\\theta(a\\vert s)\\sum_{s^\\prime}P(s^\\prime\\vert s,a)\\nabla_\\theta V_{\\pi_\\theta}(s^\\prime)) \\end{align*}$$ 为了简化表示，定义$\\phi(s)=\\sum_{a\\in\\mathcal A}\\nabla_\\theta\\pi_\\theta(a\\vert s)Q_{\\pi_\\theta}(s,a)$，定义$d_{\\pi_\\theta}(s\\rightarrow x,k)$表示策略$\\pi_\\theta$从状态$s$出发$k$步后到达状态$x$的概率。\n$$\\begin{align*} \\nabla_\\theta V_{\\pi_\\theta}(s)\u0026=\\phi(s)+\\gamma\\sum_{a\\in\\mathcal A}\\pi_\\theta(a\\vert s)\\sum_{s^\\prime}P(s^\\prime\\vert s,a)\\nabla_\\theta V_{\\pi_\\theta}(s^\\prime)\\\\ \u0026=\\phi(s) + \\gamma\\sum_{s^\\prime}\\nabla_\\theta V_{\\pi_\\theta}(s^\\prime)\\sum_{a}\\pi_\\theta(a\\vert s)P(s^\\prime\\vert s,a)\\\\ \u0026=\\phi(s) + \\gamma\\sum_{s^\\prime}d_{\\pi_\\theta}(s\\rightarrow s^\\prime,1)\\nabla_\\theta V_{\\pi_\\theta}(s^\\prime)\\\\ \u0026=\\phi(s) + \\gamma\\sum_{s^\\prime}d_{\\pi_\\theta}(s\\rightarrow s^\\prime,1)[\\phi(s^\\prime) + \\gamma\\sum_{s^{\\prime\\prime}}d_{\\pi_\\theta}(s^\\prime\\rightarrow s^{\\prime\\prime},1)\\nabla_\\theta V_{\\pi_\\theta}(s^{\\prime\\prime})]\\\\ \u0026=\\phi(s) + \\gamma\\sum_{s^\\prime}d_{\\pi_\\theta}(s\\rightarrow s^\\prime,1)\\phi(s^\\prime) + \\gamma^2\\sum_{s^{\\prime\\prime}}d_{\\pi_\\theta}(s\\rightarrow s^{\\prime\\prime},2)\\nabla_\\theta V_{\\pi_\\theta}(s^{\\prime\\prime})\\\\ \u0026=\\phi(s) + \\gamma\\sum_{s^\\prime}d_{\\pi_\\theta}(s\\rightarrow s^{\\prime},1)\\phi(s^\\prime) + \\gamma^2\\sum_{s^{\\prime\\prime}}d_{\\pi_\\theta}(s^\\prime\\rightarrow s^{\\prime\\prime}, 2)\\phi(s^{\\prime\\prime}) + \\gamma^3\\sum_{s^{\\prime\\prime\\prime}}d_{\\pi_\\theta}(s\\rightarrow s^{\\prime\\prime\\prime}, 3)\\nabla_\\theta V_{\\pi_\\theta}(s^{\\prime\\prime\\prime})\\\\ \u0026=\\dots\\\\ \u0026=\\sum_{k=0}^\\infty\\sum_{x\\in\\mathcal S}\\gamma^k d_{\\pi_\\theta}(s\\rightarrow x,k)\\phi(x) \\end{align*}$$ 定义$\\eta (s)=\\mathbb E_{s_0}[\\sum_{k=0}^\\infty\\gamma^kd_{\\pi_\\theta}(s_0\\rightarrow s,k)]=\\frac{1}{1-\\gamma}v_{\\pi_\\theta}(s)$，有\n$$\\begin{align*} \\nabla_\\theta J(\\theta)\u0026=\\nabla_\\theta\\mathbb E_{s_0}[V_{\\pi_\\theta}(s_0)]\\\\ \u0026=\\mathbb E_{s_0}[\\sum_s\\sum_{k=0}^\\infty\\gamma^kd_{\\pi_\\theta}(s_0\\rightarrow s,k)\\phi(s)]\\\\ \u0026=\\sum_s\\mathbb E_{s_0}[\\sum_{k=0}^\\infty\\gamma^k d_{\\pi_\\theta}(s_0\\rightarrow s,k)]\\phi(s)\\\\ \u0026=\\sum_s\\eta(s)\\phi(s)\\\\ \u0026=(\\sum_s\\eta(s))\\sum_s\\frac{\\eta(s)}{\\sum_s\\eta(s)}\\phi(s)\\\\ \u0026\\propto\\sum_s\\frac{\\eta(s)}{\\sum_s\\eta(s)}\\phi(s)\\\\ \u0026=\\sum_s v_{\\pi_\\theta}(s)\\sum_{a\\in\\mathcal A}Q_{\\pi_\\theta}(s,a)\\nabla_\\theta\\pi_\\theta(a\\vert s)\\\\ \u0026=\\mathbb E_{\\pi_\\theta}[Q_{\\pi_\\theta}(s,a)\\nabla_\\theta\\ln\\pi_\\theta(a\\vert s)] \\end{align*}$$ 至此，证明完毕。\n7.3 REINFORCE算法 REINFORCE，也被称为蒙特卡洛策略梯度：\n1.$\\ $随机初始化策略参数$\\theta$\n2.$\\ $用当前策略$\\pi_\\theta$生成一个episode $S_1,A_1, R_2,S_2,A_2,\\dots,S_T$\n3.$\\ $$\\text{For } t=1, 2, \\dots, T:$\n$\\quad$1.$\\ $估计当前时刻$t$到时刻$T$的回报$G_t$\n$\\quad$2.$\\ \\theta\\leftarrow \\theta + \\alpha\\gamma^t G_t\\nabla_\\theta\\ln\\pi_\\theta(A_t\\vert S_t)$\n7.4 Actor-Critic算法 前面DQN为基于值函数的方法，REINFORCE为基于策略的方法，如果价值函数和策略同时被学习，那就是Actor-Critic算法。\nCritic：会给价值函数添加可学习参数$\\omega$，根据不同算法可以是学习动作价值函数$Q_\\omega(a,s)$或者是状态价值函数$V_\\omega(s)$。Critic更新价值函数参数$\\omega$ Actor：受Critic方向指导，更新策略参数$\\theta$ 1.$\\ $ 随机初始化状态$s$，价值函数参数$\\omega$，策略函数参数$\\theta$；并根据当前策略采样一个动作$a\\sim\\pi_\\theta(a\\vert s)$\n2.$\\ \\text{For }t=1,\\dots,T:$\n$\\quad$ 1.$\\ $采样当前时刻奖励$r_t\\sim R(s,a)$以及下一时刻状态$s^\\prime\\sim P(s^\\prime\\vert s,a)$\n$\\quad$ 2.$\\ $采样下一时刻动作$a^\\prime\\sim\\pi_\\theta(a^\\prime\\vert s^\\prime)$\n$\\quad$ 3.$\\ $更新策略参数：$\\theta\\leftarrow\\theta+\\alpha_\\theta Q_\\omega(s,a)\\nabla_\\theta\\ln\\pi_\\theta(a\\vert s)$\n$\\quad$ 4.$\\ $计算当时刻$t$的动作价值修正值：\n$\\quad\\quad$ $G_{t:t+1}=r_t + \\gamma Q_\\omega(s^\\prime,a^\\prime) - Q_\\omega(s,a)$\n$\\quad\\quad$ 使用修正值来更新价值函数参数：\n$\\quad\\quad$ $\\omega\\leftarrow\\omega + \\alpha_\\omega G_{t:t+1}\\nabla_\\omega Q_\\omega(s,a)$\n$\\quad$ 5.$\\ $更新当前时刻动作和状态：$a\\leftarrow a^\\prime,s\\leftarrow s^\\prime$\n其中$\\alpha_\\theta$和$\\alpha_\\omega$分别是策略函数参数、价值函数参数的学习率。Step2.4中关于价值函数参数更新这里，基于时序差分中的更新算法设计的损失函数：\n$$\\mathcal L(\\omega)=\\frac{1}{2}(r_t + \\gamma Q_\\omega(s^\\prime,a^\\prime) - Q_\\omega(s,a))^2$$ 与DQN中一类，采取类似目标网络的方法，将上式中$r_t + \\gamma Q_\\omega(s^\\prime,a^\\prime)$作为时序差分目标，不会产生梯度来更新价值函数，因此价值函数的梯度为:\n$$\\begin{align*} \\nabla_\\omega\\mathcal L(\\omega)\u0026=-(r_t + \\gamma Q_\\omega(s^\\prime,a^\\prime) - Q_\\omega(s,a))\\nabla_\\omega Q_\\omega(s,a)\\\\ \u0026=-G_{t:t+1}\\nabla_\\omega Q_\\omega(s,a) \\end{align*}$$ 注意在更新策略函数参数时用的是正向传播，更新价值函数参数时用的是反向传播。\n7.5 TRPO算法（Trust Region Policy Optimization） 在策略梯度算法中存在一个缺点，即使用梯度更新的方法优化策略参数，存在由于学习步长太长导致策略突然变差，进而影响训练效果的问题。对于该问题，TRPO给出的解决方案是：在参数更新时考虑找到一块信任区域（trust region），在该区域上进行策略参数更新能够保证策略性能单调优化。\n假设当前策略$\\pi_\\theta$，考虑如何借助当前$\\theta$找到一个更优的参数$\\theta^\\prime$，使得$J(\\theta^\\prime)\\ge J(\\theta)$，由于初始状态$s_0$的分布与策略无关，因此$J(\\theta)$可以写成对新策略$\\pi_{\\theta^\\prime}$的期望（理解上就是新策略的期望能覆盖所有可能的状态轨迹）：\n$$ \\begin{align*} J(\\theta)\u0026=\\mathbb E_{s_0}[V_{\\pi_{\\theta}}(s_0)]\\\\ \u0026=\\mathbb E_{\\pi_{\\theta^\\prime}}\\left[\\sum_{t=0}^\\infty \\gamma^t V_{\\pi_\\theta}(s_t)-\\sum_{t=1}^\\infty\\gamma^t V_{\\pi_\\theta}(s_t)\\right]\\\\ \u0026=-\\mathbb E_{\\pi_{\\theta^\\prime}}\\left[\\sum_{t=0}^\\infty\\gamma^t(\\gamma V_{\\pi_\\theta}(s_{t+1})-V_{\\pi_\\theta}(s_t))\\right] \\end{align*} $$ 基于上述等式：\n$$ \\begin{align*} J(\\theta^\\prime)-J(\\theta)\u0026=\\mathbb E_{s_0}[V_{\\pi_{\\theta^\\prime}}(s_0)]-\\mathbb E_{s_0}[V_{\\pi_\\theta}(s_0)]\\\\ \u0026=\\mathbb E_{\\pi_{\\theta^\\prime}}\\left[\\sum_{t=1}^\\infty\\gamma^t r(s_t,a_t)]+\\mathbb E_{\\pi_{\\theta^\\prime}}[\\sum_{t=1}^\\infty\\gamma^t(\\gamma V_{\\pi_\\theta}(s_{t+1})-V_{\\pi_\\theta}(s_t))\\right]\\\\ \u0026=\\mathbb E_{\\pi_\\theta^\\prime}\\left[\\sum_{t=0}^\\infty\\gamma^t[r(s_t,a_t)+\\gamma V_{\\pi_\\theta}(s_{t+1})-V_{\\pi_\\theta}(s_t)]\\right] \\end{align*} $$ 定义优势函数$A_{\\pi_\\theta}(s_t,a_t)=r(s_t,a_t)+\\gamma V_{\\pi_\\theta}(s_{t+1})-V_{\\pi_\\theta}(s_t)$:\n$$ \\begin{align*} J(\\theta^\\prime)-J(\\theta)\u0026=\\mathbb E_{\\pi_\\theta^\\prime}\\left[\\sum_{t=0}^\\infty\\gamma^t A_{\\pi_\\theta}(s_t,a_t)\\right]\\\\ \u0026=\\sum_{t=0}^\\infty\\gamma^t\\mathbb E_{s_t\\sim P_t^{\\pi_{\\theta^\\prime}}}\\mathbb E_{a_t\\sim\\pi_{\\theta^\\prime}(\\cdot\\vert s_t)}[A_{\\pi_\\theta}(s_t,a_t)]\\\\ \u0026=\\frac{1}{1-\\gamma}\\mathbb E_{s\\sim\\mathcal v_{\\pi_\\theta^\\prime}}\\mathbb E_{a\\sim\\pi_{\\theta^\\prime}(\\cdot\\vert s)}[A_{\\pi_\\theta}(s,a)] \\end{align*} $$ 最后用到了状态访问分布：$\\mathcal v_{\\pi}(s)=(1-\\gamma)\\sum_{t=0}^{\\infty}\\gamma^t P_t^\\pi(s)$，因此新策略只需满足$\\mathbb E_{s\\sim\\mathcal v_{\\pi_\\theta^\\prime}}\\mathbb E_{a\\sim\\pi_{\\theta^\\prime}(\\cdot\\vert s)}[A_{\\pi_\\theta}(s,a)]\\ge 0$，就能保证$J(\\theta^\\prime)\\ge J(\\theta)$。\n直接求解比较困难，因为$\\pi_{\\theta^\\prime}$是需要求解的策略，但又需要用它收集样本。对此TRPO做了一步近似操作，对状态访问分布进行处理，具体而言，忽略新旧策略之间状态访问分布的变化，直接采用旧的策略$\\pi_\\theta$的状态分布，定义：\n$$ L_\\theta(\\theta^\\prime)=J(\\theta) + \\frac{1}{1-\\gamma}\\mathbb E_{s\\sim\\mathcal v_{\\pi_\\theta}}\\mathbb E_{a\\sim\\pi_{\\theta^\\prime}(\\cdot\\vert s)}[A_{\\pi_\\theta}(s,a)] $$ 接着，用重要性采样对动作分布进行处理：\n$$ L_\\theta(\\theta^\\prime)=J(\\theta)+\\mathbb E_{s\\sim\\mathcal v_{\\pi_\\theta}}\\mathbb E_{a\\sim\\pi_\\theta(\\cdot\\vert s)}\\left[\\frac{\\pi_{\\theta^\\prime}(a\\vert s)}{\\pi_\\theta(a\\vert s)}A_{\\pi_\\theta}(s,a)\\right] $$ 这样可以基于旧策略$\\pi_\\theta$采样的数据来估计优化新策略，为了保证新旧策略足够相似，TRPO使用Kullback-Leibler（KL）散度来衡量策略之间的距离，给出整体优化式（$\\theta_k$代表前面的$\\theta$，表示$k$次迭代后的策略）：\n$$ \\max_{\\theta^\\prime} L_\\theta(\\theta^\\prime)\\quad s.t.\\ \\mathbb E_{s\\sim\\mathcal v_{\\pi_{\\theta_k}}}[D_{KL}(\\pi_{\\pi_{\\theta_k}}(\\cdot\\vert s),\\pi_{\\theta^\\prime}(\\cdot\\vert s))]\\le \\delta $$ 即得到TRPO的优化目标：\n$$ % \\begin{align*} \\max_\\theta\\quad\\mathbb E_{s\\sim\\mathcal v_{\\pi_{\\theta_k}}}\\mathbb E_{a\\sim\\pi_{\\theta_k}(\\cdot\\vert s)}\\left[\\frac{\\pi_\\theta(a\\vert s)}{\\pi_{\\theta_k}(a\\vert s)}A_{\\pi_{\\theta_k}}(s,a)\\right]\\\\ s.t.\\quad \\mathbb E_{s\\sim\\mathcal v_{\\pi_{\\theta_k}}}\\left[D_{KL}(\\pi_{\\theta_k}(\\cdot\\vert s),\\pi_\\theta(\\cdot\\vert s))\\right]\\le\\delta % \\end{align*} $$ 7.6 PPO算法（Proximal Policy Optimization） PPO-惩罚（PPO-Penalty） 针对TRPO的优化目标函数，PPO-Penalty将KL散度的约束放进目标函数中，变成一个无约束优化问题，并在迭代过程中更新KL散度的系数：\n$$ \\arg\\max_\\theta\\ \\mathbb E_{s\\sim\\mathcal v_{\\pi_\\theta}}\\mathbb E_{a\\sim\\pi_{\\theta_k}(\\cdot\\vert s)}\\left[\\frac{\\pi_\\theta(a\\vert s)}{\\pi_{\\theta_k}(a\\vert s)}A_{\\pi_{\\theta_k}}(s,a)-\\beta D_{KL}[\\pi_{\\theta_k}(\\cdot\\vert s),\\pi_\\theta(\\cdot\\vert s)]\\right] $$ 令$d_k=D_{KL}^{\\mathcal v_{\\pi_{\\theta_k}}}(\\pi_{\\theta_k},\\pi_\\theta)$，$\\beta$的更新规则（其中$\\delta$为超参数）：\n$\\text{if }d_k\u003c\\delta/1.5,\\ \\text{then}\\ \\beta_{k+1}=\\beta_k/2$ $\\text{if }d_k\u003e\\delta/1.5,\\ \\text{then}\\ \\beta_{k+1}=\\beta_k\\times 2$ $\\text{else}\\ \\beta_{k+1}=\\beta_k$ PPO-截断（PPO-Clip） 另一种形式PPO-截断（PPO-Clip）在目标函数中加入限制，保证更新后参数与更新前参数差距在一定范围内：\n$$ \\arg\\max_\\theta \\mathbb{E}_{s \\sim \\mathcal v_{\\pi_{\\theta_k}}} \\mathbb{E}_{a \\sim \\pi_\\theta(\\cdot | s)} \\left[ \\min \\left( \\frac{\\pi_\\theta(a | s)}{\\pi_{\\theta_k}(a | s)} A_{\\pi_{\\theta_k}}(s, a), \\operatorname{clip} \\left( \\frac{\\pi_\\theta(a | s)}{\\pi_{\\theta_k}(a | s)}, 1 - \\epsilon, 1 + \\epsilon \\right) A_{\\pi_{\\theta_k}}(s, a) \\right) \\right] $$ References [1] Weng. “A (Long) Peek into Reinforcement Learning” lilianweng.github.io (2018).\n[2] Mocode. “【强化学习理论】贝尔曼最优方程公式推导 ” CSDN (2023).\n[3] 蘑菇书EasyRL. “马尔可夫决策过程” datawhalechina.github.io.\n[4] 手动学强化学习 “时序差分算法” hrl.boyuai.com\n[5] 手动学强化学习 “DQN 算法” hrl.boyuai.com\n[6] 手动学强化学习 “策略梯度算法” hrl.boyuai.com\n[7] 手动学强化学习 “TRPO算法” hrl.boyuai.com\n",
-  "wordCount" : "1117",
-  "inLanguage": "en",
-  "datePublished": "2024-11-21T00:00:00Z",
-  "dateModified": "2024-11-21T00:00:00Z",
-  "author":{
-    "@type": "Person",
-    "name": "Rs"
-  },
-  "mainEntityOfPage": {
-    "@type": "WebPage",
-    "@id": "https://tqzhong.github.io/my-blog/posts/2024-11-21-reinforcement-learning/"
-  },
-  "publisher": {
-    "@type": "Organization",
-    "name": "Rs' Log",
-    "logo": {
-      "@type": "ImageObject",
-      "url": "https://tqzhong.github.io/my-blog/favicon.ico"
-    }
-  }
-}
-</script>
-</head>
-
-<body class="" id="top">
-<script>
-    if (localStorage.getItem("pref-theme") === "dark") {
-        document.body.classList.add('dark');
-    } else if (localStorage.getItem("pref-theme") === "light") {
-        document.body.classList.remove('dark');
-    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-        document.body.classList.add('dark');
-    }
-</script>
-
-<header class="header">
-    <script>
-        MathJax = {
-          tex: {
-            inlineMath: [['$', '$'], ['\\(', '\\)']],
-            displayMath: [['$$', '$$'], ['\\[', '\\]']],
-            processEscapes: true,
-            processEnvironments: true
-          },
-          svg: {
-            fontCache: 'global'
-          }
-        };
-    </script>
-    
-    
-    
-    <nav class="nav">
-        <div class="logo-logo-switches">
-        <div class="logo">
-            <a href="https://tqzhong.github.io/my-blog/" accesskey="h" title="Rs&#39; Log (Alt + H)">Rs&#39; Log</a>
-
-            <div class="logo-switches">
-                <button id="theme-toggle" accesskey="t" title="(Alt + T)">
-                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-                    </svg>
-                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="5"></circle>
-                        <line x1="12" y1="1" x2="12" y2="3"></line>
-                        <line x1="12" y1="21" x2="12" y2="23"></line>
-                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                        <line x1="1" y1="12" x2="3" y2="12"></line>
-                        <line x1="21" y1="12" x2="23" y2="12"></line>
-                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-                    </svg>
-                </button>
-                <ul class="lang-switch">
-                </ul>
-            </div>
-        </div>
-        </div>
-        <ul id="menu">
-            <li>
-                <a href="https://tqzhong.github.io/my-blog/" title="Posts">
-                    <span>Posts</span>
-                </a>
-            </li>
-            <li>
-                <a href="https://tqzhong.github.io/my-blog/archive/" title="Archive">
-                    <span>Archive</span>
-                </a>
-            </li>
-            <li>
-                <a href="https://tqzhong.github.io/my-blog/search/" title="Search (Alt &#43; /)" accesskey=/>
-                    <span>Search</span>
-                </a>
-            </li>
-            <li>
-                <a href="https://tqzhong.github.io/my-blog/tags/" title="Tags">
-                    <span>Tags</span>
-                </a>
-            </li>
-            <li>
-                <a href="https://tqzhong.github.io/my-blog/categories/" title="Categories">
-                    <span>Categories</span>
-                </a>
-            </li>
-            <li>
-                <a href="https://tqzhong.github.io/my-blog/faq/" title="FAQ">
-                    <span>FAQ</span>
-                </a>
-            </li>
-        </ul>
-    </nav>
-</header>
-
-
-    <main class="main">
-
-<article class="post-single">
-  <header class="post-header">
-    
-    <h1 class="post-title">
-      强化学习笔记
-    </h1>
-    <div class="post-meta">
-
-
-<i class="fas fa-calendar-alt blog-meta-icon"></i>&nbsp;2024-11-21 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <i class="fas fa-clock blog-meta-icon"></i>&nbsp;6 min &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <i class="fas fa-user blog-meta-icon"></i>&nbsp;Rs &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <i class="fas fa-eye blog-meta-icon"></i>&nbsp;<span id="view-counter"></span>
-
-<script src="https://cdn.jsdelivr.net/npm/leancloud-storage@4.12.0/dist/av-min.js"></script>
-<script>
-    
-    AV.initialize("AokLJzaIvwVNJW0b2F0YTLLy-MdYXbMMI", "fwZpRfBG259O3LscJFPW3ViH");
-
-    loadViewCount(location.pathname, "view-counter");
-
-    
-    
-    
-        
-    
-    
-    
-    
-    
-    
-    
-    
-    
-                
-    
-    
-    
-    
-    
-
-
-    var hasViewCounted = false;
-
-    
-    function loadViewCount(pageUrl, elementId) {
-        if (hasViewCounted) return;
-        hasViewCounted = true;       
-
-        var counter = document.getElementById(elementId);
-        var cachedViews = localStorage.getItem("view-count-" + pageUrl);
-
-        
-        if (cachedViews) {
-            counter.innerText = cachedViews;
-        } else {
-            counter.innerText = "0"; 
-        }
-
-        
-        var query = new AV.Query('Counter');
-        query.equalTo("url", pageUrl);
-        query.find().then(results => {
-            if (results.length > 0) {
-                var counterObj = results[0];
-                counterObj.increment("views", 1);
-                counterObj.save();
-                var views = counterObj.get("views");
-                counter.innerText = views;
-                localStorage.setItem("view-count-" + pageUrl, views); 
-            } else {
-                var Counter = AV.Object.extend("Counter");
-                var newCounter = new Counter();
-                newCounter.set("url", pageUrl);
-                newCounter.set("views", 1);
-                newCounter.save().then(() => {
-                    counter.innerText = "1";
-                    localStorage.setItem("view-count-" + pageUrl, 1); 
-                });
-            }
-        }).catch(function(error) {
-            console.error("error:", error);
-        });
-    }
-    
-</script>
-
-
-
-</div>
-  </header> <div class="toc">
-    <details >
-        <summary accesskey="c" title="(Alt + C)">
-            <span class="details">Table of Contents</span>
-        </summary>
-
-        <div class="inner"><ul>
-                <li>
-                    <a href="#1-%e5%9f%ba%e6%9c%ac%e6%a6%82%e5%bf%b5%e5%85%ac%e5%bc%8f" aria-label="1. 基本概念，公式">1. 基本概念，公式</a></li>
-                <li>
-                    <a href="#2-%e9%a9%ac%e5%b0%94%e5%8f%af%e5%a4%ab%e8%bf%87%e7%a8%8bmdps" aria-label="2. 马尔可夫过程（MDPs）">2. 马尔可夫过程（MDPs）</a></li>
-                <li>
-                    <a href="#3-%e8%b4%9d%e5%b0%94%e6%9b%bc%e6%96%b9%e7%a8%8bbellman-equations" aria-label="3. 贝尔曼方程（Bellman Equations）">3. 贝尔曼方程（Bellman Equations）</a><ul>
-                        
-                <li>
-                    <a href="#31-%e8%b4%9d%e5%b0%94%e6%9b%bc%e6%9c%9f%e6%9c%9b%e6%96%b9%e7%a8%8b" aria-label="3.1 贝尔曼期望方程">3.1 贝尔曼期望方程</a></li>
-                <li>
-                    <a href="#32-%e8%b4%9d%e5%b0%94%e6%9b%bc%e6%9c%80%e4%bc%98%e6%96%b9%e7%a8%8b" aria-label="3.2 贝尔曼最优方程">3.2 贝尔曼最优方程</a></li></ul>
-                </li>
-                <li>
-                    <a href="#4-%e5%8a%a8%e6%80%81%e8%a7%84%e5%88%92dynamic-programming" aria-label="4. 动态规划（Dynamic Programming）">4. 动态规划（Dynamic Programming）</a><ul>
-                        
-                <li>
-                    <a href="#41-%e7%ad%96%e7%95%a5%e8%af%84%e4%bc%b0" aria-label="4.1 策略评估">4.1 策略评估</a></li>
-                <li>
-                    <a href="#42-%e7%ad%96%e7%95%a5%e4%bc%98%e5%8c%96" aria-label="4.2 策略优化">4.2 策略优化</a></li>
-                <li>
-                    <a href="#43-%e7%ad%96%e7%95%a5%e8%bf%ad%e4%bb%a3%e8%bf%87%e7%a8%8b" aria-label="4.3 策略迭代过程">4.3 策略迭代过程</a></li></ul>
-                </li>
-                <li>
-                    <a href="#5-%e8%92%99%e7%89%b9%e5%8d%a1%e6%b4%9b%e6%96%b9%e6%b3%95monte-carlo-methods" aria-label="5. 蒙特卡洛方法（Monte-Carlo Methods）">5. 蒙特卡洛方法（Monte-Carlo Methods）</a></li>
-                <li>
-                    <a href="#6-%e6%97%b6%e5%ba%8f%e5%b7%ae%e5%88%86%e5%ad%a6%e4%b9%a0temporal-difference-learning" aria-label="6. 时序差分学习（Temporal-Difference Learning）">6. 时序差分学习（Temporal-Difference Learning）</a><ul>
-                        
-                <li>
-                    <a href="#61-epsilon-textgreedy%e7%ae%97%e6%b3%95" aria-label="6.1 $\epsilon-\text{greedy}$算法">6.1 $\epsilon-\text{greedy}$算法</a></li>
-                <li>
-                    <a href="#62-sarsa%e7%ae%97%e6%b3%95on-policy-td-control" aria-label="6.2 Sarsa算法（On-Policy TD control）">6.2 Sarsa算法（On-Policy TD control）</a></li>
-                <li>
-                    <a href="#63-q-learning%e7%ae%97%e6%b3%95off-policy-td-control" aria-label="6.3 Q-Learning算法（Off-Policy TD control）">6.3 Q-Learning算法（Off-Policy TD control）</a></li>
-                <li>
-                    <a href="#64-deep-q-network" aria-label="6.4 Deep Q-Network">6.4 Deep Q-Network</a></li>
-                <li>
-                    <a href="#65-%e7%bb%93%e5%90%88td%e4%b8%8emc" aria-label="6.5 结合TD与MC">6.5 结合TD与MC</a></li></ul>
-                </li>
-                <li>
-                    <a href="#7-%e7%ad%96%e7%95%a5%e6%a2%af%e5%ba%a6%e7%ae%97%e6%b3%95policy-gradient" aria-label="7. 策略梯度算法（Policy Gradient）">7. 策略梯度算法（Policy Gradient）</a><ul>
-                        
-                <li>
-                    <a href="#71-%e7%8a%b6%e6%80%81%e8%ae%bf%e9%97%ae%e5%88%86%e5%b8%83" aria-label="7.1 状态访问分布">7.1 状态访问分布</a></li>
-                <li>
-                    <a href="#72-%e7%ad%96%e7%95%a5%e6%a2%af%e5%ba%a6%e6%8e%a8%e5%af%bc" aria-label="7.2 策略梯度推导">7.2 策略梯度推导</a></li>
-                <li>
-                    <a href="#73-reinforce%e7%ae%97%e6%b3%95" aria-label="7.3 REINFORCE算法">7.3 REINFORCE算法</a></li>
-                <li>
-                    <a href="#74-actor-critic%e7%ae%97%e6%b3%95" aria-label="7.4 Actor-Critic算法">7.4 Actor-Critic算法</a></li>
-                <li>
-                    <a href="#75-trpo%e7%ae%97%e6%b3%95trust-region-policy-optimization" aria-label="7.5 TRPO算法（Trust Region Policy Optimization）">7.5 TRPO算法（Trust Region Policy Optimization）</a></li>
-                <li>
-                    <a href="#76-ppo%e7%ae%97%e6%b3%95proximal-policy-optimization" aria-label="7.6 PPO算法（Proximal Policy Optimization）">7.6 PPO算法（Proximal Policy Optimization）</a></li></ul>
-                </li>
-                <li>
-                    <a href="#references" aria-label="References">References</a>
-                </li>
-            </ul>
-        </div>
-    </details>
-</div>
-
-  <div class="post-content"><h3 id="1-基本概念公式">1. 基本概念，公式<a hidden class="anchor" aria-hidden="true" href="#1-基本概念公式">#</a></h3>
-<p>策略$\pi$，状态$s\in\mathcal S$，动作$a\in\mathcal A$，奖励$r\in\mathcal R$</p>
-<p>转移函数$P$给出当采取行动$a$从状态$s$转移到$s^\prime$，同时获得奖励$r$的概率</p>
-<div class="scroll-container">
 $$P(s^\prime,r\vert s,a)=\mathbb P[S_{t+1}=s^\prime,R_{t+1}=r\vert S_t=s,A_t=a]$$
-</div>
-<p>状态转移函数$P^a_{ss^\prime}$</p>
-<div class="scroll-container">
+
+状态转移函数$P^a_{ss^\prime}$
+
 $$P^a_{ss^\prime}=P(s^\prime\vert s,a)=\mathbb P[S_{t+1}=s^\prime|S_t=s,A_t=a]=\sum_{r\in\mathcal R}P(s^\prime,r\vert s,a)$$
-</div>
-<p>奖励函数$R$预测给定状态和动作后的下一个奖励值</p>
-<div class="scroll-container">
+
+奖励函数$R$预测给定状态和动作后的下一个奖励值
+
 $$R(s,a)=\mathbb E[R_{t+1}\vert S_t=s,A_t=a]=\sum_{r\in\mathcal R}r\sum_{s^\prime\in\mathcal S}P(s^\prime,r\vert s,a)$$
-</div>
-<!-- $$R(s)=\mathbb E[R_{t+1}\vert S_t=s]$$ -->
-<p>策略$\pi$给出在状态$s$下会采取何种行动，分为两种</p>
-<ul>
-<li>确定性：$\pi(s)=a$</li>
-<li>随机性：$\pi(a\vert s)=\mathbb P_\pi[A=a\vert S=s]$</li>
-</ul>
-<p>回报$G_t$，即未来的奖励之和，其中$\gamma\in[0,1]$为惩罚因子</p>
-<div class="scroll-container">
+
+
+策略$\pi$给出在状态$s$下会采取何种行动，分为两种
+
+确定性：$\pi(s)=a$
+随机性：$\pi(a\vert s)=\mathbb P_\pi[A=a\vert S=s]$
+
+回报$G_t$，即未来的奖励之和，其中$\gamma\in[0,1]$为惩罚因子
+
 $$G_t=R_{t+1}+\gamma R_{t+2}+\dots=\sum_{k=0}^\infty \gamma^k R_{t+k+1}$$
-</div>
-<p>状态价值函数$V_\pi(s)$给出在状态$s$下的期望回报</p>
-<div class="scroll-container">
+
+状态价值函数$V_\pi(s)$给出在状态$s$下的期望回报
+
 $$V_\pi(s)=\mathbb E_\pi[G_t\vert S_t=s]$$
-</div>
-<p>动作价值函数$Q_\pi(s,a)$给出在状态$s$下采取动作$a$的期望回报</p>
-<div class="scroll-container">
+
+动作价值函数$Q_\pi(s,a)$给出在状态$s$下采取动作$a$的期望回报
+
 $$Q_\pi(s,a)=\mathbb E_\pi[G_t\vert S_t=s, A_t=a]$$
-</div>
-<p>状态价值和动作价值的关系</p>
-<div class="scroll-container">
+
+状态价值和动作价值的关系
+
 $$V_\pi(s)=\sum_{a\in\mathcal A}Q_\pi(s,a)\pi(a|s)=\mathbb E_{a\sim\pi}Q_\pi(s,a)$$
-</div>
+
 优势函数$A_\pi(s,a)$定义为动作价值与状态价值的差
-<div class="scroll-container">
+
 $$A_\pi(s,a)=Q_\pi(s,a)-V_\pi(s)$$
-</div>
+
 最优价值函数定义为在最优策略下的价值函数，即能够产生最大回报
-<div class="scroll-container">
+
 $$V_*(s)=\max_\pi V_\pi(s)\\
 Q_*(s,a)=\max_\pi Q_\pi(s,a)$$
-</div>
-<p>最优策略定义为实现最优价值的策略，即对任意状态$s$都有$V_\pi(s)\ge V_{\pi^\prime}(s)$，最优策略可能有多个，都将其表示为$\pi_*(s)$</p>
-<div class="scroll-container">
+
+最优策略定义为实现最优价值的策略，即对任意状态$s$都有$V_\pi(s)\ge V_{\pi^\prime}(s)$，最优策略可能有多个，都将其表示为$\pi_*(s)$
+
 $$\pi_*=\arg\max_\pi V_\pi(s)\\
 \pi_*=\arg\max_\pi Q_\pi(s,a)$$
-</div>
-<p>因此，以下关系是成立的</p>
-<div class="scroll-container">
+
+因此，以下关系是成立的
+
 $$V_{\pi_*}(s)=V_*(s)\\
 Q_{\pi_*}(s,a)=Q_*(s,a)$$
-</div>
-<h3 id="2-马尔可夫过程mdps">2. 马尔可夫过程（MDPs）<a hidden class="anchor" aria-hidden="true" href="#2-马尔可夫过程mdps">#</a></h3>
-<p>几乎所有RL问题都可以划在马尔可夫过程内，马尔可夫过程内的所有状态都有同一个特性，即未来的状态只取决于当下的状态，与历史状态无关
+
+2. 马尔可夫过程（MDPs）
+几乎所有RL问题都可以划在马尔可夫过程内，马尔可夫过程内的所有状态都有同一个特性，即未来的状态只取决于当下的状态，与历史状态无关
 $$\mathbb P[S_{t+1}\vert S_t]=\mathbb P[S_{t+1}\vert S_1,\dots S_t]$$
-一个马尔可夫决策过程包含五个元素$\mathcal M=\langle \mathcal S,\mathcal A,\mathcal P,\mathcal R,\gamma\rangle$，对应的符号与基本符号含义相同</p>
-<ul>
-<li>$\mathcal S$：状态集合</li>
-<li>$\mathcal A$：动作集合</li>
-<li>$\mathcal P$：转移概率函数</li>
-<li>$\mathcal R$：奖励函数</li>
-<li>$\gamma$：惩罚因子</li>
-</ul>
-<h3 id="3-贝尔曼方程bellman-equations">3. 贝尔曼方程（Bellman Equations）<a hidden class="anchor" aria-hidden="true" href="#3-贝尔曼方程bellman-equations">#</a></h3>
-<!-- - $V(S_t=s)=R(s)+\gamma\mathbb E[V(S_{t+1})\vert S_t=s]$
-- $Q(S_t=s,A_t=a)=R(s,a)+\gamma\mathbb E[\mathbb E_{a\sim\pi}Q(S_{t+1},A_t=a)\vert S_t=s, A_t=a]$ -->
-<p>贝尔曼方程主要将价值函数分解成及时奖励和折扣后的未来价值</p>
-<div class="scroll-container">
-$$
+一个马尔可夫决策过程包含五个元素$\mathcal M=\langle \mathcal S,\mathcal A,\mathcal P,\mathcal R,\gamma\rangle$，对应的符号与基本符号含义相同"><meta name=author content="Rs"><link rel=canonical href=https://tqzhong.github.io/my-blog/posts/2024-11-21-reinforcement-learning/><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css><link crossorigin=anonymous href=/my-blog/assets/css/stylesheet.6a98292fb8fa8cf0f3ba4042d4b75515c04267550f3ad49ff6271b5af9562443.css integrity="sha256-apgpL7j6jPDzukBC1LdVFcBCZ1UPOtSf9icbWvlWJEM=" rel="preload stylesheet" as=style><script defer crossorigin=anonymous src=/my-blog/assets/js/highlight.f413e19d0714851f6474e7ee9632408e58ac146fbdbe62747134bea2fa3415e0.js integrity="sha256-9BPhnQcUhR9kdOfuljJAjlisFG+9vmJ0cTS+ovo0FeA=" onload=hljs.initHighlightingOnLoad()></script><link rel=icon type=image/x-icon sizes=48x48 href=images/favicon.ico><link rel=icon type=image/png sizes=16x16 href=images/favicon-16x16.png><link rel=icon type=image/png sizes=32x32 href=images/favicon-32x32.png><link rel=apple-touch-icon href=images/apple-touch-icon.png><link rel=icon sizes=512x512 href=images/android-chrome-512x512.png type=image/png><link rel=icon sizes=192x192 href=images/android-chrome-192x192.png type=image/png><link rel=mask-icon href=https://tqzhong.github.io/my-blog/safari-pinned-tab.svg><meta name=theme-color content="#2e2e33"><meta name=msapplication-TileColor content="#2e2e33"><link rel=alternate hreflang=en href=https://tqzhong.github.io/my-blog/posts/2024-11-21-reinforcement-learning/><noscript><style>#theme-toggle,.top-link{display:none}</style><style>@media(prefers-color-scheme:dark){:root{--theme:rgb(29, 30, 32);--entry:rgb(46, 46, 51);--primary:rgb(218, 218, 219);--secondary:rgb(155, 156, 157);--tertiary:rgb(65, 66, 68);--content:rgb(196, 196, 197);--hljs-bg:rgb(46, 46, 51);--code-bg:rgb(55, 56, 62);--border:rgb(51, 51, 51)}.list{background:var(--theme)}.list:not(.dark)::-webkit-scrollbar-track{background:0 0}.list:not(.dark)::-webkit-scrollbar-thumb{border-color:var(--theme)}}</style></noscript><link rel=stylesheet href="/my-blog/css/custom.css?v=1.7"><meta property="og:title" content="强化学习笔记"><meta property="og:description" content="1. 基本概念，公式
+策略$\pi$，状态$s\in\mathcal S$，动作$a\in\mathcal A$，奖励$r\in\mathcal R$
+转移函数$P$给出当采取行动$a$从状态$s$转移到$s^\prime$，同时获得奖励$r$的概率
+
+$$P(s^\prime,r\vert s,a)=\mathbb P[S_{t+1}=s^\prime,R_{t+1}=r\vert S_t=s,A_t=a]$$
+
+状态转移函数$P^a_{ss^\prime}$
+
+$$P^a_{ss^\prime}=P(s^\prime\vert s,a)=\mathbb P[S_{t+1}=s^\prime|S_t=s,A_t=a]=\sum_{r\in\mathcal R}P(s^\prime,r\vert s,a)$$
+
+奖励函数$R$预测给定状态和动作后的下一个奖励值
+
+$$R(s,a)=\mathbb E[R_{t+1}\vert S_t=s,A_t=a]=\sum_{r\in\mathcal R}r\sum_{s^\prime\in\mathcal S}P(s^\prime,r\vert s,a)$$
+
+
+策略$\pi$给出在状态$s$下会采取何种行动，分为两种
+
+确定性：$\pi(s)=a$
+随机性：$\pi(a\vert s)=\mathbb P_\pi[A=a\vert S=s]$
+
+回报$G_t$，即未来的奖励之和，其中$\gamma\in[0,1]$为惩罚因子
+
+$$G_t=R_{t+1}+\gamma R_{t+2}+\dots=\sum_{k=0}^\infty \gamma^k R_{t+k+1}$$
+
+状态价值函数$V_\pi(s)$给出在状态$s$下的期望回报
+
+$$V_\pi(s)=\mathbb E_\pi[G_t\vert S_t=s]$$
+
+动作价值函数$Q_\pi(s,a)$给出在状态$s$下采取动作$a$的期望回报
+
+$$Q_\pi(s,a)=\mathbb E_\pi[G_t\vert S_t=s, A_t=a]$$
+
+状态价值和动作价值的关系
+
+$$V_\pi(s)=\sum_{a\in\mathcal A}Q_\pi(s,a)\pi(a|s)=\mathbb E_{a\sim\pi}Q_\pi(s,a)$$
+
+优势函数$A_\pi(s,a)$定义为动作价值与状态价值的差
+
+$$A_\pi(s,a)=Q_\pi(s,a)-V_\pi(s)$$
+
+最优价值函数定义为在最优策略下的价值函数，即能够产生最大回报
+
+$$V_*(s)=\max_\pi V_\pi(s)\\
+Q_*(s,a)=\max_\pi Q_\pi(s,a)$$
+
+最优策略定义为实现最优价值的策略，即对任意状态$s$都有$V_\pi(s)\ge V_{\pi^\prime}(s)$，最优策略可能有多个，都将其表示为$\pi_*(s)$
+
+$$\pi_*=\arg\max_\pi V_\pi(s)\\
+\pi_*=\arg\max_\pi Q_\pi(s,a)$$
+
+因此，以下关系是成立的
+
+$$V_{\pi_*}(s)=V_*(s)\\
+Q_{\pi_*}(s,a)=Q_*(s,a)$$
+
+2. 马尔可夫过程（MDPs）
+几乎所有RL问题都可以划在马尔可夫过程内，马尔可夫过程内的所有状态都有同一个特性，即未来的状态只取决于当下的状态，与历史状态无关
+$$\mathbb P[S_{t+1}\vert S_t]=\mathbb P[S_{t+1}\vert S_1,\dots S_t]$$
+一个马尔可夫决策过程包含五个元素$\mathcal M=\langle \mathcal S,\mathcal A,\mathcal P,\mathcal R,\gamma\rangle$，对应的符号与基本符号含义相同"><meta property="og:type" content="article"><meta property="og:url" content="https://tqzhong.github.io/my-blog/posts/2024-11-21-reinforcement-learning/"><meta property="article:section" content="posts"><meta property="article:published_time" content="2024-11-21T00:00:00+00:00"><meta property="article:modified_time" content="2024-11-21T00:00:00+00:00"><meta name=twitter:card content="summary"><meta name=twitter:title content="强化学习笔记"><meta name=twitter:description content="1. 基本概念，公式
+策略$\pi$，状态$s\in\mathcal S$，动作$a\in\mathcal A$，奖励$r\in\mathcal R$
+转移函数$P$给出当采取行动$a$从状态$s$转移到$s^\prime$，同时获得奖励$r$的概率
+
+$$P(s^\prime,r\vert s,a)=\mathbb P[S_{t+1}=s^\prime,R_{t+1}=r\vert S_t=s,A_t=a]$$
+
+状态转移函数$P^a_{ss^\prime}$
+
+$$P^a_{ss^\prime}=P(s^\prime\vert s,a)=\mathbb P[S_{t+1}=s^\prime|S_t=s,A_t=a]=\sum_{r\in\mathcal R}P(s^\prime,r\vert s,a)$$
+
+奖励函数$R$预测给定状态和动作后的下一个奖励值
+
+$$R(s,a)=\mathbb E[R_{t+1}\vert S_t=s,A_t=a]=\sum_{r\in\mathcal R}r\sum_{s^\prime\in\mathcal S}P(s^\prime,r\vert s,a)$$
+
+
+策略$\pi$给出在状态$s$下会采取何种行动，分为两种
+
+确定性：$\pi(s)=a$
+随机性：$\pi(a\vert s)=\mathbb P_\pi[A=a\vert S=s]$
+
+回报$G_t$，即未来的奖励之和，其中$\gamma\in[0,1]$为惩罚因子
+
+$$G_t=R_{t+1}+\gamma R_{t+2}+\dots=\sum_{k=0}^\infty \gamma^k R_{t+k+1}$$
+
+状态价值函数$V_\pi(s)$给出在状态$s$下的期望回报
+
+$$V_\pi(s)=\mathbb E_\pi[G_t\vert S_t=s]$$
+
+动作价值函数$Q_\pi(s,a)$给出在状态$s$下采取动作$a$的期望回报
+
+$$Q_\pi(s,a)=\mathbb E_\pi[G_t\vert S_t=s, A_t=a]$$
+
+状态价值和动作价值的关系
+
+$$V_\pi(s)=\sum_{a\in\mathcal A}Q_\pi(s,a)\pi(a|s)=\mathbb E_{a\sim\pi}Q_\pi(s,a)$$
+
+优势函数$A_\pi(s,a)$定义为动作价值与状态价值的差
+
+$$A_\pi(s,a)=Q_\pi(s,a)-V_\pi(s)$$
+
+最优价值函数定义为在最优策略下的价值函数，即能够产生最大回报
+
+$$V_*(s)=\max_\pi V_\pi(s)\\
+Q_*(s,a)=\max_\pi Q_\pi(s,a)$$
+
+最优策略定义为实现最优价值的策略，即对任意状态$s$都有$V_\pi(s)\ge V_{\pi^\prime}(s)$，最优策略可能有多个，都将其表示为$\pi_*(s)$
+
+$$\pi_*=\arg\max_\pi V_\pi(s)\\
+\pi_*=\arg\max_\pi Q_\pi(s,a)$$
+
+因此，以下关系是成立的
+
+$$V_{\pi_*}(s)=V_*(s)\\
+Q_{\pi_*}(s,a)=Q_*(s,a)$$
+
+2. 马尔可夫过程（MDPs）
+几乎所有RL问题都可以划在马尔可夫过程内，马尔可夫过程内的所有状态都有同一个特性，即未来的状态只取决于当下的状态，与历史状态无关
+$$\mathbb P[S_{t+1}\vert S_t]=\mathbb P[S_{t+1}\vert S_1,\dots S_t]$$
+一个马尔可夫决策过程包含五个元素$\mathcal M=\langle \mathcal S,\mathcal A,\mathcal P,\mathcal R,\gamma\rangle$，对应的符号与基本符号含义相同"><script type=application/ld+json>{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Posts","item":"https://tqzhong.github.io/my-blog/posts/"},{"@type":"ListItem","position":2,"name":"强化学习笔记","item":"https://tqzhong.github.io/my-blog/posts/2024-11-21-reinforcement-learning/"}]}</script><script type=application/ld+json>{"@context":"https://schema.org","@type":"BlogPosting","headline":"强化学习笔记","name":"强化学习笔记","description":"1. 基本概念，公式 策略$\\pi$，状态$s\\in\\mathcal S$，动作$a\\in\\mathcal A$，奖励$r\\in\\mathcal R$\n转移函数$P$给出当采取行动$a$从状态$s$转移到$s^\\prime$，同时获得奖励$r$的概率\n$$P(s^\\prime,r\\vert s,a)=\\mathbb P[S_{t+1}=s^\\prime,R_{t+1}=r\\vert S_t=s,A_t=a]$$ 状态转移函数$P^a_{ss^\\prime}$\n$$P^a_{ss^\\prime}=P(s^\\prime\\vert s,a)=\\mathbb P[S_{t+1}=s^\\prime|S_t=s,A_t=a]=\\sum_{r\\in\\mathcal R}P(s^\\prime,r\\vert s,a)$$ 奖励函数$R$预测给定状态和动作后的下一个奖励值\n$$R(s,a)=\\mathbb E[R_{t+1}\\vert S_t=s,A_t=a]=\\sum_{r\\in\\mathcal R}r\\sum_{s^\\prime\\in\\mathcal S}P(s^\\prime,r\\vert s,a)$$ 策略$\\pi$给出在状态$s$下会采取何种行动，分为两种\n确定性：$\\pi(s)=a$ 随机性：$\\pi(a\\vert s)=\\mathbb P_\\pi[A=a\\vert S=s]$ 回报$G_t$，即未来的奖励之和，其中$\\gamma\\in[0,1]$为惩罚因子\n$$G_t=R_{t+1}+\\gamma R_{t+2}+\\dots=\\sum_{k=0}^\\infty \\gamma^k R_{t+k+1}$$ 状态价值函数$V_\\pi(s)$给出在状态$s$下的期望回报\n$$V_\\pi(s)=\\mathbb E_\\pi[G_t\\vert S_t=s]$$ 动作价值函数$Q_\\pi(s,a)$给出在状态$s$下采取动作$a$的期望回报\n$$Q_\\pi(s,a)=\\mathbb E_\\pi[G_t\\vert S_t=s, A_t=a]$$ 状态价值和动作价值的关系\n$$V_\\pi(s)=\\sum_{a\\in\\mathcal A}Q_\\pi(s,a)\\pi(a|s)=\\mathbb E_{a\\sim\\pi}Q_\\pi(s,a)$$ 优势函数$A_\\pi(s,a)$定义为动作价值与状态价值的差 $$A_\\pi(s,a)=Q_\\pi(s,a)-V_\\pi(s)$$ 最优价值函数定义为在最优策略下的价值函数，即能够产生最大回报 $$V_*(s)=\\max_\\pi V_\\pi(s)\\\\ Q_*(s,a)=\\max_\\pi Q_\\pi(s,a)$$ 最优策略定义为实现最优价值的策略，即对任意状态$s$都有$V_\\pi(s)\\ge V_{\\pi^\\prime}(s)$，最优策略可能有多个，都将其表示为$\\pi_*(s)$\n$$\\pi_*=\\arg\\max_\\pi V_\\pi(s)\\\\ \\pi_*=\\arg\\max_\\pi Q_\\pi(s,a)$$ 因此，以下关系是成立的\n$$V_{\\pi_*}(s)=V_*(s)\\\\ Q_{\\pi_*}(s,a)=Q_*(s,a)$$ 2. 马尔可夫过程（MDPs） 几乎所有RL问题都可以划在马尔可夫过程内，马尔可夫过程内的所有状态都有同一个特性，即未来的状态只取决于当下的状态，与历史状态无关 $$\\mathbb P[S_{t+1}\\vert S_t]=\\mathbb P[S_{t+1}\\vert S_1,\\dots S_t]$$ 一个马尔可夫决策过程包含五个元素$\\mathcal M=\\langle \\mathcal S,\\mathcal A,\\mathcal P,\\mathcal R,\\gamma\\rangle$，对应的符号与基本符号含义相同\n","keywords":["AI","RL"],"articleBody":"1. 基本概念，公式 策略$\\pi$，状态$s\\in\\mathcal S$，动作$a\\in\\mathcal A$，奖励$r\\in\\mathcal R$\n转移函数$P$给出当采取行动$a$从状态$s$转移到$s^\\prime$，同时获得奖励$r$的概率\n$$P(s^\\prime,r\\vert s,a)=\\mathbb P[S_{t+1}=s^\\prime,R_{t+1}=r\\vert S_t=s,A_t=a]$$ 状态转移函数$P^a_{ss^\\prime}$\n$$P^a_{ss^\\prime}=P(s^\\prime\\vert s,a)=\\mathbb P[S_{t+1}=s^\\prime|S_t=s,A_t=a]=\\sum_{r\\in\\mathcal R}P(s^\\prime,r\\vert s,a)$$ 奖励函数$R$预测给定状态和动作后的下一个奖励值\n$$R(s,a)=\\mathbb E[R_{t+1}\\vert S_t=s,A_t=a]=\\sum_{r\\in\\mathcal R}r\\sum_{s^\\prime\\in\\mathcal S}P(s^\\prime,r\\vert s,a)$$ 策略$\\pi$给出在状态$s$下会采取何种行动，分为两种\n确定性：$\\pi(s)=a$ 随机性：$\\pi(a\\vert s)=\\mathbb P_\\pi[A=a\\vert S=s]$ 回报$G_t$，即未来的奖励之和，其中$\\gamma\\in[0,1]$为惩罚因子\n$$G_t=R_{t+1}+\\gamma R_{t+2}+\\dots=\\sum_{k=0}^\\infty \\gamma^k R_{t+k+1}$$ 状态价值函数$V_\\pi(s)$给出在状态$s$下的期望回报\n$$V_\\pi(s)=\\mathbb E_\\pi[G_t\\vert S_t=s]$$ 动作价值函数$Q_\\pi(s,a)$给出在状态$s$下采取动作$a$的期望回报\n$$Q_\\pi(s,a)=\\mathbb E_\\pi[G_t\\vert S_t=s, A_t=a]$$ 状态价值和动作价值的关系\n$$V_\\pi(s)=\\sum_{a\\in\\mathcal A}Q_\\pi(s,a)\\pi(a|s)=\\mathbb E_{a\\sim\\pi}Q_\\pi(s,a)$$ 优势函数$A_\\pi(s,a)$定义为动作价值与状态价值的差 $$A_\\pi(s,a)=Q_\\pi(s,a)-V_\\pi(s)$$ 最优价值函数定义为在最优策略下的价值函数，即能够产生最大回报 $$V_*(s)=\\max_\\pi V_\\pi(s)\\\\ Q_*(s,a)=\\max_\\pi Q_\\pi(s,a)$$ 最优策略定义为实现最优价值的策略，即对任意状态$s$都有$V_\\pi(s)\\ge V_{\\pi^\\prime}(s)$，最优策略可能有多个，都将其表示为$\\pi_*(s)$\n$$\\pi_*=\\arg\\max_\\pi V_\\pi(s)\\\\ \\pi_*=\\arg\\max_\\pi Q_\\pi(s,a)$$ 因此，以下关系是成立的\n$$V_{\\pi_*}(s)=V_*(s)\\\\ Q_{\\pi_*}(s,a)=Q_*(s,a)$$ 2. 马尔可夫过程（MDPs） 几乎所有RL问题都可以划在马尔可夫过程内，马尔可夫过程内的所有状态都有同一个特性，即未来的状态只取决于当下的状态，与历史状态无关 $$\\mathbb P[S_{t+1}\\vert S_t]=\\mathbb P[S_{t+1}\\vert S_1,\\dots S_t]$$ 一个马尔可夫决策过程包含五个元素$\\mathcal M=\\langle \\mathcal S,\\mathcal A,\\mathcal P,\\mathcal R,\\gamma\\rangle$，对应的符号与基本符号含义相同\n$\\mathcal S$：状态集合 $\\mathcal A$：动作集合 $\\mathcal P$：转移概率函数 $\\mathcal R$：奖励函数 $\\gamma$：惩罚因子 3. 贝尔曼方程（Bellman Equations） 贝尔曼方程主要将价值函数分解成及时奖励和折扣后的未来价值\n$$ \\begin{align*} V(s)\u0026=\\mathbb E[G_t\\vert S_t=s]\\\\ \u0026=\\mathbb E[R_{t+1}+\\gamma R_{t+2}+\\gamma^2 R_{t+3}+\\dots\\vert S_t=s]\\\\ \u0026=\\mathbb E[R_{t+1}+\\gamma(R_{t+2}+\\gamma R_{t+3}+\\dots)\\vert S_t=s]\\\\ \u0026=\\mathbb E[R_{t+1}+\\gamma G_{t+1}\\vert S_t=s]\\\\ \u0026=\\mathbb E[R_{t+1}\\vert S_t=s] + \\gamma\\mathbb E[G_{t+1}\\vert S_t=s]\\\\ \u0026=R(s) + \\gamma\\mathbb E[V_{t+1}\\vert S_t=s]\\\\ \u0026=R(s) + \\gamma\\sum_{s^\\prime\\in\\mathcal S}\\mathbb P(S_{t+1}=s^\\prime\\vert S_t=s)V(s^\\prime) \\end{align*} $$ 写成矩阵形式，假设$\\mathcal S={s_1,s_2,\\dots,s_n}$\n$$ \\left[ \\begin{array}{c} V(s_1) \\\\ V(s_2) \\\\ \\vdots \\\\ V(s_n) \\end{array} \\right] = \\left[ \\begin{array}{c} R(s_1) \\\\ R(s_2) \\\\ \\vdots \\\\ R(s_n) \\end{array} \\right] + \\gamma \\left[ \\begin{array}{cccc} \\mathbb{P}(s_1 | s_1) \u0026 \\mathbb{P}(s_2 | s_1) \u0026 \\cdots \u0026 \\mathbb{P}(s_n | s_1) \\\\ \\mathbb{P}(s_1 | s_2) \u0026 \\mathbb{P}(s_2 | s_2) \u0026 \\cdots \u0026 \\mathbb{P}(s_n | s_2) \\\\ \\vdots \u0026 \\vdots \u0026 \\ddots \u0026 \\vdots \\\\ \\mathbb{P}(s_1 | s_n) \u0026 \\mathbb{P}(s_2 | s_n) \u0026 \\cdots \u0026 \\mathbb{P}(s_n | s_n) \\end{array} \\right] \\left[ \\begin{array}{c} V(s_1) \\\\ V(s_2) \\\\ \\vdots \\\\ V(s_n) \\end{array} \\right] $$ 关于$\\mathbb E[G_{t+1}\\vert S_t=s]=\\mathbb E[V_{t+1}\\vert S_t=s]$的推导过程如下，主要关注的点：从第一行到第二行为对随机变量$G_{t+1}$的期望进行求和展开，从第三行到第四行为对随机变量$S_{t+1}$进行求和展开\n$$\\begin{align*} \\mathbb E[V_{t+1}\\vert S_t=s]\u0026=\\mathbb E[\\mathbb E[G_{t+1}\\vert S_{t+1}]\\vert S_t=s]\\\\ \u0026=\\mathbb E[\\sum_{g^\\prime\\in\\mathcal G}g^\\prime\\mathbb P(G_{t+1}=g^\\prime\\vert S_{t+1})\\vert S_t=s]\\\\ \u0026=\\sum_{g^\\prime\\in\\mathcal G}g^\\prime\\mathbb E[\\mathbb P(G_{t+1}=g^\\prime\\vert S_{t+1})\\vert S_t=s] \\\\ \u0026=\\sum_{s^\\prime\\in\\mathcal S}\\sum_{g^\\prime\\in\\mathcal G}g^\\prime\\mathbb P(G_{t+1}=g^\\prime\\vert S_{t+1}=s^\\prime,S_t=s)\\mathbb P(S_{t+1}=s^\\prime\\vert S_t=s)\\\\ \u0026=\\sum_{s^\\prime\\in\\mathcal S}\\sum_{g^\\prime\\in\\mathcal G}\\frac{g^\\prime\\mathbb P(G_{t+1}=g^\\prime\\vert S_{t+1}=s^\\prime,S_t=s)\\mathbb P(S_{t+1}=s^\\prime, S_t=s)}{\\mathbb P(S_t=s)}\\\\ \u0026=\\sum_{s\\prime\\in\\mathcal S}\\sum_{g^\\prime\\in\\mathcal G}\\frac{g^\\prime\\mathbb P(G_{t+1}=g^\\prime,S_{t+1}=s^\\prime,S_t=s)}{\\mathbb P(S_t=s)}\\\\ \u0026=\\sum_{s\\prime\\in\\mathcal S}\\sum_{g^\\prime\\in\\mathcal G}g^\\prime\\mathbb P(G_{t+1}=g^\\prime,S_{t+1}=s^\\prime\\vert S_t=s)\\\\ \u0026=\\sum_{g^\\prime\\in\\mathcal G}g^\\prime\\sum_{s^\\prime\\in\\mathcal S}\\mathbb P(G_{t+1}=g^\\prime, S_{t+1}=s^\\prime\\vert S_t=s)\\\\ \u0026=\\sum_{g^\\prime\\in\\mathcal G}g^\\prime\\mathbb P(G_{t+1}=g^\\prime\\vert S_t=s)\\\\ \u0026=\\mathbb E[G_{t+1}\\vert S_t=s] \\end{align*}$$ 基于上述的推导同理可以对$Q(s,a)$进行分解\n$$\\begin{align*} Q(s,a)\u0026=\\mathbb E[G_t\\vert S_t=s,A_t=a]\\\\ \u0026=\\mathbb E[R_{t+1} + \\gamma V_{t+1}\\vert S_t=s, A_t=a]\\\\ \u0026=R(s, a) + \\gamma \\mathbb E[V_{t+1}\\vert S_t=s, A_t=a]\\\\ \u0026=R(s, a) + \\gamma \\mathbb E[\\mathbb E_{a\\sim\\pi}Q(S_{t+1},a)\\vert S_t=s, A_t=a] \\end{align*}$$ 3.1 贝尔曼期望方程 贝尔曼期望方程公式如下，这两个方程给出了当前状态的价值与未来状态价值之间的关联以及当前时刻的动作价值函数Q与未来时刻的动作价值函数Q之间的关联。\n$V_\\pi(s)=\\sum_{a\\in\\mathcal A}\\pi(a|s)(R(s,a) + \\gamma\\sum_{s^\\prime\\in\\mathcal S}P^a_{ss^\\prime}V_\\pi(s^\\prime))$ $Q_\\pi(s,a)=R(s,a) + \\gamma\\sum_{s^\\prime\\in\\mathcal S}P^a_{ss^\\prime}\\sum_{a^\\prime\\in\\mathcal A}\\pi(a^\\prime\\vert s^\\prime)Q_\\pi(s^\\prime, a^\\prime)$ 由贝尔曼方程的结果，引入策略$\\pi$进一步推导\n$$\\begin{align*} V_\\pi(s)\u0026=\\sum_{a\\in\\mathcal A}\\pi(a\\vert s)Q_\\pi(s,a)\\\\ \u0026=\\sum_{a\\in\\mathcal A}\\pi(a\\vert s)(R(s,a) + \\gamma\\mathbb E[V_{\\pi}(s^\\prime)\\vert S_t=s, A_t=a])\\\\ \u0026=\\sum_{a\\in\\mathcal A}\\pi(a|s)(R(s,a) + \\gamma\\sum_{s^\\prime\\in\\mathcal S}P^a_{ss^\\prime}V_\\pi(s^\\prime)) \\\\ Q_\\pi(s,a)\u0026=R(s,a) + \\gamma\\sum_{s^\\prime\\in\\mathcal S}P^a_{ss^\\prime}V_\\pi(s^\\prime)\\\\ \u0026=R(s,a) + \\gamma\\sum_{s^\\prime\\in\\mathcal S}P^a_{ss^\\prime}\\sum_{a^\\prime\\in\\mathcal A}\\pi(a^\\prime\\vert s^\\prime)Q_\\pi(s^\\prime, a^\\prime) \\end{align*}$$ 3.2 贝尔曼最优方程 $$\\begin{align*} V_*(s)\u0026=\\max_{a\\in\\mathcal A}Q_*(s,a)\\\\ Q_*(s,a)\u0026=R(s,a) + \\gamma\\sum_{s^\\prime\\in\\mathcal S}P_{ss^\\prime}^a V_*(s^\\prime)\\\\ V_*(s)\u0026=\\max_{a\\in\\mathcal A}(R(s,a) + \\gamma\\sum_{s^\\prime\\in\\mathcal S}P^a_{ss^\\prime}V_*(s^\\prime))\\\\ Q_*(s,a)\u0026=R(s,a) + \\gamma\\sum_{s^\\prime\\in\\mathcal S}P^a_{ss^\\prime}\\max_{a^\\prime\\in\\mathcal A}Q_*(s^\\prime,a^\\prime) \\end{align*}$$ 第一个式子理解：当智能体来到状态$s$时，接下来假设有两个动作$a_1,a_2$可供选择，采取动作$a_1$后，能够得到的最优价值是$Q_*(s,a_1)$（在最优策略的前提下），采取动作$a_2$后，能够得到的最优价值是$Q_*(s, a_2)$，如果智能体想获得尽可能大的价值，那么它会采取更高价值相关的动作，因此使用最优策略时，在状态$s$下，$V_*(s)=\\max_{a\\in\\mathcal A}Q_*(s,a)$。\n第二个式子理解：基于贝尔曼期望方程$Q_\\pi(s,a)=R(s,a) + \\gamma\\sum_{s^\\prime\\in\\mathcal S}P^a_{ss^\\prime}V_\\pi(s^\\prime)$，智能体在状态$s$采取动作$a$后，到达的每一个新的状态都有最优价值$V_*(s^\\prime)$（在最优策略下），因此得到(12)式。\n第三、四式子理解：将第二式带入第一式得到第三式，将第一式带入第二式得到第四式。\n4. 动态规划（Dynamic Programming） 当模型已知，根据贝尔曼方程，可以使用动态规划迭代求解价值函数并优化策略。\n4.1 策略评估 价值函数的贝尔曼期望方程表示，当策略$\\pi$固定时，$V_\\pi$是一个“最终的收敛值”，满足某种平衡关系，这意味着，$V_\\pi(s)$是所有状态的值函数在多次迭代后的稳定结果。策略评估的迭代公式完全由价值函数的贝尔曼期望方程改写成迭代形式得到\n$$\\begin{align*}V_{t+1}(s)\u0026=\\sum_{a\\in\\mathcal A}\\pi(a|s)(R(s,a) + \\gamma\\sum_{s^\\prime\\in\\mathcal S}P(s^\\prime\\vert s, a)V_t(s^\\prime))\\\\ \u0026=\\mathbb E_\\pi[r+\\gamma V_t(s^\\prime)\\vert S_t=s]=\\sum_a\\pi(a\\vert s)\\sum_{s^\\prime, r}P(s^\\prime,r\\vert s,a)(r+\\gamma V_t(s^\\prime)) \\end{align*}$$ 4.2 策略优化 当我们计算完状态价值函数后，对于当前策略，可以通过动作价值函数Q的贝尔曼期望方程计算当前动作价值函数Q\n$$\\begin{align*}Q_{\\pi_i}(s,a)\u0026=R(s,a) + \\gamma\\sum_{s^\\prime\\in\\mathcal S}P^a_{ss^\\prime}V_{\\pi_i}(s^\\prime)\\\\ \u0026=\\mathbb E[R_{t+1}+\\gamma V_{\\pi_i}(S_{t+1})\\vert S_t=s,A_t=a]\\\\ \u0026=\\sum_{s^\\prime, r}P(s^\\prime,r\\vert s,a)(r+\\gamma V_{\\pi_i}(s^\\prime)) \\end{align*}$$ 对于每个状态，我们取使其得到最大Q价值的动作，从而更新策略\n$$\\pi_{i+1}(s)=\\argmax_a Q_{\\pi_i}(s,a)$$ 4.3 策略迭代过程 基于策略评估和策略优化，实现策略迭代过程。假设有初始策略$\\pi_0$、初始状态价值函数$V_0(s)$、奖励函数$R(s,a)$、状态转移函数$P^a_{ss^\\prime}$，首先通过策略评估迭代状态价值函数得到$V_{\\pi_0}$，然后计算动作价值函数Q$Q_{\\pi_0}(s,a)$，并基于最新动作价值函数Q更新策略得到$\\pi_1$，基于这个流程不断迭代策略和状态价值函数最终收敛得到$V_*, \\pi_*$。\n$$\\pi_0\\xrightarrow[V_0]{\\text{evaluation}}V_{\\pi_0}\\xrightarrow[\\text{improve}]{Q_{\\pi_0}(s,a)}\\pi_1\\xrightarrow[V_{\\pi_0}]{\\text{evaluation}}V_{\\pi_1}\\xrightarrow[\\text{improve}]{Q_{\\pi_1}(s,a)}\\pi_2\\xrightarrow[V_{\\pi_1}]{\\text{evaluation}}\\dots\\xrightarrow[\\text{improve}]{}\\pi_*\\xrightarrow[]{\\text{evaluation}}V_*$$ 5. 蒙特卡洛方法（Monte-Carlo Methods） 蒙特卡洛方法（MC）使用对真实环境的结果做均值计算得到价值状态函数和动作价值函数Q，需要模型完整学完一个episode $S_1,A_1,R_2,\\dots,S_T$来计算$G_t=\\sum_{k=0}^{T-t-1}\\gamma^kR_{t+k+1}$，根据$V(s)=\\mathbb E[G_t\\vert S_t=s]$以及$Q(s,a)=\\mathbb E[G_t\\vert S_t=s, A_t=a]$计算$V(s)$和$Q(s,a)$，是一个model-free的方法。\n$$V(s)=\\frac{\\sum_{t=1}^T\\mathbb 1[S_t=s]G_t}{\\sum_{t=1}^T\\mathbb 1[S_t=s]}\\\\ Q(s,a)=\\frac{\\sum_{t=1}^T\\mathbb 1[S_t=s, A_t=a]G_t}{\\sum_{t=1}^T\\mathbb 1[S_t=s,A_t=a]}$$ 为了通过MC学习最优策略，我们采取和动态规划中使用的GPI (Generalized Policy Iteration)相类似的方法：\n根据计算的$Q_{\\pi_i}(s,a)$更新策略：$\\pi_{i+1}(s)=\\argmax_{a\\in\\mathcal A}Q(s,a)$。 使用新策略$\\pi_{i+1}$生成一个新的episode：$S^{i+1}_1,A^{i+1}_1,R^{i+1}_2,\\dots,S^{i+1}_T$。 根据新的episode估计新的动作价值函数Q：$Q_{\\pi_{i+1}}(s,a)=\\frac{\\sum_{t=1}^T(\\mathbb 1[S_t=s,A_t=a]\\sum_{k=0}^{T-t-1}\\gamma^k R_{t+k+1})}{\\sum_{t=1}^T\\mathbb 1[S_t=s, A_t=a]}$ 6. 时序差分学习（Temporal-Difference Learning） 时序差分（TD）也是一种model-free方法，从经验episodes中学习，但与MC不同的是，TD可以从不完整的episodes中学习。价值函数更新：\n$$V(S_t)\\leftarrow V(S_t) + \\alpha [G_t - V(S_t)]\\\\ V(S_t)\\leftarrow V(S_t) + \\alpha[R_{t+1} + \\gamma V(S_{t+1}) - V(S_t)]$$ 其中 $R_{t+1} + \\gamma V(S_{t+1})-V(S_t)$ 称为时序差分误差（TD-error）$\\alpha$ 表示更新的步长。蒙特卡洛方法用上面第一个式子作为更新目标，需要计算$G_t$从而需要完整的episodes，时序差分方法用第二个式子作为更新目标，不需要完整的episodes。\n6.1 $\\epsilon-\\text{greedy}$算法 在更新策略时一般使用广义策略迭代（GPI）的思想，但如果在策略提升中一直使用贪婪算法得到一个确定性策略，可能会导致某些状态动作对$(s,a)$永远没有在序列中出现，以至于无法对其动作价值进行估计，进而无法保证策略提升后的策略比之前的好，对此常用的解决方案是采用$\\epsilon-\\text{greedy}$ 算法：即有$1-\\epsilon$的概率采用动作价值最大的动作，另外有$\\epsilon$的概率从动作空间中的其他动作随即采取一个。\n$$\\pi(a\\vert s)=\\begin{cases} \\epsilon/|\\mathcal A| + 1 - \\epsilon \u0026 a=\\argmax_{a^\\prime}Q(s,a^\\prime)\\\\ \\epsilon/|\\mathcal A| \u0026 \\text{other action} \\end{cases}$$ 6.2 Sarsa算法（On-Policy TD control） 使用时序差分算法来估计动作价值函数Q：\n$$Q(S_t,A_t)\\leftarrow Q(S_t,A_t)+\\alpha(R_{t+1} + \\gamma Q(S_{t+1},A_{t+1})-Q(S_t,A_t))$$ 初始化$t=0$ 从$S_0$开始，选择动作$A_0=\\argmax_{a\\in\\mathcal A}Q(S_0,a)$，一般使用$\\epsilon-\\text{greedy}$ 在$t$时刻，采取动作$A_t$，得到奖励$R_{t+1}$，进入下一个状态$S_{t+1}$ $A_{t+1}=\\argmax_{a\\in\\mathcal A}Q(S_{t+1},a)$ 更新动作价值函数Q：$Q(S_t,A_t)\\leftarrow Q(S_t,A_t)+\\alpha(R_{t+1} + \\gamma Q(S_{t+1},A_{t+1})-Q(S_t,A_t))$ $t=t+1$，重复step3-step5 6.3 Q-Learning算法（Off-Policy TD control） Q-Learning中动作价值函数Q的更新方法：\n$$Q(S_t,A_t)\\leftarrow Q(S_t, A_t)+\\alpha(R_{t+1}+\\gamma\\max_{a\\in\\mathcal A}Q(S_{t+1},a)-Q(S_t,A_t))$$ 初始化$t=0$ 从$S_0$状态开始 在$t$时刻，根据动作价值函数Q选取动作$A_t=\\argmax_{a\\in\\mathcal A}Q(S_t, a)$，一般使用$\\epsilon-\\text{greedy}$ 执行动作$A_t$后，得到奖励$R_{t+1}$，进入下一个状态$S_{t+1}$ 更新动作价值函数Q：$Q(S_t,A_t)\\leftarrow Q(S_t, A_t)+\\alpha(R_{t+1}+\\gamma\\max_{a\\in\\mathcal A}Q(S_{t+1},a)-Q(S_t,A_t))$ $t=t+1$，重复step3-step5 Q-Learning算法与Sarsa算法主要区别在于，Q-Learning算法在进入状态$S_{t+1}$后便更新动作价值函数，不需要获取动作$A_{t+1}$，而Sarsa则当获取到动作$A_{t+1}$才更新动作价值函数，且二者的更新算法有差异。 6.4 Deep Q-Network 当状态动作空间很大或者状态空间是连续的时候，往往采用函数来估计动作价值函数Q，例如，使用含参数$\\theta$的函数来计算Q值，即$Q(s,a;\\theta)$。DQN采取时序差分中的Q函数更新值来设计损失函数，具体来说\n$$\\theta_*=\\arg\\min_\\theta\\frac{1}{2N}\\sum_{i=1}^N[Q(s_i,a_i;\\theta)-(r_i+\\gamma\\max_{a^\\prime}Q(s^\\prime_i,a^\\prime;\\theta))]^2$$ 观察上面的优化式会发现拟合的target值$r_i+\\gamma\\max_{a^\\prime}Q(s^\\prime_i,a^\\prime;\\theta)$也随着参数$\\theta$的更新而变化，经验上来看这会导致训练的不稳定，针对该问题，DQN采用两套网络函数，一个是用于训练更新的网络$Q(s,a;\\theta)$，一个是目标网络$Q(s,a;\\theta^-)$。对于训练网络，使用上面的损失函数优化并正常使用梯度下降更新参数，对于目标网络，用于计算target值$r_i+\\gamma\\max_{a^\\prime}Q(s^\\prime_i,a^\\prime;\\theta^-)$，为了让更新目标更稳定，目标网络不回每一步都更新，而是每隔$C$步与训练网络同步一次，即$\\theta^-\\leftarrow\\theta$。\n在Q-Learning算法中，每个数据只会用来更新一次Q函数，在DQN中，采用了经验回放（experience replay）方法，具体做法是维护一个经验池，每次从环境中采样得到的四元组数据（状态、动作、奖励、下一状态）存储到经验池中，当经验池达到一定大小开始训练，训练从经验池中随机采样进行训练，一批经验数据训练完成后再进行经验数据的获取。DQN算法具体流程如下：\n用随机网络参数$\\theta$初始化网络$Q(s,a;\\theta)$ 复制相同的参数$\\theta^-\\leftarrow\\theta$初始化目标网络$Q(s,a;\\theta^-)$ 初始化经验池$R$ 获取环境初始状态$s_0$ 时间步循环$t=0\\rightarrow T$，根据当前网络$Q(s,a;\\theta)$使用$\\epsilon-\\text{greedy}$策略选择动作$a_t$，执行动作$a_t$获取回报$r_{t+1}$，环境状态变为$s_{t+1}$，将$(s_t,a_t,r_{t+1},s_{t+1})$存储进经验池$R$中，当$R$中数据足够，从$R$中逐批采样$N$个数据 $(s_i,a_i,r_i, s_i^\\prime)_{i=1,\\dots,N}$，对每个数据，用目标网络计算$y_i=r_i+\\gamma\\max_{a^\\prime}Q(s_i^\\prime,a^\\prime;\\theta^-)$，最小化目标损失$\\mathcal L=\\frac{1}{2N}\\sum_{i}(y_i-Q(s_i,a_i;\\theta))^2$，更新目标网络 对不同序列重复step4-step5 6.5 结合TD与MC 前面的Sarsa以及Q-Learning中的价值估计更新都是只使用了一步动作后的回报，即$G_t=R_{t+1}+\\gamma V(S_{t+1})$，基于此可以延伸至多步的回报来更新价值。假设$n$步回报为$G^{(n)}_t, n=1,\\dots,\\infty$，有\n$n$ $G_t$ $\\text{notes}$ $n=1$ $G^{(1)}_t = R_{t+1}+\\gamma V(S_{t+1})$ TD Learning $n=2$ $G^{(2)}_t = R_{t+1}+\\gamma R_{t+2} + \\gamma^2 V(S_{t+2})$ $\\dots$ $n=n$ $G^{(n)}_t=R_{t+1}+\\gamma R_{t+2} + \\dots + \\gamma^{n-1}R_{t+n} + \\gamma^n V(S_{t+n})$ $\\dots$ $n=\\infty$ $G^{(\\infty)}_t=R_{t+1}+\\gamma R_{t+2} + \\dots + \\gamma^{T-t-1}R_T + \\gamma^{T-t}V(S_T)$ MC estimation 从而，$n$步的TD-Learning将采用下面的式子更新状态价值函数\n$$V(S_t)\\leftarrow V(S_t) + \\alpha(G^{(n)}_t-V(S_t))$$ 这显然存在一个问题，即$n$使用哪一个值，一个简单的做法是对所有可能的$n$进行加权求和得到所有回报的加权求和值，称作$\\lambda$-回报：$G^\\lambda_t=(1-\\lambda)\\sum_{n=1}^\\infty\\lambda^{n-1}G_t^{(n)}$，采用这种回报用于更新的记作$\\text{TD}(\\lambda)$，原始版本等价于$\\text{TD}(0)$。$G_t^\\lambda$中乘上的$(1-\\lambda)$系数主要用于归一化，因为$1+\\lambda+\\lambda^2+\\dots=1/(1-\\lambda)$。\n7. 策略梯度算法（Policy Gradient） 上述介绍的方法都是通过学习状态/动作价值函数然后选择最优动作不断迭代。策略梯度方法直接学习策略函数本身$\\pi_\\theta(a\\vert s)$，其中$\\theta$为可学习参数。梯度策略的目的是最大化在这个策略在环境中的期望回报，目标函数定义为\n$$J(\\theta)=\\mathbb E_{s_0}[V_{\\pi_\\theta}(s_0)]$$ 其中$s_0$表示初始状态，通过将目标函数对策略中参数$\\theta$求导，并使用梯度上升法最大化目标函数，从而得到最优策略。\n7.1 状态访问分布 在求解目标函数对$\\theta$的梯度前，先介绍一个状态访问分布。在MDP中定义初始状态分布为$v_0(s)$，定义$P_t^\\pi(s)$表示采取策略$\\pi$使得智能体在$t$时刻状态为$s$的概率，所以有$P^\\pi_0(s)=v_0(s)$，然后定义一个策略的状态访问分布（state visitation distribution）：\n$$v_\\pi(s)=(1-\\gamma)\\sum_{t=0}^\\infty\\gamma^tP^\\pi_t(s)$$ 其中$1-\\gamma$为使得概率和为1的归一化因子，$v_{\\pi}(s)$可以理解成一个MDP稳定后的状态概率分布。\n7.2 策略梯度推导 $J(\\theta)$对$\\theta$的梯度有以下公式\n$$\\begin{align*} \\nabla_\\theta J(\\theta)\u0026\\propto\\sum_{s\\in\\mathcal S}v_{\\pi_\\theta}(s)\\sum_{a\\in\\mathcal A}Q_{\\pi_\\theta}(s,a)\\nabla_\\theta\\pi_\\theta(a\\vert s)\\\\ \u0026=\\sum_{s\\in\\mathcal S}v_{\\pi_\\theta}(s)\\sum_{a\\in\\mathcal A}\\pi_\\theta(a\\vert s)Q_{\\pi_\\theta}(s,a)\\frac{\\nabla_\\theta\\pi_{\\theta}(a\\vert s)}{\\pi_\\theta(a\\vert s)}\\\\ \u0026=\\mathbb E_{\\pi_\\theta}[Q_{\\pi_\\theta}(s,a)\\nabla_\\theta\\ln\\pi_\\theta(a\\vert s)] \\end{align*}$$ 先从状态价值函数推导开始：\n$$\\begin{align*} \\nabla_\\theta V_{\\pi_\\theta}(s)\u0026=\\nabla_\\theta(\\sum_{a\\in\\mathcal A}\\pi_\\theta(a\\vert s)Q_{\\pi_\\theta}(s,a))\\\\ \u0026=\\sum_{a\\in\\mathcal A}(\\nabla_\\theta\\pi_\\theta(a\\vert s)Q_{\\pi_\\theta}(s,a) + \\pi_\\theta(a\\vert s)\\nabla_\\theta Q_{\\pi_\\theta}(s,a))\\\\ \u0026=\\sum_{a\\in\\mathcal A}(\\nabla_\\theta\\pi_\\theta(a\\vert s)Q_{\\pi_\\theta}(s,a) + \\pi_\\theta(a\\vert s)\\nabla_\\theta\\sum_{s^\\prime,r}P(s^\\prime,r\\vert s,a)(r+\\gamma V_{\\pi_\\theta}(s^\\prime)))\\\\ \u0026=\\sum_{a\\in\\mathcal A}(\\nabla_\\theta\\pi_\\theta(a\\vert s)Q_{\\pi_\\theta}(s,a) + \\gamma\\pi_\\theta(a\\vert s)\\sum_{s^\\prime,r}P(s^\\prime,r\\vert s,a)\\nabla_\\theta V_{\\pi_\\theta}(s^\\prime))\\\\ \u0026=\\sum_{a\\in\\mathcal A}(\\nabla_\\theta\\pi_\\theta(a\\vert s)Q_{\\pi_\\theta}(s,a) + \\gamma\\pi_\\theta(a\\vert s)\\sum_{s^\\prime}P(s^\\prime\\vert s,a)\\nabla_\\theta V_{\\pi_\\theta}(s^\\prime)) \\end{align*}$$ 为了简化表示，定义$\\phi(s)=\\sum_{a\\in\\mathcal A}\\nabla_\\theta\\pi_\\theta(a\\vert s)Q_{\\pi_\\theta}(s,a)$，定义$d_{\\pi_\\theta}(s\\rightarrow x,k)$表示策略$\\pi_\\theta$从状态$s$出发$k$步后到达状态$x$的概率。\n$$\\begin{align*} \\nabla_\\theta V_{\\pi_\\theta}(s)\u0026=\\phi(s)+\\gamma\\sum_{a\\in\\mathcal A}\\pi_\\theta(a\\vert s)\\sum_{s^\\prime}P(s^\\prime\\vert s,a)\\nabla_\\theta V_{\\pi_\\theta}(s^\\prime)\\\\ \u0026=\\phi(s) + \\gamma\\sum_{s^\\prime}\\nabla_\\theta V_{\\pi_\\theta}(s^\\prime)\\sum_{a}\\pi_\\theta(a\\vert s)P(s^\\prime\\vert s,a)\\\\ \u0026=\\phi(s) + \\gamma\\sum_{s^\\prime}d_{\\pi_\\theta}(s\\rightarrow s^\\prime,1)\\nabla_\\theta V_{\\pi_\\theta}(s^\\prime)\\\\ \u0026=\\phi(s) + \\gamma\\sum_{s^\\prime}d_{\\pi_\\theta}(s\\rightarrow s^\\prime,1)[\\phi(s^\\prime) + \\gamma\\sum_{s^{\\prime\\prime}}d_{\\pi_\\theta}(s^\\prime\\rightarrow s^{\\prime\\prime},1)\\nabla_\\theta V_{\\pi_\\theta}(s^{\\prime\\prime})]\\\\ \u0026=\\phi(s) + \\gamma\\sum_{s^\\prime}d_{\\pi_\\theta}(s\\rightarrow s^\\prime,1)\\phi(s^\\prime) + \\gamma^2\\sum_{s^{\\prime\\prime}}d_{\\pi_\\theta}(s\\rightarrow s^{\\prime\\prime},2)\\nabla_\\theta V_{\\pi_\\theta}(s^{\\prime\\prime})\\\\ \u0026=\\phi(s) + \\gamma\\sum_{s^\\prime}d_{\\pi_\\theta}(s\\rightarrow s^{\\prime},1)\\phi(s^\\prime) + \\gamma^2\\sum_{s^{\\prime\\prime}}d_{\\pi_\\theta}(s^\\prime\\rightarrow s^{\\prime\\prime}, 2)\\phi(s^{\\prime\\prime}) + \\gamma^3\\sum_{s^{\\prime\\prime\\prime}}d_{\\pi_\\theta}(s\\rightarrow s^{\\prime\\prime\\prime}, 3)\\nabla_\\theta V_{\\pi_\\theta}(s^{\\prime\\prime\\prime})\\\\ \u0026=\\dots\\\\ \u0026=\\sum_{k=0}^\\infty\\sum_{x\\in\\mathcal S}\\gamma^k d_{\\pi_\\theta}(s\\rightarrow x,k)\\phi(x) \\end{align*}$$ 定义$\\eta (s)=\\mathbb E_{s_0}[\\sum_{k=0}^\\infty\\gamma^kd_{\\pi_\\theta}(s_0\\rightarrow s,k)]=\\frac{1}{1-\\gamma}v_{\\pi_\\theta}(s)$，有\n$$\\begin{align*} \\nabla_\\theta J(\\theta)\u0026=\\nabla_\\theta\\mathbb E_{s_0}[V_{\\pi_\\theta}(s_0)]\\\\ \u0026=\\mathbb E_{s_0}[\\sum_s\\sum_{k=0}^\\infty\\gamma^kd_{\\pi_\\theta}(s_0\\rightarrow s,k)\\phi(s)]\\\\ \u0026=\\sum_s\\mathbb E_{s_0}[\\sum_{k=0}^\\infty\\gamma^k d_{\\pi_\\theta}(s_0\\rightarrow s,k)]\\phi(s)\\\\ \u0026=\\sum_s\\eta(s)\\phi(s)\\\\ \u0026=(\\sum_s\\eta(s))\\sum_s\\frac{\\eta(s)}{\\sum_s\\eta(s)}\\phi(s)\\\\ \u0026\\propto\\sum_s\\frac{\\eta(s)}{\\sum_s\\eta(s)}\\phi(s)\\\\ \u0026=\\sum_s v_{\\pi_\\theta}(s)\\sum_{a\\in\\mathcal A}Q_{\\pi_\\theta}(s,a)\\nabla_\\theta\\pi_\\theta(a\\vert s)\\\\ \u0026=\\mathbb E_{\\pi_\\theta}[Q_{\\pi_\\theta}(s,a)\\nabla_\\theta\\ln\\pi_\\theta(a\\vert s)] \\end{align*}$$ 至此，证明完毕。\n7.3 REINFORCE算法 REINFORCE，也被称为蒙特卡洛策略梯度：\n1.$\\ $随机初始化策略参数$\\theta$\n2.$\\ $用当前策略$\\pi_\\theta$生成一个episode $S_1,A_1, R_2,S_2,A_2,\\dots,S_T$\n3.$\\ $$\\text{For } t=1, 2, \\dots, T:$\n$\\quad$1.$\\ $估计当前时刻$t$到时刻$T$的回报$G_t$\n$\\quad$2.$\\ \\theta\\leftarrow \\theta + \\alpha\\gamma^t G_t\\nabla_\\theta\\ln\\pi_\\theta(A_t\\vert S_t)$\n7.4 Actor-Critic算法 前面DQN为基于值函数的方法，REINFORCE为基于策略的方法，如果价值函数和策略同时被学习，那就是Actor-Critic算法。\nCritic：会给价值函数添加可学习参数$\\omega$，根据不同算法可以是学习动作价值函数$Q_\\omega(a,s)$或者是状态价值函数$V_\\omega(s)$。Critic更新价值函数参数$\\omega$ Actor：受Critic方向指导，更新策略参数$\\theta$ 1.$\\ $ 随机初始化状态$s$，价值函数参数$\\omega$，策略函数参数$\\theta$；并根据当前策略采样一个动作$a\\sim\\pi_\\theta(a\\vert s)$\n2.$\\ \\text{For }t=1,\\dots,T:$\n$\\quad$ 1.$\\ $采样当前时刻奖励$r_t\\sim R(s,a)$以及下一时刻状态$s^\\prime\\sim P(s^\\prime\\vert s,a)$\n$\\quad$ 2.$\\ $采样下一时刻动作$a^\\prime\\sim\\pi_\\theta(a^\\prime\\vert s^\\prime)$\n$\\quad$ 3.$\\ $更新策略参数：$\\theta\\leftarrow\\theta+\\alpha_\\theta Q_\\omega(s,a)\\nabla_\\theta\\ln\\pi_\\theta(a\\vert s)$\n$\\quad$ 4.$\\ $计算当时刻$t$的动作价值修正值：\n$\\quad\\quad$ $G_{t:t+1}=r_t + \\gamma Q_\\omega(s^\\prime,a^\\prime) - Q_\\omega(s,a)$\n$\\quad\\quad$ 使用修正值来更新价值函数参数：\n$\\quad\\quad$ $\\omega\\leftarrow\\omega + \\alpha_\\omega G_{t:t+1}\\nabla_\\omega Q_\\omega(s,a)$\n$\\quad$ 5.$\\ $更新当前时刻动作和状态：$a\\leftarrow a^\\prime,s\\leftarrow s^\\prime$\n其中$\\alpha_\\theta$和$\\alpha_\\omega$分别是策略函数参数、价值函数参数的学习率。Step2.4中关于价值函数参数更新这里，基于时序差分中的更新算法设计的损失函数：\n$$\\mathcal L(\\omega)=\\frac{1}{2}(r_t + \\gamma Q_\\omega(s^\\prime,a^\\prime) - Q_\\omega(s,a))^2$$ 与DQN中一类，采取类似目标网络的方法，将上式中$r_t + \\gamma Q_\\omega(s^\\prime,a^\\prime)$作为时序差分目标，不会产生梯度来更新价值函数，因此价值函数的梯度为:\n$$\\begin{align*} \\nabla_\\omega\\mathcal L(\\omega)\u0026=-(r_t + \\gamma Q_\\omega(s^\\prime,a^\\prime) - Q_\\omega(s,a))\\nabla_\\omega Q_\\omega(s,a)\\\\ \u0026=-G_{t:t+1}\\nabla_\\omega Q_\\omega(s,a) \\end{align*}$$ 注意在更新策略函数参数时用的是正向传播，更新价值函数参数时用的是反向传播。\n7.5 TRPO算法（Trust Region Policy Optimization） 在策略梯度算法中存在一个缺点，即使用梯度更新的方法优化策略参数，存在由于学习步长太长导致策略突然变差，进而影响训练效果的问题。对于该问题，TRPO给出的解决方案是：在参数更新时考虑找到一块信任区域（trust region），在该区域上进行策略参数更新能够保证策略性能单调优化。\n假设当前策略$\\pi_\\theta$，考虑如何借助当前$\\theta$找到一个更优的参数$\\theta^\\prime$，使得$J(\\theta^\\prime)\\ge J(\\theta)$，由于初始状态$s_0$的分布与策略无关，因此$J(\\theta)$可以写成对新策略$\\pi_{\\theta^\\prime}$的期望（理解上就是新策略的期望能覆盖所有可能的状态轨迹）：\n$$ \\begin{align*} J(\\theta)\u0026=\\mathbb E_{s_0}[V_{\\pi_{\\theta}}(s_0)]\\\\ \u0026=\\mathbb E_{\\pi_{\\theta^\\prime}}\\left[\\sum_{t=0}^\\infty \\gamma^t V_{\\pi_\\theta}(s_t)-\\sum_{t=1}^\\infty\\gamma^t V_{\\pi_\\theta}(s_t)\\right]\\\\ \u0026=-\\mathbb E_{\\pi_{\\theta^\\prime}}\\left[\\sum_{t=0}^\\infty\\gamma^t(\\gamma V_{\\pi_\\theta}(s_{t+1})-V_{\\pi_\\theta}(s_t))\\right] \\end{align*} $$ 基于上述等式：\n$$ \\begin{align*} J(\\theta^\\prime)-J(\\theta)\u0026=\\mathbb E_{s_0}[V_{\\pi_{\\theta^\\prime}}(s_0)]-\\mathbb E_{s_0}[V_{\\pi_\\theta}(s_0)]\\\\ \u0026=\\mathbb E_{\\pi_{\\theta^\\prime}}\\left[\\sum_{t=1}^\\infty\\gamma^t r(s_t,a_t)]+\\mathbb E_{\\pi_{\\theta^\\prime}}[\\sum_{t=1}^\\infty\\gamma^t(\\gamma V_{\\pi_\\theta}(s_{t+1})-V_{\\pi_\\theta}(s_t))\\right]\\\\ \u0026=\\mathbb E_{\\pi_\\theta^\\prime}\\left[\\sum_{t=0}^\\infty\\gamma^t[r(s_t,a_t)+\\gamma V_{\\pi_\\theta}(s_{t+1})-V_{\\pi_\\theta}(s_t)]\\right] \\end{align*} $$ 定义优势函数$A_{\\pi_\\theta}(s_t,a_t)=r(s_t,a_t)+\\gamma V_{\\pi_\\theta}(s_{t+1})-V_{\\pi_\\theta}(s_t)$:\n$$ \\begin{align*} J(\\theta^\\prime)-J(\\theta)\u0026=\\mathbb E_{\\pi_\\theta^\\prime}\\left[\\sum_{t=0}^\\infty\\gamma^t A_{\\pi_\\theta}(s_t,a_t)\\right]\\\\ \u0026=\\sum_{t=0}^\\infty\\gamma^t\\mathbb E_{s_t\\sim P_t^{\\pi_{\\theta^\\prime}}}\\mathbb E_{a_t\\sim\\pi_{\\theta^\\prime}(\\cdot\\vert s_t)}[A_{\\pi_\\theta}(s_t,a_t)]\\\\ \u0026=\\frac{1}{1-\\gamma}\\mathbb E_{s\\sim\\mathcal v_{\\pi_\\theta^\\prime}}\\mathbb E_{a\\sim\\pi_{\\theta^\\prime}(\\cdot\\vert s)}[A_{\\pi_\\theta}(s,a)] \\end{align*} $$ 最后用到了状态访问分布：$\\mathcal v_{\\pi}(s)=(1-\\gamma)\\sum_{t=0}^{\\infty}\\gamma^t P_t^\\pi(s)$，因此新策略只需满足$\\mathbb E_{s\\sim\\mathcal v_{\\pi_\\theta^\\prime}}\\mathbb E_{a\\sim\\pi_{\\theta^\\prime}(\\cdot\\vert s)}[A_{\\pi_\\theta}(s,a)]\\ge 0$，就能保证$J(\\theta^\\prime)\\ge J(\\theta)$。\n直接求解比较困难，因为$\\pi_{\\theta^\\prime}$是需要求解的策略，但又需要用它收集样本。对此TRPO做了一步近似操作，对状态访问分布进行处理，具体而言，忽略新旧策略之间状态访问分布的变化，直接采用旧的策略$\\pi_\\theta$的状态分布，定义：\n$$ L_\\theta(\\theta^\\prime)=J(\\theta) + \\frac{1}{1-\\gamma}\\mathbb E_{s\\sim\\mathcal v_{\\pi_\\theta}}\\mathbb E_{a\\sim\\pi_{\\theta^\\prime}(\\cdot\\vert s)}[A_{\\pi_\\theta}(s,a)] $$ 接着，用重要性采样对动作分布进行处理：\n$$ L_\\theta(\\theta^\\prime)=J(\\theta)+\\mathbb E_{s\\sim\\mathcal v_{\\pi_\\theta}}\\mathbb E_{a\\sim\\pi_\\theta(\\cdot\\vert s)}\\left[\\frac{\\pi_{\\theta^\\prime}(a\\vert s)}{\\pi_\\theta(a\\vert s)}A_{\\pi_\\theta}(s,a)\\right] $$ 这样可以基于旧策略$\\pi_\\theta$采样的数据来估计优化新策略，为了保证新旧策略足够相似，TRPO使用Kullback-Leibler（KL）散度来衡量策略之间的距离，给出整体优化式（$\\theta_k$代表前面的$\\theta$，表示$k$次迭代后的策略）：\n$$ \\max_{\\theta^\\prime} L_\\theta(\\theta^\\prime)\\quad s.t.\\ \\mathbb E_{s\\sim\\mathcal v_{\\pi_{\\theta_k}}}[D_{KL}(\\pi_{\\pi_{\\theta_k}}(\\cdot\\vert s),\\pi_{\\theta^\\prime}(\\cdot\\vert s))]\\le \\delta $$ 即得到TRPO的优化目标：\n$$ % \\begin{align*} \\max_\\theta\\quad\\mathbb E_{s\\sim\\mathcal v_{\\pi_{\\theta_k}}}\\mathbb E_{a\\sim\\pi_{\\theta_k}(\\cdot\\vert s)}\\left[\\frac{\\pi_\\theta(a\\vert s)}{\\pi_{\\theta_k}(a\\vert s)}A_{\\pi_{\\theta_k}}(s,a)\\right]\\\\ s.t.\\quad \\mathbb E_{s\\sim\\mathcal v_{\\pi_{\\theta_k}}}\\left[D_{KL}(\\pi_{\\theta_k}(\\cdot\\vert s),\\pi_\\theta(\\cdot\\vert s))\\right]\\le\\delta % \\end{align*} $$ 7.6 PPO算法（Proximal Policy Optimization） PPO-惩罚（PPO-Penalty） 针对TRPO的优化目标函数，PPO-Penalty将KL散度的约束放进目标函数中，变成一个无约束优化问题，并在迭代过程中更新KL散度的系数：\n$$ \\arg\\max_\\theta\\ \\mathbb E_{s\\sim\\mathcal v_{\\pi_\\theta}}\\mathbb E_{a\\sim\\pi_{\\theta_k}(\\cdot\\vert s)}\\left[\\frac{\\pi_\\theta(a\\vert s)}{\\pi_{\\theta_k}(a\\vert s)}A_{\\pi_{\\theta_k}}(s,a)-\\beta D_{KL}[\\pi_{\\theta_k}(\\cdot\\vert s),\\pi_\\theta(\\cdot\\vert s)]\\right] $$ 令$d_k=D_{KL}^{\\mathcal v_{\\pi_{\\theta_k}}}(\\pi_{\\theta_k},\\pi_\\theta)$，$\\beta$的更新规则（其中$\\delta$为超参数）：\n$\\text{if }d_k\u003c\\delta/1.5,\\ \\text{then}\\ \\beta_{k+1}=\\beta_k/2$ $\\text{if }d_k\u003e\\delta/1.5,\\ \\text{then}\\ \\beta_{k+1}=\\beta_k\\times 2$ $\\text{else}\\ \\beta_{k+1}=\\beta_k$ PPO-截断（PPO-Clip） 另一种形式PPO-截断（PPO-Clip）在目标函数中加入限制，保证更新后参数与更新前参数差距在一定范围内：\n$$ \\arg\\max_\\theta \\mathbb{E}_{s \\sim \\mathcal v_{\\pi_{\\theta_k}}} \\mathbb{E}_{a \\sim \\pi_\\theta(\\cdot | s)} \\left[ \\min \\left( \\frac{\\pi_\\theta(a | s)}{\\pi_{\\theta_k}(a | s)} A_{\\pi_{\\theta_k}}(s, a), \\operatorname{clip} \\left( \\frac{\\pi_\\theta(a | s)}{\\pi_{\\theta_k}(a | s)}, 1 - \\epsilon, 1 + \\epsilon \\right) A_{\\pi_{\\theta_k}}(s, a) \\right) \\right] $$ References [1] Weng. “A (Long) Peek into Reinforcement Learning” lilianweng.github.io (2018).\n[2] Mocode. “【强化学习理论】贝尔曼最优方程公式推导 ” CSDN (2023).\n[3] 蘑菇书EasyRL. “马尔可夫决策过程” datawhalechina.github.io.\n[4] 手动学强化学习 “时序差分算法” hrl.boyuai.com\n[5] 手动学强化学习 “DQN 算法” hrl.boyuai.com\n[6] 手动学强化学习 “策略梯度算法” hrl.boyuai.com\n[7] 手动学强化学习 “TRPO算法” hrl.boyuai.com\n","wordCount":"1117","inLanguage":"en","datePublished":"2024-11-21T00:00:00Z","dateModified":"2024-11-21T00:00:00Z","author":{"@type":"Person","name":"Rs"},"mainEntityOfPage":{"@type":"WebPage","@id":"https://tqzhong.github.io/my-blog/posts/2024-11-21-reinforcement-learning/"},"publisher":{"@type":"Organization","name":"Rs' Log","logo":{"@type":"ImageObject","url":"https://tqzhong.github.io/my-blog/favicon.ico"}}}</script></head><body id=top><script>localStorage.getItem("pref-theme")==="dark"?document.body.classList.add("dark"):localStorage.getItem("pref-theme")==="light"?document.body.classList.remove("dark"):window.matchMedia("(prefers-color-scheme: dark)").matches&&document.body.classList.add("dark")</script><header class=header><script>MathJax={tex:{inlineMath:[["$","$"],["\\(","\\)"]],displayMath:[["$$","$$"],["\\[","\\]"]],processEscapes:!0,processEnvironments:!0},svg:{fontCache:"global"}}</script><nav class=nav><div class=logo-logo-switches><div class=logo><a href=https://tqzhong.github.io/my-blog/ accesskey=h title="Rs' Log (Alt + H)">Rs' Log</a><div class=logo-switches><button id=theme-toggle accesskey=t title="(Alt + T)"><svg id="moon" width="24" height="18" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg><svg id="sun" width="24" height="18" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg></button><ul class=lang-switch></ul></div></div></div><ul id=menu><li><a href=https://tqzhong.github.io/my-blog/ title=Posts><span>Posts</span></a></li><li><a href=https://tqzhong.github.io/my-blog/archive/ title=Archive><span>Archive</span></a></li><li><a href=https://tqzhong.github.io/my-blog/search/ title="Search (Alt + /)" accesskey=/><span>Search</span></a></li><li><a href=https://tqzhong.github.io/my-blog/tags/ title=Tags><span>Tags</span></a></li><li><a href=https://tqzhong.github.io/my-blog/categories/ title=Categories><span>Categories</span></a></li><li><a href=https://tqzhong.github.io/my-blog/faq/ title=FAQ><span>FAQ</span></a></li></ul></nav></header><main class=main><article class=post-single><header class=post-header><h1 class=post-title>强化学习笔记</h1><div class=post-meta><i class="fas fa-calendar-alt blog-meta-icon"></i>&nbsp;2024-11-21 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <i class="fas fa-clock blog-meta-icon"></i>&nbsp;6 min &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <i class="fas fa-user blog-meta-icon"></i>&nbsp;Rs &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <i class="fas fa-eye blog-meta-icon"></i>&nbsp;<span id=view-counter></span>
+<script src=https://cdn.jsdelivr.net/npm/leancloud-storage@4.12.0/dist/av-min.js></script><script>AV.initialize("AokLJzaIvwVNJW0b2F0YTLLy-MdYXbMMI","fwZpRfBG259O3LscJFPW3ViH"),loadViewCount(location.pathname,"view-counter");var hasViewCounted=!1;function loadViewCount(e,t){if(hasViewCounted)return;hasViewCounted=!0;var s,n=document.getElementById(t),o=localStorage.getItem("view-count-"+e);o?n.innerText=o:n.innerText="0",s=new AV.Query("Counter"),s.equalTo("url",e),s.find().then(t=>{if(t.length>0){var s,i,a,o=t[0];o.increment("views",1),o.save(),i=o.get("views"),n.innerText=i,localStorage.setItem("view-count-"+e,i)}else a=AV.Object.extend("Counter"),s=new a,s.set("url",e),s.set("views",1),s.save().then(()=>{n.innerText="1",localStorage.setItem("view-count-"+e,1)})}).catch(function(e){console.error("error:",e)})}</script></div></header><div class=toc><details><summary accesskey=c title="(Alt + C)"><span class=details>Table of Contents</span></summary><div class=inner><ul><li><a href=#1-%e5%9f%ba%e6%9c%ac%e6%a6%82%e5%bf%b5%e5%85%ac%e5%bc%8f aria-label="1. 基本概念，公式">1. 基本概念，公式</a></li><li><a href=#2-%e9%a9%ac%e5%b0%94%e5%8f%af%e5%a4%ab%e8%bf%87%e7%a8%8bmdps aria-label="2. 马尔可夫过程（MDPs）">2. 马尔可夫过程（MDPs）</a></li><li><a href=#3-%e8%b4%9d%e5%b0%94%e6%9b%bc%e6%96%b9%e7%a8%8bbellman-equations aria-label="3. 贝尔曼方程（Bellman Equations）">3. 贝尔曼方程（Bellman Equations）</a><ul><li><a href=#31-%e8%b4%9d%e5%b0%94%e6%9b%bc%e6%9c%9f%e6%9c%9b%e6%96%b9%e7%a8%8b aria-label="3.1 贝尔曼期望方程">3.1 贝尔曼期望方程</a></li><li><a href=#32-%e8%b4%9d%e5%b0%94%e6%9b%bc%e6%9c%80%e4%bc%98%e6%96%b9%e7%a8%8b aria-label="3.2 贝尔曼最优方程">3.2 贝尔曼最优方程</a></li></ul></li><li><a href=#4-%e5%8a%a8%e6%80%81%e8%a7%84%e5%88%92dynamic-programming aria-label="4. 动态规划（Dynamic Programming）">4. 动态规划（Dynamic Programming）</a><ul><li><a href=#41-%e7%ad%96%e7%95%a5%e8%af%84%e4%bc%b0 aria-label="4.1 策略评估">4.1 策略评估</a></li><li><a href=#42-%e7%ad%96%e7%95%a5%e4%bc%98%e5%8c%96 aria-label="4.2 策略优化">4.2 策略优化</a></li><li><a href=#43-%e7%ad%96%e7%95%a5%e8%bf%ad%e4%bb%a3%e8%bf%87%e7%a8%8b aria-label="4.3 策略迭代过程">4.3 策略迭代过程</a></li></ul></li><li><a href=#5-%e8%92%99%e7%89%b9%e5%8d%a1%e6%b4%9b%e6%96%b9%e6%b3%95monte-carlo-methods aria-label="5. 蒙特卡洛方法（Monte-Carlo Methods）">5. 蒙特卡洛方法（Monte-Carlo Methods）</a></li><li><a href=#6-%e6%97%b6%e5%ba%8f%e5%b7%ae%e5%88%86%e5%ad%a6%e4%b9%a0temporal-difference-learning aria-label="6. 时序差分学习（Temporal-Difference Learning）">6. 时序差分学习（Temporal-Difference Learning）</a><ul><li><a href=#61-epsilon-textgreedy%e7%ae%97%e6%b3%95 aria-label="6.1 $\epsilon-\text{greedy}$算法">6.1 $\epsilon-\text{greedy}$算法</a></li><li><a href=#62-sarsa%e7%ae%97%e6%b3%95on-policy-td-control aria-label="6.2 Sarsa算法（On-Policy TD control）">6.2 Sarsa算法（On-Policy TD control）</a></li><li><a href=#63-q-learning%e7%ae%97%e6%b3%95off-policy-td-control aria-label="6.3 Q-Learning算法（Off-Policy TD control）">6.3 Q-Learning算法（Off-Policy TD control）</a></li><li><a href=#64-deep-q-network aria-label="6.4 Deep Q-Network">6.4 Deep Q-Network</a></li><li><a href=#65-%e7%bb%93%e5%90%88td%e4%b8%8emc aria-label="6.5 结合TD与MC">6.5 结合TD与MC</a></li></ul></li><li><a href=#7-%e7%ad%96%e7%95%a5%e6%a2%af%e5%ba%a6%e7%ae%97%e6%b3%95policy-gradient aria-label="7. 策略梯度算法（Policy Gradient）">7. 策略梯度算法（Policy Gradient）</a><ul><li><a href=#71-%e7%8a%b6%e6%80%81%e8%ae%bf%e9%97%ae%e5%88%86%e5%b8%83 aria-label="7.1 状态访问分布">7.1 状态访问分布</a></li><li><a href=#72-%e7%ad%96%e7%95%a5%e6%a2%af%e5%ba%a6%e6%8e%a8%e5%af%bc aria-label="7.2 策略梯度推导">7.2 策略梯度推导</a></li><li><a href=#73-reinforce%e7%ae%97%e6%b3%95 aria-label="7.3 REINFORCE算法">7.3 REINFORCE算法</a></li><li><a href=#74-actor-critic%e7%ae%97%e6%b3%95 aria-label="7.4 Actor-Critic算法">7.4 Actor-Critic算法</a></li><li><a href=#75-trpo%e7%ae%97%e6%b3%95trust-region-policy-optimization aria-label="7.5 TRPO算法（Trust Region Policy Optimization）">7.5 TRPO算法（Trust Region Policy Optimization）</a></li><li><a href=#76-ppo%e7%ae%97%e6%b3%95proximal-policy-optimization aria-label="7.6 PPO算法（Proximal Policy Optimization）">7.6 PPO算法（Proximal Policy Optimization）</a></li></ul></li><li><a href=#references aria-label=References>References</a></li></ul></div></details></div><div class=post-content><h3 id=1-基本概念公式>1. 基本概念，公式<a hidden class=anchor aria-hidden=true href=#1-基本概念公式>#</a></h3><p>策略$\pi$，状态$s\in\mathcal S$，动作$a\in\mathcal A$，奖励$r\in\mathcal R$</p><p>转移函数$P$给出当采取行动$a$从状态$s$转移到$s^\prime$，同时获得奖励$r$的概率</p><div class=scroll-container>$$P(s^\prime,r\vert s,a)=\mathbb P[S_{t+1}=s^\prime,R_{t+1}=r\vert S_t=s,A_t=a]$$</div><p>状态转移函数$P^a_{ss^\prime}$</p><div class=scroll-container>$$P^a_{ss^\prime}=P(s^\prime\vert s,a)=\mathbb P[S_{t+1}=s^\prime|S_t=s,A_t=a]=\sum_{r\in\mathcal R}P(s^\prime,r\vert s,a)$$</div><p>奖励函数$R$预测给定状态和动作后的下一个奖励值</p><div class=scroll-container>$$R(s,a)=\mathbb E[R_{t+1}\vert S_t=s,A_t=a]=\sum_{r\in\mathcal R}r\sum_{s^\prime\in\mathcal S}P(s^\prime,r\vert s,a)$$</div><p>策略$\pi$给出在状态$s$下会采取何种行动，分为两种</p><ul><li>确定性：$\pi(s)=a$</li><li>随机性：$\pi(a\vert s)=\mathbb P_\pi[A=a\vert S=s]$</li></ul><p>回报$G_t$，即未来的奖励之和，其中$\gamma\in[0,1]$为惩罚因子</p><div class=scroll-container>$$G_t=R_{t+1}+\gamma R_{t+2}+\dots=\sum_{k=0}^\infty \gamma^k R_{t+k+1}$$</div><p>状态价值函数$V_\pi(s)$给出在状态$s$下的期望回报</p><div class=scroll-container>$$V_\pi(s)=\mathbb E_\pi[G_t\vert S_t=s]$$</div><p>动作价值函数$Q_\pi(s,a)$给出在状态$s$下采取动作$a$的期望回报</p><div class=scroll-container>$$Q_\pi(s,a)=\mathbb E_\pi[G_t\vert S_t=s, A_t=a]$$</div><p>状态价值和动作价值的关系</p><div class=scroll-container>$$V_\pi(s)=\sum_{a\in\mathcal A}Q_\pi(s,a)\pi(a|s)=\mathbb E_{a\sim\pi}Q_\pi(s,a)$$</div>优势函数$A_\pi(s,a)$定义为动作价值与状态价值的差<div class=scroll-container>$$A_\pi(s,a)=Q_\pi(s,a)-V_\pi(s)$$</div>最优价值函数定义为在最优策略下的价值函数，即能够产生最大回报<div class=scroll-container>$$V_*(s)=\max_\pi V_\pi(s)\\
+Q_*(s,a)=\max_\pi Q_\pi(s,a)$$</div><p>最优策略定义为实现最优价值的策略，即对任意状态$s$都有$V_\pi(s)\ge V_{\pi^\prime}(s)$，最优策略可能有多个，都将其表示为$\pi_*(s)$</p><div class=scroll-container>$$\pi_*=\arg\max_\pi V_\pi(s)\\
+\pi_*=\arg\max_\pi Q_\pi(s,a)$$</div><p>因此，以下关系是成立的</p><div class=scroll-container>$$V_{\pi_*}(s)=V_*(s)\\
+Q_{\pi_*}(s,a)=Q_*(s,a)$$</div><h3 id=2-马尔可夫过程mdps>2. 马尔可夫过程（MDPs）<a hidden class=anchor aria-hidden=true href=#2-马尔可夫过程mdps>#</a></h3><p>几乎所有RL问题都可以划在马尔可夫过程内，马尔可夫过程内的所有状态都有同一个特性，即未来的状态只取决于当下的状态，与历史状态无关
+$$\mathbb P[S_{t+1}\vert S_t]=\mathbb P[S_{t+1}\vert S_1,\dots S_t]$$
+一个马尔可夫决策过程包含五个元素$\mathcal M=\langle \mathcal S,\mathcal A,\mathcal P,\mathcal R,\gamma\rangle$，对应的符号与基本符号含义相同</p><ul><li>$\mathcal S$：状态集合</li><li>$\mathcal A$：动作集合</li><li>$\mathcal P$：转移概率函数</li><li>$\mathcal R$：奖励函数</li><li>$\gamma$：惩罚因子</li></ul><h3 id=3-贝尔曼方程bellman-equations>3. 贝尔曼方程（Bellman Equations）<a hidden class=anchor aria-hidden=true href=#3-贝尔曼方程bellman-equations>#</a></h3><p>贝尔曼方程主要将价值函数分解成及时奖励和折扣后的未来价值</p><div class=scroll-container>$$
 \begin{align*}
 V(s)&=\mathbb E[G_t\vert S_t=s]\\
 &=\mathbb E[R_{t+1}+\gamma R_{t+2}+\gamma^2 R_{t+3}+\dots\vert S_t=s]\\
@@ -648,11 +189,7 @@ V(s)&=\mathbb E[G_t\vert S_t=s]\\
 &=R(s) + \gamma\mathbb E[V_{t+1}\vert S_t=s]\\
 &=R(s) + \gamma\sum_{s^\prime\in\mathcal S}\mathbb P(S_{t+1}=s^\prime\vert S_t=s)V(s^\prime)
 \end{align*}
-$$
-</div>
-<p>写成矩阵形式，假设$\mathcal S={s_1,s_2,\dots,s_n}$</p>
-<div class="scroll-container">
-$$
+$$</div><p>写成矩阵形式，假设$\mathcal S={s_1,s_2,\dots,s_n}$</p><div class=scroll-container>$$
 \left[
 \begin{array}{c}
 V(s_1) \\
@@ -688,11 +225,7 @@ V(s_2) \\
 V(s_n)
 \end{array}
 \right]
-$$
-</div>
-<p>关于$\mathbb E[G_{t+1}\vert S_t=s]=\mathbb E[V_{t+1}\vert S_t=s]$的推导过程如下，主要关注的点：从第一行到第二行为对随机变量$G_{t+1}$的期望进行求和展开，从第三行到第四行为对随机变量$S_{t+1}$进行求和展开</p>
-<div class="scroll-container">
-$$\begin{align*}
+$$</div><p>关于$\mathbb E[G_{t+1}\vert S_t=s]=\mathbb E[V_{t+1}\vert S_t=s]$的推导过程如下，主要关注的点：从第一行到第二行为对随机变量$G_{t+1}$的期望进行求和展开，从第三行到第四行为对随机变量$S_{t+1}$进行求和展开</p><div class=scroll-container>$$\begin{align*}
 \mathbb E[V_{t+1}\vert S_t=s]&=\mathbb E[\mathbb E[G_{t+1}\vert S_{t+1}]\vert S_t=s]\\
 &=\mathbb E[\sum_{g^\prime\in\mathcal G}g^\prime\mathbb P(G_{t+1}=g^\prime\vert S_{t+1})\vert S_t=s]\\
 &=\sum_{g^\prime\in\mathcal G}g^\prime\mathbb E[\mathbb P(G_{t+1}=g^\prime\vert S_{t+1})\vert S_t=s] \\
@@ -703,226 +236,46 @@ $$\begin{align*}
 &=\sum_{g^\prime\in\mathcal G}g^\prime\sum_{s^\prime\in\mathcal S}\mathbb P(G_{t+1}=g^\prime, S_{t+1}=s^\prime\vert S_t=s)\\
 &=\sum_{g^\prime\in\mathcal G}g^\prime\mathbb P(G_{t+1}=g^\prime\vert S_t=s)\\
 &=\mathbb E[G_{t+1}\vert S_t=s]
-\end{align*}$$
-</div>
-<p>基于上述的推导同理可以对$Q(s,a)$进行分解</p>
-<div class="scroll-container">
-$$\begin{align*}
+\end{align*}$$</div><p>基于上述的推导同理可以对$Q(s,a)$进行分解</p><div class=scroll-container>$$\begin{align*}
 Q(s,a)&=\mathbb E[G_t\vert S_t=s,A_t=a]\\
 &=\mathbb E[R_{t+1} + \gamma V_{t+1}\vert S_t=s, A_t=a]\\
 &=R(s, a) + \gamma \mathbb E[V_{t+1}\vert S_t=s, A_t=a]\\
 &=R(s, a) + \gamma \mathbb E[\mathbb E_{a\sim\pi}Q(S_{t+1},a)\vert S_t=s, A_t=a]
-\end{align*}$$
-</div>
-<h4 id="31-贝尔曼期望方程">3.1 贝尔曼期望方程<a hidden class="anchor" aria-hidden="true" href="#31-贝尔曼期望方程">#</a></h4>
-<p>贝尔曼期望方程公式如下，这两个方程给出了当前状态的价值与未来状态价值之间的关联以及当前时刻的动作价值函数Q与未来时刻的动作价值函数Q之间的关联。</p>
-<ul>
-<li>$V_\pi(s)=\sum_{a\in\mathcal A}\pi(a|s)(R(s,a) + \gamma\sum_{s^\prime\in\mathcal S}P^a_{ss^\prime}V_\pi(s^\prime))$</li>
-<li>$Q_\pi(s,a)=R(s,a) + \gamma\sum_{s^\prime\in\mathcal S}P^a_{ss^\prime}\sum_{a^\prime\in\mathcal A}\pi(a^\prime\vert s^\prime)Q_\pi(s^\prime, a^\prime)$</li>
-</ul>
-<p>由贝尔曼方程的结果，引入策略$\pi$进一步推导</p>
-<div class="scroll-container">
-$$\begin{align*}
+\end{align*}$$</div><h4 id=31-贝尔曼期望方程>3.1 贝尔曼期望方程<a hidden class=anchor aria-hidden=true href=#31-贝尔曼期望方程>#</a></h4><p>贝尔曼期望方程公式如下，这两个方程给出了当前状态的价值与未来状态价值之间的关联以及当前时刻的动作价值函数Q与未来时刻的动作价值函数Q之间的关联。</p><ul><li>$V_\pi(s)=\sum_{a\in\mathcal A}\pi(a|s)(R(s,a) + \gamma\sum_{s^\prime\in\mathcal S}P^a_{ss^\prime}V_\pi(s^\prime))$</li><li>$Q_\pi(s,a)=R(s,a) + \gamma\sum_{s^\prime\in\mathcal S}P^a_{ss^\prime}\sum_{a^\prime\in\mathcal A}\pi(a^\prime\vert s^\prime)Q_\pi(s^\prime, a^\prime)$</li></ul><p>由贝尔曼方程的结果，引入策略$\pi$进一步推导</p><div class=scroll-container>$$\begin{align*}
 V_\pi(s)&=\sum_{a\in\mathcal A}\pi(a\vert s)Q_\pi(s,a)\\
 &=\sum_{a\in\mathcal A}\pi(a\vert s)(R(s,a) + \gamma\mathbb E[V_{\pi}(s^\prime)\vert S_t=s, A_t=a])\\
 &=\sum_{a\in\mathcal A}\pi(a|s)(R(s,a) + \gamma\sum_{s^\prime\in\mathcal S}P^a_{ss^\prime}V_\pi(s^\prime))
 \\
 Q_\pi(s,a)&=R(s,a) + \gamma\sum_{s^\prime\in\mathcal S}P^a_{ss^\prime}V_\pi(s^\prime)\\
 &=R(s,a) + \gamma\sum_{s^\prime\in\mathcal S}P^a_{ss^\prime}\sum_{a^\prime\in\mathcal A}\pi(a^\prime\vert s^\prime)Q_\pi(s^\prime, a^\prime)
-\end{align*}$$
-</div>
-<h4 id="32-贝尔曼最优方程">3.2 贝尔曼最优方程<a hidden class="anchor" aria-hidden="true" href="#32-贝尔曼最优方程">#</a></h4>
-<div class="scroll-container">
-$$\begin{align*}
+\end{align*}$$</div><h4 id=32-贝尔曼最优方程>3.2 贝尔曼最优方程<a hidden class=anchor aria-hidden=true href=#32-贝尔曼最优方程>#</a></h4><div class=scroll-container>$$\begin{align*}
 V_*(s)&=\max_{a\in\mathcal A}Q_*(s,a)\\
 Q_*(s,a)&=R(s,a) + \gamma\sum_{s^\prime\in\mathcal S}P_{ss^\prime}^a V_*(s^\prime)\\
 V_*(s)&=\max_{a\in\mathcal A}(R(s,a) + \gamma\sum_{s^\prime\in\mathcal S}P^a_{ss^\prime}V_*(s^\prime))\\
 Q_*(s,a)&=R(s,a) + \gamma\sum_{s^\prime\in\mathcal S}P^a_{ss^\prime}\max_{a^\prime\in\mathcal A}Q_*(s^\prime,a^\prime)
-\end{align*}$$
-</div>
-<p>第一个式子理解：当智能体来到状态$s$时，接下来假设有两个动作$a_1,a_2$可供选择，采取动作$a_1$后，能够得到的最优价值是$Q_*(s,a_1)$（在最优策略的前提下），采取动作$a_2$后，能够得到的最优价值是$Q_*(s, a_2)$，如果智能体想获得尽可能大的价值，那么它会采取更高价值相关的动作，因此使用最优策略时，在状态$s$下，$V_*(s)=\max_{a\in\mathcal A}Q_*(s,a)$。</p>
-<p>第二个式子理解：基于贝尔曼期望方程$Q_\pi(s,a)=R(s,a) + \gamma\sum_{s^\prime\in\mathcal S}P^a_{ss^\prime}V_\pi(s^\prime)$，智能体在状态$s$采取动作$a$后，到达的每一个新的状态都有最优价值$V_*(s^\prime)$（在最优策略下），因此得到(12)式。</p>
-<p>第三、四式子理解：将第二式带入第一式得到第三式，将第一式带入第二式得到第四式。</p>
-<h3 id="4-动态规划dynamic-programming">4. 动态规划（Dynamic Programming）<a hidden class="anchor" aria-hidden="true" href="#4-动态规划dynamic-programming">#</a></h3>
-<p>当模型已知，根据贝尔曼方程，可以使用动态规划迭代求解价值函数并优化策略。</p>
-<h4 id="41-策略评估">4.1 策略评估<a hidden class="anchor" aria-hidden="true" href="#41-策略评估">#</a></h4>
-<p>价值函数的贝尔曼期望方程表示，当策略$\pi$固定时，$V_\pi$是一个“最终的收敛值”，满足某种平衡关系，这意味着，$V_\pi(s)$是所有状态的值函数在多次迭代后的稳定结果。策略评估的迭代公式完全由价值函数的贝尔曼期望方程改写成迭代形式得到</p>
-<div class="scroll-container">
-$$\begin{align*}V_{t+1}(s)&=\sum_{a\in\mathcal A}\pi(a|s)(R(s,a) + \gamma\sum_{s^\prime\in\mathcal S}P(s^\prime\vert s, a)V_t(s^\prime))\\
+\end{align*}$$</div><p>第一个式子理解：当智能体来到状态$s$时，接下来假设有两个动作$a_1,a_2$可供选择，采取动作$a_1$后，能够得到的最优价值是$Q_*(s,a_1)$（在最优策略的前提下），采取动作$a_2$后，能够得到的最优价值是$Q_*(s, a_2)$，如果智能体想获得尽可能大的价值，那么它会采取更高价值相关的动作，因此使用最优策略时，在状态$s$下，$V_*(s)=\max_{a\in\mathcal A}Q_*(s,a)$。</p><p>第二个式子理解：基于贝尔曼期望方程$Q_\pi(s,a)=R(s,a) + \gamma\sum_{s^\prime\in\mathcal S}P^a_{ss^\prime}V_\pi(s^\prime)$，智能体在状态$s$采取动作$a$后，到达的每一个新的状态都有最优价值$V_*(s^\prime)$（在最优策略下），因此得到(12)式。</p><p>第三、四式子理解：将第二式带入第一式得到第三式，将第一式带入第二式得到第四式。</p><h3 id=4-动态规划dynamic-programming>4. 动态规划（Dynamic Programming）<a hidden class=anchor aria-hidden=true href=#4-动态规划dynamic-programming>#</a></h3><p>当模型已知，根据贝尔曼方程，可以使用动态规划迭代求解价值函数并优化策略。</p><h4 id=41-策略评估>4.1 策略评估<a hidden class=anchor aria-hidden=true href=#41-策略评估>#</a></h4><p>价值函数的贝尔曼期望方程表示，当策略$\pi$固定时，$V_\pi$是一个“最终的收敛值”，满足某种平衡关系，这意味着，$V_\pi(s)$是所有状态的值函数在多次迭代后的稳定结果。策略评估的迭代公式完全由价值函数的贝尔曼期望方程改写成迭代形式得到</p><div class=scroll-container>$$\begin{align*}V_{t+1}(s)&=\sum_{a\in\mathcal A}\pi(a|s)(R(s,a) + \gamma\sum_{s^\prime\in\mathcal S}P(s^\prime\vert s, a)V_t(s^\prime))\\
 &=\mathbb E_\pi[r+\gamma V_t(s^\prime)\vert S_t=s]=\sum_a\pi(a\vert s)\sum_{s^\prime, r}P(s^\prime,r\vert s,a)(r+\gamma V_t(s^\prime))
-\end{align*}$$
-</div>
-<h4 id="42-策略优化">4.2 策略优化<a hidden class="anchor" aria-hidden="true" href="#42-策略优化">#</a></h4>
-<p>当我们计算完状态价值函数后，对于当前策略，可以通过动作价值函数Q的贝尔曼期望方程计算当前动作价值函数Q</p>
-<div class="scroll-container">
-$$\begin{align*}Q_{\pi_i}(s,a)&=R(s,a) + \gamma\sum_{s^\prime\in\mathcal S}P^a_{ss^\prime}V_{\pi_i}(s^\prime)\\
+\end{align*}$$</div><h4 id=42-策略优化>4.2 策略优化<a hidden class=anchor aria-hidden=true href=#42-策略优化>#</a></h4><p>当我们计算完状态价值函数后，对于当前策略，可以通过动作价值函数Q的贝尔曼期望方程计算当前动作价值函数Q</p><div class=scroll-container>$$\begin{align*}Q_{\pi_i}(s,a)&=R(s,a) + \gamma\sum_{s^\prime\in\mathcal S}P^a_{ss^\prime}V_{\pi_i}(s^\prime)\\
 &=\mathbb E[R_{t+1}+\gamma V_{\pi_i}(S_{t+1})\vert S_t=s,A_t=a]\\
 &=\sum_{s^\prime, r}P(s^\prime,r\vert s,a)(r+\gamma V_{\pi_i}(s^\prime))
-\end{align*}$$
-</div>
-<p>对于每个状态，我们取使其得到最大Q价值的动作，从而更新策略</p>
-<div class="scroll-container">
-$$\pi_{i+1}(s)=\argmax_a Q_{\pi_i}(s,a)$$
-</div>
-<h4 id="43-策略迭代过程">4.3 策略迭代过程<a hidden class="anchor" aria-hidden="true" href="#43-策略迭代过程">#</a></h4>
-<p>基于策略评估和策略优化，实现策略迭代过程。假设有初始策略$\pi_0$、初始状态价值函数$V_0(s)$、奖励函数$R(s,a)$、状态转移函数$P^a_{ss^\prime}$，首先通过策略评估迭代状态价值函数得到$V_{\pi_0}$，然后计算动作价值函数Q$Q_{\pi_0}(s,a)$，并基于最新动作价值函数Q更新策略得到$\pi_1$，基于这个流程不断迭代策略和状态价值函数最终收敛得到$V_*, \pi_*$。</p>
-<div class="scroll-container">
-$$\pi_0\xrightarrow[V_0]{\text{evaluation}}V_{\pi_0}\xrightarrow[\text{improve}]{Q_{\pi_0}(s,a)}\pi_1\xrightarrow[V_{\pi_0}]{\text{evaluation}}V_{\pi_1}\xrightarrow[\text{improve}]{Q_{\pi_1}(s,a)}\pi_2\xrightarrow[V_{\pi_1}]{\text{evaluation}}\dots\xrightarrow[\text{improve}]{}\pi_*\xrightarrow[]{\text{evaluation}}V_*$$
-</div>
-<h3 id="5-蒙特卡洛方法monte-carlo-methods">5. 蒙特卡洛方法（Monte-Carlo Methods）<a hidden class="anchor" aria-hidden="true" href="#5-蒙特卡洛方法monte-carlo-methods">#</a></h3>
-<p>蒙特卡洛方法（MC）使用对真实环境的结果做均值计算得到价值状态函数和动作价值函数Q，需要模型完整学完一个episode $S_1,A_1,R_2,\dots,S_T$来计算$G_t=\sum_{k=0}^{T-t-1}\gamma^kR_{t+k+1}$，根据$V(s)=\mathbb E[G_t\vert S_t=s]$以及$Q(s,a)=\mathbb E[G_t\vert S_t=s, A_t=a]$计算$V(s)$和$Q(s,a)$，是一个model-free的方法。</p>
-<div class="scroll-container">
-$$V(s)=\frac{\sum_{t=1}^T\mathbb 1[S_t=s]G_t}{\sum_{t=1}^T\mathbb 1[S_t=s]}\\
-Q(s,a)=\frac{\sum_{t=1}^T\mathbb 1[S_t=s, A_t=a]G_t}{\sum_{t=1}^T\mathbb 1[S_t=s,A_t=a]}$$
-</div>
-<!-- 蒙特卡洛方法中的状态价值函数更新：
-$$V(S_t)\leftarrow V(S_t)+\frac{1}{\sum_{t=1}^T\mathbb 1[S_t=s]}(G_t-V(S_t)) $$ -->
-<p>为了通过MC学习最优策略，我们采取和动态规划中使用的GPI (Generalized Policy Iteration)相类似的方法：</p>
-<ol>
-<li>根据计算的$Q_{\pi_i}(s,a)$更新策略：$\pi_{i+1}(s)=\argmax_{a\in\mathcal A}Q(s,a)$。</li>
-<li>使用新策略$\pi_{i+1}$生成一个新的episode：$S^{i+1}_1,A^{i+1}_1,R^{i+1}_2,\dots,S^{i+1}_T$。</li>
-<li>根据新的episode估计新的动作价值函数Q：$Q_{\pi_{i+1}}(s,a)=\frac{\sum_{t=1}^T(\mathbb 1[S_t=s,A_t=a]\sum_{k=0}^{T-t-1}\gamma^k R_{t+k+1})}{\sum_{t=1}^T\mathbb 1[S_t=s, A_t=a]}$</li>
-</ol>
-<h3 id="6-时序差分学习temporal-difference-learning">6. 时序差分学习（Temporal-Difference Learning）<a hidden class="anchor" aria-hidden="true" href="#6-时序差分学习temporal-difference-learning">#</a></h3>
-<p>时序差分（TD）也是一种model-free方法，从经验episodes中学习，但与MC不同的是，TD可以从不完整的episodes中学习。价值函数更新：</p>
-<div class="scroll-container">
-$$V(S_t)\leftarrow V(S_t) + \alpha [G_t - V(S_t)]\\
-V(S_t)\leftarrow V(S_t) + \alpha[R_{t+1} + \gamma V(S_{t+1}) - V(S_t)]$$
-</div>
-<p>其中 $R_{t+1} + \gamma V(S_{t+1})-V(S_t)$ 称为时序差分误差（TD-error）$\alpha$ 表示更新的步长。蒙特卡洛方法用上面第一个式子作为更新目标，需要计算$G_t$从而需要完整的episodes，时序差分方法用第二个式子作为更新目标，不需要完整的episodes。</p>
-<h4 id="61-epsilon-textgreedy算法">6.1 $\epsilon-\text{greedy}$算法<a hidden class="anchor" aria-hidden="true" href="#61-epsilon-textgreedy算法">#</a></h4>
-<p>在更新策略时一般使用广义策略迭代（GPI）的思想，但如果在策略提升中一直使用贪婪算法得到一个确定性策略，可能会导致某些状态动作对$(s,a)$永远没有在序列中出现，以至于无法对其动作价值进行估计，进而无法保证策略提升后的策略比之前的好，对此常用的解决方案是采用$\epsilon-\text{greedy}$ 算法：即有$1-\epsilon$的概率采用动作价值最大的动作，另外有$\epsilon$的概率从动作空间中的其他动作随即采取一个。</p>
-<div class="scroll-container">
-$$\pi(a\vert s)=\begin{cases}
+\end{align*}$$</div><p>对于每个状态，我们取使其得到最大Q价值的动作，从而更新策略</p><div class=scroll-container>$$\pi_{i+1}(s)=\argmax_a Q_{\pi_i}(s,a)$$</div><h4 id=43-策略迭代过程>4.3 策略迭代过程<a hidden class=anchor aria-hidden=true href=#43-策略迭代过程>#</a></h4><p>基于策略评估和策略优化，实现策略迭代过程。假设有初始策略$\pi_0$、初始状态价值函数$V_0(s)$、奖励函数$R(s,a)$、状态转移函数$P^a_{ss^\prime}$，首先通过策略评估迭代状态价值函数得到$V_{\pi_0}$，然后计算动作价值函数Q$Q_{\pi_0}(s,a)$，并基于最新动作价值函数Q更新策略得到$\pi_1$，基于这个流程不断迭代策略和状态价值函数最终收敛得到$V_*, \pi_*$。</p><div class=scroll-container>$$\pi_0\xrightarrow[V_0]{\text{evaluation}}V_{\pi_0}\xrightarrow[\text{improve}]{Q_{\pi_0}(s,a)}\pi_1\xrightarrow[V_{\pi_0}]{\text{evaluation}}V_{\pi_1}\xrightarrow[\text{improve}]{Q_{\pi_1}(s,a)}\pi_2\xrightarrow[V_{\pi_1}]{\text{evaluation}}\dots\xrightarrow[\text{improve}]{}\pi_*\xrightarrow[]{\text{evaluation}}V_*$$</div><h3 id=5-蒙特卡洛方法monte-carlo-methods>5. 蒙特卡洛方法（Monte-Carlo Methods）<a hidden class=anchor aria-hidden=true href=#5-蒙特卡洛方法monte-carlo-methods>#</a></h3><p>蒙特卡洛方法（MC）使用对真实环境的结果做均值计算得到价值状态函数和动作价值函数Q，需要模型完整学完一个episode $S_1,A_1,R_2,\dots,S_T$来计算$G_t=\sum_{k=0}^{T-t-1}\gamma^kR_{t+k+1}$，根据$V(s)=\mathbb E[G_t\vert S_t=s]$以及$Q(s,a)=\mathbb E[G_t\vert S_t=s, A_t=a]$计算$V(s)$和$Q(s,a)$，是一个model-free的方法。</p><div class=scroll-container>$$V(s)=\frac{\sum_{t=1}^T\mathbb 1[S_t=s]G_t}{\sum_{t=1}^T\mathbb 1[S_t=s]}\\
+Q(s,a)=\frac{\sum_{t=1}^T\mathbb 1[S_t=s, A_t=a]G_t}{\sum_{t=1}^T\mathbb 1[S_t=s,A_t=a]}$$</div><p>为了通过MC学习最优策略，我们采取和动态规划中使用的GPI (Generalized Policy Iteration)相类似的方法：</p><ol><li>根据计算的$Q_{\pi_i}(s,a)$更新策略：$\pi_{i+1}(s)=\argmax_{a\in\mathcal A}Q(s,a)$。</li><li>使用新策略$\pi_{i+1}$生成一个新的episode：$S^{i+1}_1,A^{i+1}_1,R^{i+1}_2,\dots,S^{i+1}_T$。</li><li>根据新的episode估计新的动作价值函数Q：$Q_{\pi_{i+1}}(s,a)=\frac{\sum_{t=1}^T(\mathbb 1[S_t=s,A_t=a]\sum_{k=0}^{T-t-1}\gamma^k R_{t+k+1})}{\sum_{t=1}^T\mathbb 1[S_t=s, A_t=a]}$</li></ol><h3 id=6-时序差分学习temporal-difference-learning>6. 时序差分学习（Temporal-Difference Learning）<a hidden class=anchor aria-hidden=true href=#6-时序差分学习temporal-difference-learning>#</a></h3><p>时序差分（TD）也是一种model-free方法，从经验episodes中学习，但与MC不同的是，TD可以从不完整的episodes中学习。价值函数更新：</p><div class=scroll-container>$$V(S_t)\leftarrow V(S_t) + \alpha [G_t - V(S_t)]\\
+V(S_t)\leftarrow V(S_t) + \alpha[R_{t+1} + \gamma V(S_{t+1}) - V(S_t)]$$</div><p>其中 $R_{t+1} + \gamma V(S_{t+1})-V(S_t)$ 称为时序差分误差（TD-error）$\alpha$ 表示更新的步长。蒙特卡洛方法用上面第一个式子作为更新目标，需要计算$G_t$从而需要完整的episodes，时序差分方法用第二个式子作为更新目标，不需要完整的episodes。</p><h4 id=61-epsilon-textgreedy算法>6.1 $\epsilon-\text{greedy}$算法<a hidden class=anchor aria-hidden=true href=#61-epsilon-textgreedy算法>#</a></h4><p>在更新策略时一般使用广义策略迭代（GPI）的思想，但如果在策略提升中一直使用贪婪算法得到一个确定性策略，可能会导致某些状态动作对$(s,a)$永远没有在序列中出现，以至于无法对其动作价值进行估计，进而无法保证策略提升后的策略比之前的好，对此常用的解决方案是采用$\epsilon-\text{greedy}$ 算法：即有$1-\epsilon$的概率采用动作价值最大的动作，另外有$\epsilon$的概率从动作空间中的其他动作随即采取一个。</p><div class=scroll-container>$$\pi(a\vert s)=\begin{cases}
 \epsilon/|\mathcal A| + 1 - \epsilon & a=\argmax_{a^\prime}Q(s,a^\prime)\\
 \epsilon/|\mathcal A| & \text{other action}
-\end{cases}$$
-</div>
-<h4 id="62-sarsa算法on-policy-td-control">6.2 Sarsa算法（On-Policy TD control）<a hidden class="anchor" aria-hidden="true" href="#62-sarsa算法on-policy-td-control">#</a></h4>
-<p>使用时序差分算法来估计动作价值函数Q：</p>
-<div class="scroll-container">
-$$Q(S_t,A_t)\leftarrow Q(S_t,A_t)+\alpha(R_{t+1} + \gamma Q(S_{t+1},A_{t+1})-Q(S_t,A_t))$$
-</div>
-<ol>
-<li>初始化$t=0$</li>
-<li>从$S_0$开始，选择动作$A_0=\argmax_{a\in\mathcal A}Q(S_0,a)$，一般使用$\epsilon-\text{greedy}$</li>
-<li>在$t$时刻，采取动作$A_t$，得到奖励$R_{t+1}$，进入下一个状态$S_{t+1}$</li>
-<li>$A_{t+1}=\argmax_{a\in\mathcal A}Q(S_{t+1},a)$</li>
-<li>更新动作价值函数Q：$Q(S_t,A_t)\leftarrow Q(S_t,A_t)+\alpha(R_{t+1} + \gamma Q(S_{t+1},A_{t+1})-Q(S_t,A_t))$</li>
-<li>$t=t+1$，重复step3-step5</li>
-</ol>
-<h4 id="63-q-learning算法off-policy-td-control">6.3 Q-Learning算法（Off-Policy TD control）<a hidden class="anchor" aria-hidden="true" href="#63-q-learning算法off-policy-td-control">#</a></h4>
-<p>Q-Learning中动作价值函数Q的更新方法：</p>
-<div class="scroll-container">
-$$Q(S_t,A_t)\leftarrow Q(S_t, A_t)+\alpha(R_{t+1}+\gamma\max_{a\in\mathcal A}Q(S_{t+1},a)-Q(S_t,A_t))$$
-</div>
-<ol>
-<li>初始化$t=0$</li>
-<li>从$S_0$状态开始</li>
-<li>在$t$时刻，根据动作价值函数Q选取动作$A_t=\argmax_{a\in\mathcal A}Q(S_t, a)$，一般使用$\epsilon-\text{greedy}$</li>
-<li>执行动作$A_t$后，得到奖励$R_{t+1}$，进入下一个状态$S_{t+1}$</li>
-<li>更新动作价值函数Q：$Q(S_t,A_t)\leftarrow Q(S_t, A_t)+\alpha(R_{t+1}+\gamma\max_{a\in\mathcal A}Q(S_{t+1},a)-Q(S_t,A_t))$</li>
-<li>$t=t+1$，重复step3-step5
-Q-Learning算法与Sarsa算法主要区别在于，Q-Learning算法在进入状态$S_{t+1}$后便更新动作价值函数，不需要获取动作$A_{t+1}$，而Sarsa则当获取到动作$A_{t+1}$才更新动作价值函数，且二者的更新算法有差异。</li>
-</ol>
-<h4 id="64-deep-q-network">6.4 Deep Q-Network<a hidden class="anchor" aria-hidden="true" href="#64-deep-q-network">#</a></h4>
-<p>当状态动作空间很大或者状态空间是连续的时候，往往采用函数来估计动作价值函数Q，例如，使用含参数$\theta$的函数来计算Q值，即$Q(s,a;\theta)$。DQN采取时序差分中的Q函数更新值来设计损失函数，具体来说</p>
-<div class="scroll-container">
-$$\theta_*=\arg\min_\theta\frac{1}{2N}\sum_{i=1}^N[Q(s_i,a_i;\theta)-(r_i+\gamma\max_{a^\prime}Q(s^\prime_i,a^\prime;\theta))]^2$$
-</div>
-<p>观察上面的优化式会发现拟合的target值$r_i+\gamma\max_{a^\prime}Q(s^\prime_i,a^\prime;\theta)$也随着参数$\theta$的更新而变化，经验上来看这会导致训练的不稳定，针对该问题，DQN采用两套网络函数，一个是用于训练更新的网络$Q(s,a;\theta)$，一个是目标网络$Q(s,a;\theta^-)$。对于训练网络，使用上面的损失函数优化并正常使用梯度下降更新参数，对于目标网络，用于计算target值$r_i+\gamma\max_{a^\prime}Q(s^\prime_i,a^\prime;\theta^-)$，为了让更新目标更稳定，目标网络不回每一步都更新，而是每隔$C$步与训练网络同步一次，即$\theta^-\leftarrow\theta$。</p>
-<p>在Q-Learning算法中，每个数据只会用来更新一次Q函数，在DQN中，采用了经验回放（experience replay）方法，具体做法是维护一个经验池，每次从环境中采样得到的四元组数据（状态、动作、奖励、下一状态）存储到经验池中，当经验池达到一定大小开始训练，训练从经验池中随机采样进行训练，一批经验数据训练完成后再进行经验数据的获取。DQN算法具体流程如下：</p>
-<ol>
-<li>用随机网络参数$\theta$初始化网络$Q(s,a;\theta)$</li>
-<li>复制相同的参数$\theta^-\leftarrow\theta$初始化目标网络$Q(s,a;\theta^-)$</li>
-<li>初始化经验池$R$</li>
-<li>获取环境初始状态$s_0$</li>
-<li>时间步循环$t=0\rightarrow T$，根据当前网络$Q(s,a;\theta)$使用$\epsilon-\text{greedy}$策略选择动作$a_t$，执行动作$a_t$获取回报$r_{t+1}$，环境状态变为$s_{t+1}$，将$(s_t,a_t,r_{t+1},s_{t+1})$存储进经验池$R$中，当$R$中数据足够，从$R$中逐批采样$N$个数据
-$(s_i,a_i,r_i, s_i^\prime)_{i=1,\dots,N}$，对每个数据，用目标网络计算$y_i=r_i+\gamma\max_{a^\prime}Q(s_i^\prime,a^\prime;\theta^-)$，最小化目标损失$\mathcal L=\frac{1}{2N}\sum_{i}(y_i-Q(s_i,a_i;\theta))^2$，更新目标网络</li>
-<li>对不同序列重复step4-step5</li>
-</ol>
-<h4 id="65-结合td与mc">6.5 结合TD与MC<a hidden class="anchor" aria-hidden="true" href="#65-结合td与mc">#</a></h4>
-<p>前面的Sarsa以及Q-Learning中的价值估计更新都是只使用了一步动作后的回报，即$G_t=R_{t+1}+\gamma V(S_{t+1})$，基于此可以延伸至多步的回报来更新价值。假设$n$步回报为$G^{(n)}_t, n=1,\dots,\infty$，有</p>
-<table>
-  <thead>
-      <tr>
-          <th style="text-align: left">$n$</th>
-          <th style="text-align: left">$G_t$</th>
-          <th style="text-align: left">$\text{notes}$</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td style="text-align: left">$n=1$</td>
-          <td style="text-align: left">$G^{(1)}_t = R_{t+1}+\gamma V(S_{t+1})$</td>
-          <td style="text-align: left">TD Learning</td>
-      </tr>
-      <tr>
-          <td style="text-align: left">$n=2$</td>
-          <td style="text-align: left">$G^{(2)}_t = R_{t+1}+\gamma R_{t+2} + \gamma^2 V(S_{t+2})$</td>
-          <td style="text-align: left"></td>
-      </tr>
-      <tr>
-          <td style="text-align: left">$\dots$</td>
-          <td style="text-align: left"></td>
-          <td style="text-align: left"></td>
-      </tr>
-      <tr>
-          <td style="text-align: left">$n=n$</td>
-          <td style="text-align: left">$G^{(n)}_t=R_{t+1}+\gamma R_{t+2} + \dots + \gamma^{n-1}R_{t+n} + \gamma^n V(S_{t+n})$</td>
-          <td style="text-align: left"></td>
-      </tr>
-      <tr>
-          <td style="text-align: left">$\dots$</td>
-          <td style="text-align: left"></td>
-          <td style="text-align: left"></td>
-      </tr>
-      <tr>
-          <td style="text-align: left">$n=\infty$</td>
-          <td style="text-align: left">$G^{(\infty)}_t=R_{t+1}+\gamma R_{t+2} + \dots + \gamma^{T-t-1}R_T + \gamma^{T-t}V(S_T)$</td>
-          <td style="text-align: left">MC estimation</td>
-      </tr>
-  </tbody>
-</table>
-<p>从而，$n$步的TD-Learning将采用下面的式子更新状态价值函数</p>
-<div class="scroll-container">
-$$V(S_t)\leftarrow V(S_t) + \alpha(G^{(n)}_t-V(S_t))$$
-</div>
-<p>这显然存在一个问题，即$n$使用哪一个值，一个简单的做法是对所有可能的$n$进行加权求和得到所有回报的加权求和值，称作$\lambda$-回报：$G^\lambda_t=(1-\lambda)\sum_{n=1}^\infty\lambda^{n-1}G_t^{(n)}$，采用这种回报用于更新的记作$\text{TD}(\lambda)$，原始版本等价于$\text{TD}(0)$。$G_t^\lambda$中乘上的$(1-\lambda)$系数主要用于归一化，因为$1+\lambda+\lambda^2+\dots=1/(1-\lambda)$。</p>
-<h3 id="7-策略梯度算法policy-gradient">7. 策略梯度算法（Policy Gradient）<a hidden class="anchor" aria-hidden="true" href="#7-策略梯度算法policy-gradient">#</a></h3>
-<p>上述介绍的方法都是通过学习状态/动作价值函数然后选择最优动作不断迭代。策略梯度方法直接学习策略函数本身$\pi_\theta(a\vert s)$，其中$\theta$为可学习参数。梯度策略的目的是最大化在这个策略在环境中的期望回报，目标函数定义为</p>
-<div class="scroll-container">
-$$J(\theta)=\mathbb E_{s_0}[V_{\pi_\theta}(s_0)]$$
-</div>
-<p>其中$s_0$表示初始状态，通过将目标函数对策略中参数$\theta$求导，并使用梯度上升法最大化目标函数，从而得到最优策略。</p>
-<h4 id="71-状态访问分布">7.1 状态访问分布<a hidden class="anchor" aria-hidden="true" href="#71-状态访问分布">#</a></h4>
-<p>在求解目标函数对$\theta$的梯度前，先介绍一个状态访问分布。在MDP中定义初始状态分布为$v_0(s)$，定义$P_t^\pi(s)$表示采取策略$\pi$使得智能体在$t$时刻状态为$s$的概率，所以有$P^\pi_0(s)=v_0(s)$，然后定义一个策略的状态访问分布（state visitation distribution）：</p>
-<div class="scroll-container">
-$$v_\pi(s)=(1-\gamma)\sum_{t=0}^\infty\gamma^tP^\pi_t(s)$$
-</div>
-<p>其中$1-\gamma$为使得概率和为1的归一化因子，$v_{\pi}(s)$可以理解成一个MDP稳定后的状态概率分布。</p>
-<h4 id="72-策略梯度推导">7.2 策略梯度推导<a hidden class="anchor" aria-hidden="true" href="#72-策略梯度推导">#</a></h4>
-<p>$J(\theta)$对$\theta$的梯度有以下公式</p>
-<div class="scroll-container">
-$$\begin{align*}
+\end{cases}$$</div><h4 id=62-sarsa算法on-policy-td-control>6.2 Sarsa算法（On-Policy TD control）<a hidden class=anchor aria-hidden=true href=#62-sarsa算法on-policy-td-control>#</a></h4><p>使用时序差分算法来估计动作价值函数Q：</p><div class=scroll-container>$$Q(S_t,A_t)\leftarrow Q(S_t,A_t)+\alpha(R_{t+1} + \gamma Q(S_{t+1},A_{t+1})-Q(S_t,A_t))$$</div><ol><li>初始化$t=0$</li><li>从$S_0$开始，选择动作$A_0=\argmax_{a\in\mathcal A}Q(S_0,a)$，一般使用$\epsilon-\text{greedy}$</li><li>在$t$时刻，采取动作$A_t$，得到奖励$R_{t+1}$，进入下一个状态$S_{t+1}$</li><li>$A_{t+1}=\argmax_{a\in\mathcal A}Q(S_{t+1},a)$</li><li>更新动作价值函数Q：$Q(S_t,A_t)\leftarrow Q(S_t,A_t)+\alpha(R_{t+1} + \gamma Q(S_{t+1},A_{t+1})-Q(S_t,A_t))$</li><li>$t=t+1$，重复step3-step5</li></ol><h4 id=63-q-learning算法off-policy-td-control>6.3 Q-Learning算法（Off-Policy TD control）<a hidden class=anchor aria-hidden=true href=#63-q-learning算法off-policy-td-control>#</a></h4><p>Q-Learning中动作价值函数Q的更新方法：</p><div class=scroll-container>$$Q(S_t,A_t)\leftarrow Q(S_t, A_t)+\alpha(R_{t+1}+\gamma\max_{a\in\mathcal A}Q(S_{t+1},a)-Q(S_t,A_t))$$</div><ol><li>初始化$t=0$</li><li>从$S_0$状态开始</li><li>在$t$时刻，根据动作价值函数Q选取动作$A_t=\argmax_{a\in\mathcal A}Q(S_t, a)$，一般使用$\epsilon-\text{greedy}$</li><li>执行动作$A_t$后，得到奖励$R_{t+1}$，进入下一个状态$S_{t+1}$</li><li>更新动作价值函数Q：$Q(S_t,A_t)\leftarrow Q(S_t, A_t)+\alpha(R_{t+1}+\gamma\max_{a\in\mathcal A}Q(S_{t+1},a)-Q(S_t,A_t))$</li><li>$t=t+1$，重复step3-step5
+Q-Learning算法与Sarsa算法主要区别在于，Q-Learning算法在进入状态$S_{t+1}$后便更新动作价值函数，不需要获取动作$A_{t+1}$，而Sarsa则当获取到动作$A_{t+1}$才更新动作价值函数，且二者的更新算法有差异。</li></ol><h4 id=64-deep-q-network>6.4 Deep Q-Network<a hidden class=anchor aria-hidden=true href=#64-deep-q-network>#</a></h4><p>当状态动作空间很大或者状态空间是连续的时候，往往采用函数来估计动作价值函数Q，例如，使用含参数$\theta$的函数来计算Q值，即$Q(s,a;\theta)$。DQN采取时序差分中的Q函数更新值来设计损失函数，具体来说</p><div class=scroll-container>$$\theta_*=\arg\min_\theta\frac{1}{2N}\sum_{i=1}^N[Q(s_i,a_i;\theta)-(r_i+\gamma\max_{a^\prime}Q(s^\prime_i,a^\prime;\theta))]^2$$</div><p>观察上面的优化式会发现拟合的target值$r_i+\gamma\max_{a^\prime}Q(s^\prime_i,a^\prime;\theta)$也随着参数$\theta$的更新而变化，经验上来看这会导致训练的不稳定，针对该问题，DQN采用两套网络函数，一个是用于训练更新的网络$Q(s,a;\theta)$，一个是目标网络$Q(s,a;\theta^-)$。对于训练网络，使用上面的损失函数优化并正常使用梯度下降更新参数，对于目标网络，用于计算target值$r_i+\gamma\max_{a^\prime}Q(s^\prime_i,a^\prime;\theta^-)$，为了让更新目标更稳定，目标网络不回每一步都更新，而是每隔$C$步与训练网络同步一次，即$\theta^-\leftarrow\theta$。</p><p>在Q-Learning算法中，每个数据只会用来更新一次Q函数，在DQN中，采用了经验回放（experience replay）方法，具体做法是维护一个经验池，每次从环境中采样得到的四元组数据（状态、动作、奖励、下一状态）存储到经验池中，当经验池达到一定大小开始训练，训练从经验池中随机采样进行训练，一批经验数据训练完成后再进行经验数据的获取。DQN算法具体流程如下：</p><ol><li>用随机网络参数$\theta$初始化网络$Q(s,a;\theta)$</li><li>复制相同的参数$\theta^-\leftarrow\theta$初始化目标网络$Q(s,a;\theta^-)$</li><li>初始化经验池$R$</li><li>获取环境初始状态$s_0$</li><li>时间步循环$t=0\rightarrow T$，根据当前网络$Q(s,a;\theta)$使用$\epsilon-\text{greedy}$策略选择动作$a_t$，执行动作$a_t$获取回报$r_{t+1}$，环境状态变为$s_{t+1}$，将$(s_t,a_t,r_{t+1},s_{t+1})$存储进经验池$R$中，当$R$中数据足够，从$R$中逐批采样$N$个数据
+$(s_i,a_i,r_i, s_i^\prime)_{i=1,\dots,N}$，对每个数据，用目标网络计算$y_i=r_i+\gamma\max_{a^\prime}Q(s_i^\prime,a^\prime;\theta^-)$，最小化目标损失$\mathcal L=\frac{1}{2N}\sum_{i}(y_i-Q(s_i,a_i;\theta))^2$，更新目标网络</li><li>对不同序列重复step4-step5</li></ol><h4 id=65-结合td与mc>6.5 结合TD与MC<a hidden class=anchor aria-hidden=true href=#65-结合td与mc>#</a></h4><p>前面的Sarsa以及Q-Learning中的价值估计更新都是只使用了一步动作后的回报，即$G_t=R_{t+1}+\gamma V(S_{t+1})$，基于此可以延伸至多步的回报来更新价值。假设$n$步回报为$G^{(n)}_t, n=1,\dots,\infty$，有</p><table><thead><tr><th style=text-align:left>$n$</th><th style=text-align:left>$G_t$</th><th style=text-align:left>$\text{notes}$</th></tr></thead><tbody><tr><td style=text-align:left>$n=1$</td><td style=text-align:left>$G^{(1)}_t = R_{t+1}+\gamma V(S_{t+1})$</td><td style=text-align:left>TD Learning</td></tr><tr><td style=text-align:left>$n=2$</td><td style=text-align:left>$G^{(2)}_t = R_{t+1}+\gamma R_{t+2} + \gamma^2 V(S_{t+2})$</td><td style=text-align:left></td></tr><tr><td style=text-align:left>$\dots$</td><td style=text-align:left></td><td style=text-align:left></td></tr><tr><td style=text-align:left>$n=n$</td><td style=text-align:left>$G^{(n)}_t=R_{t+1}+\gamma R_{t+2} + \dots + \gamma^{n-1}R_{t+n} + \gamma^n V(S_{t+n})$</td><td style=text-align:left></td></tr><tr><td style=text-align:left>$\dots$</td><td style=text-align:left></td><td style=text-align:left></td></tr><tr><td style=text-align:left>$n=\infty$</td><td style=text-align:left>$G^{(\infty)}_t=R_{t+1}+\gamma R_{t+2} + \dots + \gamma^{T-t-1}R_T + \gamma^{T-t}V(S_T)$</td><td style=text-align:left>MC estimation</td></tr></tbody></table><p>从而，$n$步的TD-Learning将采用下面的式子更新状态价值函数</p><div class=scroll-container>$$V(S_t)\leftarrow V(S_t) + \alpha(G^{(n)}_t-V(S_t))$$</div><p>这显然存在一个问题，即$n$使用哪一个值，一个简单的做法是对所有可能的$n$进行加权求和得到所有回报的加权求和值，称作$\lambda$-回报：$G^\lambda_t=(1-\lambda)\sum_{n=1}^\infty\lambda^{n-1}G_t^{(n)}$，采用这种回报用于更新的记作$\text{TD}(\lambda)$，原始版本等价于$\text{TD}(0)$。$G_t^\lambda$中乘上的$(1-\lambda)$系数主要用于归一化，因为$1+\lambda+\lambda^2+\dots=1/(1-\lambda)$。</p><h3 id=7-策略梯度算法policy-gradient>7. 策略梯度算法（Policy Gradient）<a hidden class=anchor aria-hidden=true href=#7-策略梯度算法policy-gradient>#</a></h3><p>上述介绍的方法都是通过学习状态/动作价值函数然后选择最优动作不断迭代。策略梯度方法直接学习策略函数本身$\pi_\theta(a\vert s)$，其中$\theta$为可学习参数。梯度策略的目的是最大化在这个策略在环境中的期望回报，目标函数定义为</p><div class=scroll-container>$$J(\theta)=\mathbb E_{s_0}[V_{\pi_\theta}(s_0)]$$</div><p>其中$s_0$表示初始状态，通过将目标函数对策略中参数$\theta$求导，并使用梯度上升法最大化目标函数，从而得到最优策略。</p><h4 id=71-状态访问分布>7.1 状态访问分布<a hidden class=anchor aria-hidden=true href=#71-状态访问分布>#</a></h4><p>在求解目标函数对$\theta$的梯度前，先介绍一个状态访问分布。在MDP中定义初始状态分布为$v_0(s)$，定义$P_t^\pi(s)$表示采取策略$\pi$使得智能体在$t$时刻状态为$s$的概率，所以有$P^\pi_0(s)=v_0(s)$，然后定义一个策略的状态访问分布（state visitation distribution）：</p><div class=scroll-container>$$v_\pi(s)=(1-\gamma)\sum_{t=0}^\infty\gamma^tP^\pi_t(s)$$</div><p>其中$1-\gamma$为使得概率和为1的归一化因子，$v_{\pi}(s)$可以理解成一个MDP稳定后的状态概率分布。</p><h4 id=72-策略梯度推导>7.2 策略梯度推导<a hidden class=anchor aria-hidden=true href=#72-策略梯度推导>#</a></h4><p>$J(\theta)$对$\theta$的梯度有以下公式</p><div class=scroll-container>$$\begin{align*}
 \nabla_\theta J(\theta)&\propto\sum_{s\in\mathcal S}v_{\pi_\theta}(s)\sum_{a\in\mathcal A}Q_{\pi_\theta}(s,a)\nabla_\theta\pi_\theta(a\vert s)\\
 &=\sum_{s\in\mathcal S}v_{\pi_\theta}(s)\sum_{a\in\mathcal A}\pi_\theta(a\vert s)Q_{\pi_\theta}(s,a)\frac{\nabla_\theta\pi_{\theta}(a\vert s)}{\pi_\theta(a\vert s)}\\
 &=\mathbb E_{\pi_\theta}[Q_{\pi_\theta}(s,a)\nabla_\theta\ln\pi_\theta(a\vert s)]
-\end{align*}$$
-</div>
-<p>先从状态价值函数推导开始：</p>
-<div class="scroll-container">
-$$\begin{align*}
+\end{align*}$$</div><p>先从状态价值函数推导开始：</p><div class=scroll-container>$$\begin{align*}
 \nabla_\theta V_{\pi_\theta}(s)&=\nabla_\theta(\sum_{a\in\mathcal A}\pi_\theta(a\vert s)Q_{\pi_\theta}(s,a))\\
 &=\sum_{a\in\mathcal A}(\nabla_\theta\pi_\theta(a\vert s)Q_{\pi_\theta}(s,a) + \pi_\theta(a\vert s)\nabla_\theta Q_{\pi_\theta}(s,a))\\
 &=\sum_{a\in\mathcal A}(\nabla_\theta\pi_\theta(a\vert s)Q_{\pi_\theta}(s,a) + \pi_\theta(a\vert s)\nabla_\theta\sum_{s^\prime,r}P(s^\prime,r\vert s,a)(r+\gamma V_{\pi_\theta}(s^\prime)))\\
 &=\sum_{a\in\mathcal A}(\nabla_\theta\pi_\theta(a\vert s)Q_{\pi_\theta}(s,a) + \gamma\pi_\theta(a\vert s)\sum_{s^\prime,r}P(s^\prime,r\vert s,a)\nabla_\theta V_{\pi_\theta}(s^\prime))\\
 &=\sum_{a\in\mathcal A}(\nabla_\theta\pi_\theta(a\vert s)Q_{\pi_\theta}(s,a) + \gamma\pi_\theta(a\vert s)\sum_{s^\prime}P(s^\prime\vert s,a)\nabla_\theta V_{\pi_\theta}(s^\prime))
-\end{align*}$$
-</div>
-<p>为了简化表示，定义$\phi(s)=\sum_{a\in\mathcal A}\nabla_\theta\pi_\theta(a\vert s)Q_{\pi_\theta}(s,a)$，定义$d_{\pi_\theta}(s\rightarrow x,k)$表示策略$\pi_\theta$从状态$s$出发$k$步后到达状态$x$的概率。</p>
-<div class="scroll-container">
-$$\begin{align*}
+\end{align*}$$</div><p>为了简化表示，定义$\phi(s)=\sum_{a\in\mathcal A}\nabla_\theta\pi_\theta(a\vert s)Q_{\pi_\theta}(s,a)$，定义$d_{\pi_\theta}(s\rightarrow x,k)$表示策略$\pi_\theta$从状态$s$出发$k$步后到达状态$x$的概率。</p><div class=scroll-container>$$\begin{align*}
 \nabla_\theta V_{\pi_\theta}(s)&=\phi(s)+\gamma\sum_{a\in\mathcal A}\pi_\theta(a\vert s)\sum_{s^\prime}P(s^\prime\vert s,a)\nabla_\theta V_{\pi_\theta}(s^\prime)\\
 &=\phi(s) + \gamma\sum_{s^\prime}\nabla_\theta V_{\pi_\theta}(s^\prime)\sum_{a}\pi_\theta(a\vert s)P(s^\prime\vert s,a)\\
 &=\phi(s) + \gamma\sum_{s^\prime}d_{\pi_\theta}(s\rightarrow s^\prime,1)\nabla_\theta V_{\pi_\theta}(s^\prime)\\
@@ -931,11 +284,7 @@ $$\begin{align*}
 &=\phi(s) + \gamma\sum_{s^\prime}d_{\pi_\theta}(s\rightarrow s^{\prime},1)\phi(s^\prime) + \gamma^2\sum_{s^{\prime\prime}}d_{\pi_\theta}(s^\prime\rightarrow s^{\prime\prime}, 2)\phi(s^{\prime\prime}) + \gamma^3\sum_{s^{\prime\prime\prime}}d_{\pi_\theta}(s\rightarrow s^{\prime\prime\prime}, 3)\nabla_\theta V_{\pi_\theta}(s^{\prime\prime\prime})\\
 &=\dots\\
 &=\sum_{k=0}^\infty\sum_{x\in\mathcal S}\gamma^k d_{\pi_\theta}(s\rightarrow x,k)\phi(x)
-\end{align*}$$
-</div>
-<p>定义$\eta (s)=\mathbb E_{s_0}[\sum_{k=0}^\infty\gamma^kd_{\pi_\theta}(s_0\rightarrow s,k)]=\frac{1}{1-\gamma}v_{\pi_\theta}(s)$，有</p>
-<div class="scroll-container">
-$$\begin{align*}
+\end{align*}$$</div><p>定义$\eta (s)=\mathbb E_{s_0}[\sum_{k=0}^\infty\gamma^kd_{\pi_\theta}(s_0\rightarrow s,k)]=\frac{1}{1-\gamma}v_{\pi_\theta}(s)$，有</p><div class=scroll-container>$$\begin{align*}
 \nabla_\theta J(\theta)&=\nabla_\theta\mathbb E_{s_0}[V_{\pi_\theta}(s_0)]\\
 &=\mathbb E_{s_0}[\sum_s\sum_{k=0}^\infty\gamma^kd_{\pi_\theta}(s_0\rightarrow s,k)\phi(s)]\\
 &=\sum_s\mathbb E_{s_0}[\sum_{k=0}^\infty\gamma^k d_{\pi_\theta}(s_0\rightarrow s,k)]\phi(s)\\
@@ -944,301 +293,56 @@ $$\begin{align*}
 &\propto\sum_s\frac{\eta(s)}{\sum_s\eta(s)}\phi(s)\\
 &=\sum_s v_{\pi_\theta}(s)\sum_{a\in\mathcal A}Q_{\pi_\theta}(s,a)\nabla_\theta\pi_\theta(a\vert s)\\
 &=\mathbb E_{\pi_\theta}[Q_{\pi_\theta}(s,a)\nabla_\theta\ln\pi_\theta(a\vert s)]
-\end{align*}$$
-</div>
-<p>至此，证明完毕。</p>
-<h4 id="73-reinforce算法">7.3 REINFORCE算法<a hidden class="anchor" aria-hidden="true" href="#73-reinforce算法">#</a></h4>
-<p>REINFORCE，也被称为蒙特卡洛策略梯度：</p>
-<p>1.$\ $随机初始化策略参数$\theta$<br>
-2.$\ $用当前策略$\pi_\theta$生成一个episode $S_1,A_1, R_2,S_2,A_2,\dots,S_T$<br>
-3.$\ $$\text{For } t=1, 2, \dots, T:$<br>
-$\quad$1.$\ $估计当前时刻$t$到时刻$T$的回报$G_t$<br>
-$\quad$2.$\ \theta\leftarrow \theta + \alpha\gamma^t G_t\nabla_\theta\ln\pi_\theta(A_t\vert S_t)$</p>
-<h4 id="74-actor-critic算法">7.4 Actor-Critic算法<a hidden class="anchor" aria-hidden="true" href="#74-actor-critic算法">#</a></h4>
-<p>前面DQN为基于值函数的方法，REINFORCE为基于策略的方法，如果价值函数和策略同时被学习，那就是Actor-Critic算法。</p>
-<ul>
-<li>Critic：会给价值函数添加可学习参数$\omega$，根据不同算法可以是学习动作价值函数$Q_\omega(a,s)$或者是状态价值函数$V_\omega(s)$。Critic更新价值函数参数$\omega$</li>
-<li>Actor：受Critic方向指导，更新策略参数$\theta$</li>
-</ul>
-<p>1.$\ $ 随机初始化状态$s$，价值函数参数$\omega$，策略函数参数$\theta$；并根据当前策略采样一个动作$a\sim\pi_\theta(a\vert s)$<br>
-2.$\ \text{For }t=1,\dots,T:$<br>
-$\quad$ 1.$\ $采样当前时刻奖励$r_t\sim R(s,a)$以及下一时刻状态$s^\prime\sim P(s^\prime\vert s,a)$<br>
-$\quad$ 2.$\ $采样下一时刻动作$a^\prime\sim\pi_\theta(a^\prime\vert s^\prime)$<br>
-$\quad$ 3.$\ $更新策略参数：$\theta\leftarrow\theta+\alpha_\theta Q_\omega(s,a)\nabla_\theta\ln\pi_\theta(a\vert s)$<br>
-$\quad$ 4.$\ $计算当时刻$t$的动作价值修正值：<br>
-$\quad\quad$ $G_{t:t+1}=r_t + \gamma Q_\omega(s^\prime,a^\prime) - Q_\omega(s,a)$<br>
-$\quad\quad$ 使用修正值来更新价值函数参数：<br>
-$\quad\quad$ $\omega\leftarrow\omega + \alpha_\omega G_{t:t+1}\nabla_\omega Q_\omega(s,a)$<br>
-$\quad$ 5.$\ $更新当前时刻动作和状态：$a\leftarrow a^\prime,s\leftarrow s^\prime$</p>
-<p>其中$\alpha_\theta$和$\alpha_\omega$分别是策略函数参数、价值函数参数的学习率。Step2.4中关于价值函数参数更新这里，基于时序差分中的更新算法设计的损失函数：</p>
-<div class="scroll-container">
-$$\mathcal L(\omega)=\frac{1}{2}(r_t + \gamma Q_\omega(s^\prime,a^\prime) - Q_\omega(s,a))^2$$
-</div>
-<p>与DQN中一类，采取类似目标网络的方法，将上式中$r_t + \gamma Q_\omega(s^\prime,a^\prime)$作为时序差分目标，不会产生梯度来更新价值函数，因此价值函数的梯度为:</p>
-<div class="scroll-container">
-$$\begin{align*}
+\end{align*}$$</div><p>至此，证明完毕。</p><h4 id=73-reinforce算法>7.3 REINFORCE算法<a hidden class=anchor aria-hidden=true href=#73-reinforce算法>#</a></h4><p>REINFORCE，也被称为蒙特卡洛策略梯度：</p><p>1.$\ $随机初始化策略参数$\theta$<br>2.$\ $用当前策略$\pi_\theta$生成一个episode $S_1,A_1, R_2,S_2,A_2,\dots,S_T$<br>3.$\ $$\text{For } t=1, 2, \dots, T:$<br>$\quad$1.$\ $估计当前时刻$t$到时刻$T$的回报$G_t$<br>$\quad$2.$\ \theta\leftarrow \theta + \alpha\gamma^t G_t\nabla_\theta\ln\pi_\theta(A_t\vert S_t)$</p><h4 id=74-actor-critic算法>7.4 Actor-Critic算法<a hidden class=anchor aria-hidden=true href=#74-actor-critic算法>#</a></h4><p>前面DQN为基于值函数的方法，REINFORCE为基于策略的方法，如果价值函数和策略同时被学习，那就是Actor-Critic算法。</p><ul><li>Critic：会给价值函数添加可学习参数$\omega$，根据不同算法可以是学习动作价值函数$Q_\omega(a,s)$或者是状态价值函数$V_\omega(s)$。Critic更新价值函数参数$\omega$</li><li>Actor：受Critic方向指导，更新策略参数$\theta$</li></ul><p>1.$\ $ 随机初始化状态$s$，价值函数参数$\omega$，策略函数参数$\theta$；并根据当前策略采样一个动作$a\sim\pi_\theta(a\vert s)$<br>2.$\ \text{For }t=1,\dots,T:$<br>$\quad$ 1.$\ $采样当前时刻奖励$r_t\sim R(s,a)$以及下一时刻状态$s^\prime\sim P(s^\prime\vert s,a)$<br>$\quad$ 2.$\ $采样下一时刻动作$a^\prime\sim\pi_\theta(a^\prime\vert s^\prime)$<br>$\quad$ 3.$\ $更新策略参数：$\theta\leftarrow\theta+\alpha_\theta Q_\omega(s,a)\nabla_\theta\ln\pi_\theta(a\vert s)$<br>$\quad$ 4.$\ $计算当时刻$t$的动作价值修正值：<br>$\quad\quad$ $G_{t:t+1}=r_t + \gamma Q_\omega(s^\prime,a^\prime) - Q_\omega(s,a)$<br>$\quad\quad$ 使用修正值来更新价值函数参数：<br>$\quad\quad$ $\omega\leftarrow\omega + \alpha_\omega G_{t:t+1}\nabla_\omega Q_\omega(s,a)$<br>$\quad$ 5.$\ $更新当前时刻动作和状态：$a\leftarrow a^\prime,s\leftarrow s^\prime$</p><p>其中$\alpha_\theta$和$\alpha_\omega$分别是策略函数参数、价值函数参数的学习率。Step2.4中关于价值函数参数更新这里，基于时序差分中的更新算法设计的损失函数：</p><div class=scroll-container>$$\mathcal L(\omega)=\frac{1}{2}(r_t + \gamma Q_\omega(s^\prime,a^\prime) - Q_\omega(s,a))^2$$</div><p>与DQN中一类，采取类似目标网络的方法，将上式中$r_t + \gamma Q_\omega(s^\prime,a^\prime)$作为时序差分目标，不会产生梯度来更新价值函数，因此价值函数的梯度为:</p><div class=scroll-container>$$\begin{align*}
 \nabla_\omega\mathcal L(\omega)&=-(r_t + \gamma Q_\omega(s^\prime,a^\prime) - Q_\omega(s,a))\nabla_\omega Q_\omega(s,a)\\
 &=-G_{t:t+1}\nabla_\omega Q_\omega(s,a)
-\end{align*}$$
-</div>
-<p>注意在更新策略函数参数时用的是正向传播，更新价值函数参数时用的是反向传播。</p>
-<h4 id="75-trpo算法trust-region-policy-optimization">7.5 TRPO算法（Trust Region Policy Optimization）<a hidden class="anchor" aria-hidden="true" href="#75-trpo算法trust-region-policy-optimization">#</a></h4>
-<p>在策略梯度算法中存在一个缺点，即使用梯度更新的方法优化策略参数，存在由于学习步长太长导致策略突然变差，进而影响训练效果的问题。对于该问题，TRPO给出的解决方案是：在参数更新时考虑找到一块信任区域（trust region），在该区域上进行策略参数更新能够保证策略性能单调优化。</p>
-<p>假设当前策略$\pi_\theta$，考虑如何借助当前$\theta$找到一个更优的参数$\theta^\prime$，使得$J(\theta^\prime)\ge J(\theta)$，由于初始状态$s_0$的分布与策略无关，因此$J(\theta)$可以写成对新策略$\pi_{\theta^\prime}$的期望（理解上就是新策略的期望能覆盖所有可能的状态轨迹）：</p>
-<div class="scroll-container">
-$$
+\end{align*}$$</div><p>注意在更新策略函数参数时用的是正向传播，更新价值函数参数时用的是反向传播。</p><h4 id=75-trpo算法trust-region-policy-optimization>7.5 TRPO算法（Trust Region Policy Optimization）<a hidden class=anchor aria-hidden=true href=#75-trpo算法trust-region-policy-optimization>#</a></h4><p>在策略梯度算法中存在一个缺点，即使用梯度更新的方法优化策略参数，存在由于学习步长太长导致策略突然变差，进而影响训练效果的问题。对于该问题，TRPO给出的解决方案是：在参数更新时考虑找到一块信任区域（trust region），在该区域上进行策略参数更新能够保证策略性能单调优化。</p><p>假设当前策略$\pi_\theta$，考虑如何借助当前$\theta$找到一个更优的参数$\theta^\prime$，使得$J(\theta^\prime)\ge J(\theta)$，由于初始状态$s_0$的分布与策略无关，因此$J(\theta)$可以写成对新策略$\pi_{\theta^\prime}$的期望（理解上就是新策略的期望能覆盖所有可能的状态轨迹）：</p><div class=scroll-container>$$
 \begin{align*}
 J(\theta)&=\mathbb E_{s_0}[V_{\pi_{\theta}}(s_0)]\\
 &=\mathbb E_{\pi_{\theta^\prime}}\left[\sum_{t=0}^\infty \gamma^t V_{\pi_\theta}(s_t)-\sum_{t=1}^\infty\gamma^t V_{\pi_\theta}(s_t)\right]\\
 &=-\mathbb E_{\pi_{\theta^\prime}}\left[\sum_{t=0}^\infty\gamma^t(\gamma V_{\pi_\theta}(s_{t+1})-V_{\pi_\theta}(s_t))\right]
 \end{align*}
-$$
-</div>
-<p>基于上述等式：</p>
-<div class="scroll-container">
-$$
+$$</div><p>基于上述等式：</p><div class=scroll-container>$$
 \begin{align*}
 J(\theta^\prime)-J(\theta)&=\mathbb E_{s_0}[V_{\pi_{\theta^\prime}}(s_0)]-\mathbb E_{s_0}[V_{\pi_\theta}(s_0)]\\
 &=\mathbb E_{\pi_{\theta^\prime}}\left[\sum_{t=1}^\infty\gamma^t r(s_t,a_t)]+\mathbb E_{\pi_{\theta^\prime}}[\sum_{t=1}^\infty\gamma^t(\gamma V_{\pi_\theta}(s_{t+1})-V_{\pi_\theta}(s_t))\right]\\
 &=\mathbb E_{\pi_\theta^\prime}\left[\sum_{t=0}^\infty\gamma^t[r(s_t,a_t)+\gamma V_{\pi_\theta}(s_{t+1})-V_{\pi_\theta}(s_t)]\right]
 \end{align*}
-$$
-</div>
-<p>定义优势函数$A_{\pi_\theta}(s_t,a_t)=r(s_t,a_t)+\gamma V_{\pi_\theta}(s_{t+1})-V_{\pi_\theta}(s_t)$:</p>
-<div class="scroll-container">
-$$
+$$</div><p>定义优势函数$A_{\pi_\theta}(s_t,a_t)=r(s_t,a_t)+\gamma V_{\pi_\theta}(s_{t+1})-V_{\pi_\theta}(s_t)$:</p><div class=scroll-container>$$
 \begin{align*}
 J(\theta^\prime)-J(\theta)&=\mathbb E_{\pi_\theta^\prime}\left[\sum_{t=0}^\infty\gamma^t A_{\pi_\theta}(s_t,a_t)\right]\\
 &=\sum_{t=0}^\infty\gamma^t\mathbb E_{s_t\sim P_t^{\pi_{\theta^\prime}}}\mathbb E_{a_t\sim\pi_{\theta^\prime}(\cdot\vert s_t)}[A_{\pi_\theta}(s_t,a_t)]\\
 &=\frac{1}{1-\gamma}\mathbb E_{s\sim\mathcal v_{\pi_\theta^\prime}}\mathbb E_{a\sim\pi_{\theta^\prime}(\cdot\vert s)}[A_{\pi_\theta}(s,a)]
 \end{align*}
-$$
-</div>
-<p>最后用到了状态访问分布：$\mathcal v_{\pi}(s)=(1-\gamma)\sum_{t=0}^{\infty}\gamma^t P_t^\pi(s)$，因此新策略只需满足$\mathbb E_{s\sim\mathcal v_{\pi_\theta^\prime}}\mathbb E_{a\sim\pi_{\theta^\prime}(\cdot\vert s)}[A_{\pi_\theta}(s,a)]\ge 0$，就能保证$J(\theta^\prime)\ge J(\theta)$。</p>
-<p>直接求解比较困难，因为$\pi_{\theta^\prime}$是需要求解的策略，但又需要用它收集样本。对此TRPO做了一步近似操作，对状态访问分布进行处理，具体而言，忽略新旧策略之间状态访问分布的变化，直接采用旧的策略$\pi_\theta$的状态分布，定义：</p>
-<div class="scroll-container">
-$$
+$$</div><p>最后用到了状态访问分布：$\mathcal v_{\pi}(s)=(1-\gamma)\sum_{t=0}^{\infty}\gamma^t P_t^\pi(s)$，因此新策略只需满足$\mathbb E_{s\sim\mathcal v_{\pi_\theta^\prime}}\mathbb E_{a\sim\pi_{\theta^\prime}(\cdot\vert s)}[A_{\pi_\theta}(s,a)]\ge 0$，就能保证$J(\theta^\prime)\ge J(\theta)$。</p><p>直接求解比较困难，因为$\pi_{\theta^\prime}$是需要求解的策略，但又需要用它收集样本。对此TRPO做了一步近似操作，对状态访问分布进行处理，具体而言，忽略新旧策略之间状态访问分布的变化，直接采用旧的策略$\pi_\theta$的状态分布，定义：</p><div class=scroll-container>$$
 L_\theta(\theta^\prime)=J(\theta) + \frac{1}{1-\gamma}\mathbb E_{s\sim\mathcal v_{\pi_\theta}}\mathbb E_{a\sim\pi_{\theta^\prime}(\cdot\vert s)}[A_{\pi_\theta}(s,a)]
-$$
-</div>
-<p>接着，用<strong>重要性采样</strong>对动作分布进行处理：</p>
-<div class="scroll-container">
-$$
+$$</div><p>接着，用<strong>重要性采样</strong>对动作分布进行处理：</p><div class=scroll-container>$$
 L_\theta(\theta^\prime)=J(\theta)+\mathbb E_{s\sim\mathcal v_{\pi_\theta}}\mathbb E_{a\sim\pi_\theta(\cdot\vert s)}\left[\frac{\pi_{\theta^\prime}(a\vert s)}{\pi_\theta(a\vert s)}A_{\pi_\theta}(s,a)\right]
-$$
-</div>
-<p>这样可以基于旧策略$\pi_\theta$采样的数据来估计优化新策略，为了保证新旧策略足够相似，TRPO使用Kullback-Leibler（KL）散度来衡量策略之间的距离，给出整体优化式（$\theta_k$代表前面的$\theta$，表示$k$次迭代后的策略）：</p>
-<div class="scroll-container">
-$$
+$$</div><p>这样可以基于旧策略$\pi_\theta$采样的数据来估计优化新策略，为了保证新旧策略足够相似，TRPO使用Kullback-Leibler（KL）散度来衡量策略之间的距离，给出整体优化式（$\theta_k$代表前面的$\theta$，表示$k$次迭代后的策略）：</p><div class=scroll-container>$$
 \max_{\theta^\prime} L_\theta(\theta^\prime)\quad s.t.\ \mathbb E_{s\sim\mathcal v_{\pi_{\theta_k}}}[D_{KL}(\pi_{\pi_{\theta_k}}(\cdot\vert s),\pi_{\theta^\prime}(\cdot\vert s))]\le \delta
-$$
-</div>
-<p>即得到TRPO的优化目标：</p>
-<div class="scroll-container">
-$$
+$$</div><p>即得到TRPO的优化目标：</p><div class=scroll-container>$$
 % \begin{align*}
 \max_\theta\quad\mathbb E_{s\sim\mathcal v_{\pi_{\theta_k}}}\mathbb E_{a\sim\pi_{\theta_k}(\cdot\vert s)}\left[\frac{\pi_\theta(a\vert s)}{\pi_{\theta_k}(a\vert s)}A_{\pi_{\theta_k}}(s,a)\right]\\
- s.t.\quad \mathbb E_{s\sim\mathcal v_{\pi_{\theta_k}}}\left[D_{KL}(\pi_{\theta_k}(\cdot\vert s),\pi_\theta(\cdot\vert s))\right]\le\delta
+s.t.\quad \mathbb E_{s\sim\mathcal v_{\pi_{\theta_k}}}\left[D_{KL}(\pi_{\theta_k}(\cdot\vert s),\pi_\theta(\cdot\vert s))\right]\le\delta
 % \end{align*}
-$$
-</div>
-<h4 id="76-ppo算法proximal-policy-optimization">7.6 PPO算法（Proximal Policy Optimization）<a hidden class="anchor" aria-hidden="true" href="#76-ppo算法proximal-policy-optimization">#</a></h4>
-<ul>
-<li>PPO-惩罚（PPO-Penalty）</li>
-</ul>
-<p>针对TRPO的优化目标函数，PPO-Penalty将KL散度的约束放进目标函数中，变成一个无约束优化问题，并在迭代过程中更新KL散度的系数：</p>
-<div class="scroll-container">
-$$
+$$</div><h4 id=76-ppo算法proximal-policy-optimization>7.6 PPO算法（Proximal Policy Optimization）<a hidden class=anchor aria-hidden=true href=#76-ppo算法proximal-policy-optimization>#</a></h4><ul><li>PPO-惩罚（PPO-Penalty）</li></ul><p>针对TRPO的优化目标函数，PPO-Penalty将KL散度的约束放进目标函数中，变成一个无约束优化问题，并在迭代过程中更新KL散度的系数：</p><div class=scroll-container>$$
 \arg\max_\theta\ \mathbb E_{s\sim\mathcal v_{\pi_\theta}}\mathbb E_{a\sim\pi_{\theta_k}(\cdot\vert s)}\left[\frac{\pi_\theta(a\vert s)}{\pi_{\theta_k}(a\vert s)}A_{\pi_{\theta_k}}(s,a)-\beta D_{KL}[\pi_{\theta_k}(\cdot\vert s),\pi_\theta(\cdot\vert s)]\right]
-$$
-</div>
-<p>令$d_k=D_{KL}^{\mathcal v_{\pi_{\theta_k}}}(\pi_{\theta_k},\pi_\theta)$，$\beta$的更新规则（其中$\delta$为超参数）：</p>
-<ol>
-<li>$\text{if }d_k&lt;\delta/1.5,\ \text{then}\ \beta_{k+1}=\beta_k/2$</li>
-<li>$\text{if }d_k&gt;\delta/1.5,\ \text{then}\ \beta_{k+1}=\beta_k\times 2$</li>
-<li>$\text{else}\ \beta_{k+1}=\beta_k$</li>
-</ol>
-<ul>
-<li>PPO-截断（PPO-Clip）</li>
-</ul>
-<p>另一种形式PPO-截断（PPO-Clip）在目标函数中加入限制，保证更新后参数与更新前参数差距在一定范围内：</p>
-<div class="scroll-container">
-$$
-\arg\max_\theta \mathbb{E}_{s \sim \mathcal v_{\pi_{\theta_k}}} \mathbb{E}_{a \sim \pi_\theta(\cdot | s)} \left[ 
-\min \left( 
-\frac{\pi_\theta(a | s)}{\pi_{\theta_k}(a | s)} A_{\pi_{\theta_k}}(s, a), 
-\operatorname{clip} \left( 
-\frac{\pi_\theta(a | s)}{\pi_{\theta_k}(a | s)}, 1 - \epsilon, 1 + \epsilon 
-\right) A_{\pi_{\theta_k}}(s, a) 
-\right) 
+$$</div><p>令$d_k=D_{KL}^{\mathcal v_{\pi_{\theta_k}}}(\pi_{\theta_k},\pi_\theta)$，$\beta$的更新规则（其中$\delta$为超参数）：</p><ol><li>$\text{if }d_k&lt;\delta/1.5,\ \text{then}\ \beta_{k+1}=\beta_k/2$</li><li>$\text{if }d_k>\delta/1.5,\ \text{then}\ \beta_{k+1}=\beta_k\times 2$</li><li>$\text{else}\ \beta_{k+1}=\beta_k$</li></ol><ul><li>PPO-截断（PPO-Clip）</li></ul><p>另一种形式PPO-截断（PPO-Clip）在目标函数中加入限制，保证更新后参数与更新前参数差距在一定范围内：</p><div class=scroll-container>$$
+\arg\max_\theta \mathbb{E}_{s \sim \mathcal v_{\pi_{\theta_k}}} \mathbb{E}_{a \sim \pi_\theta(\cdot | s)} \left[
+\min \left(
+\frac{\pi_\theta(a | s)}{\pi_{\theta_k}(a | s)} A_{\pi_{\theta_k}}(s, a),
+\operatorname{clip} \left(
+\frac{\pi_\theta(a | s)}{\pi_{\theta_k}(a | s)}, 1 - \epsilon, 1 + \epsilon
+\right) A_{\pi_{\theta_k}}(s, a)
+\right)
 \right]
-$$
-</div>
-<h3 id="references">References<a hidden class="anchor" aria-hidden="true" href="#references">#</a></h3>
-<p>[1] Weng. <a href="https://lilianweng.github.io/posts/2018-02-19-rl-overview/" class="entityLink">“A (Long) Peek into Reinforcement Learning”</a> lilianweng.github.io (2018).</p>
-<p>[2] Mocode. <a href="https://blog.csdn.net/Mocode/article/details/131160635" class="entityLink">“【强化学习理论】贝尔曼最优方程公式推导
-”</a> CSDN (2023).</p>
-<p>[3] 蘑菇书EasyRL.  <a href="https://datawhalechina.github.io/easy-rl/#/chapter2/chapter2" class="entityLink">“马尔可夫决策过程”</a> datawhalechina.github.io.</p>
-<p>[4] 手动学强化学习 <a href="https://hrl.boyuai.com/chapter/1/%E6%97%B6%E5%BA%8F%E5%B7%AE%E5%88%86%E7%AE%97%E6%B3%95" class="entityLink">“时序差分算法”</a> hrl.boyuai.com</p>
-<p>[5] 手动学强化学习 <a href="https://hrl.boyuai.com/chapter/2/dqn%E7%AE%97%E6%B3%95" class="entityLink">“DQN 算法”</a> hrl.boyuai.com</p>
-<p>[6] 手动学强化学习 <a href="https://hrl.boyuai.com/chapter/2/%E7%AD%96%E7%95%A5%E6%A2%AF%E5%BA%A6%E7%AE%97%E6%B3%95" class="entityLink">“策略梯度算法”</a> hrl.boyuai.com</p>
-<p>[7] 手动学强化学习 <a href="https://hrl.boyuai.com/chapter/2/trpo%E7%AE%97%E6%B3%95/" class="entityLink">“TRPO算法”</a> hrl.boyuai.com</p>
-
-
-  </div>
-
-  <footer class="post-footer">
-      <ul class="post-tags">
-        <li><a href="https://tqzhong.github.io/my-blog/tags/ai/">AI</a></li>
-        <li><a href="https://tqzhong.github.io/my-blog/tags/rl/">RL</a></li>
-      </ul>
-<nav class="paginav">
-  <a class="prev" href="https://tqzhong.github.io/my-blog/posts/2025-01-08-retrieval-augmented-generation/">
-    <span class="title">« Prev</span>
-    <br>
-    <span>RAG路线</span>
-  </a>
-  <a class="next" href="https://tqzhong.github.io/my-blog/posts/2024-10-30-deepspeed/">
-    <span class="title">Next »</span>
-    <br>
-    <span>Deepspeed多机多卡训练&amp;代码细节</span>
-  </a>
-</nav>
-
-  </footer>
-  
-</article>
-
-
-
-
-  <div class="social-icons">
-    
-        
-            
-        
-    
-        
-            <a href="https://github.com/tqzhong" target="_blank" rel="noopener noreferrer">
-            <i class="fab fa-github"></i>
-            </a>
-        
-    
-        
-            <a href="https://x.com/rs1047g" target="_blank" rel="noopener noreferrer">
-            <i class="fab fa-twitter"></i>
-            </a>
-        
-    
-        
-            <a href="https://scholar.google.com/citations?hl=en&amp;user=UNNLJX4AAAAJ" target="_blank" rel="noopener noreferrer">
-            <i class="fab fa-google"></i>
-            </a>
-        
-    
-        
-            <a href="https://tqzhong.github.io" target="_blank" rel="noopener noreferrer">
-            <i class="fas fa-user"></i>  
-            </a>
-        
-    
-  </div>
-
-
-
-<script src="https://utteranc.es/client.js"
-        repo="tqzhong/my-blog"
-        issue-term="pathname"
-        label="hugo-comment"
-        theme="github-dark"
-        crossorigin="anonymous"
-        async>
-</script>
-
-    </main>
-    
-<footer class="footer">
-    <span>&copy; 2025 <a href="https://tqzhong.github.io/my-blog/">Rs&#39; Log</a></span>
-    <span>
-        Powered by
-        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
-        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
-    </span>
-</footer>
-<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
-        <path d="M12 6H0l6-6z" />
-    </svg>
-</a>
-
-<script>
-    let menu = document.getElementById('menu')
-    if (menu) {
-        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
-        menu.onscroll = function () {
-            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
-        }
-    }
-
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener("click", function (e) {
-            e.preventDefault();
-            var id = this.getAttribute("href").substr(1);
-            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
-                    behavior: "smooth"
-                });
-            } else {
-                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
-            }
-            if (id === "top") {
-                history.replaceState(null, null, " ");
-            } else {
-                history.pushState(null, null, `#${id}`);
-            }
-        });
-    });
-
-</script>
-<script>
-    var mybutton = document.getElementById("top-link");
-    window.onscroll = function () {
-        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
-            mybutton.style.visibility = "visible";
-            mybutton.style.opacity = "1";
-        } else {
-            mybutton.style.visibility = "hidden";
-            mybutton.style.opacity = "0";
-        }
-    };
-
-</script>
-<script>
-    document.getElementById("theme-toggle").addEventListener("click", () => {
-        if (document.body.className.includes("dark")) {
-            document.body.classList.remove('dark');
-            localStorage.setItem("pref-theme", 'light');
-        } else {
-            document.body.classList.add('dark');
-            localStorage.setItem("pref-theme", 'dark');
-        }
-    })
-
-</script>
-<script src="https://cdn.jsdelivr.net/npm/katex@0.13.0/dist/katex.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/katex@0.13.0/dist/contrib/auto-render.min.js"></script>
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            renderMathInElement(document.body, {
-                delimiters: [
-                    {left: "$$", right: "$$", display: true},
-                    {left: "\\(", right: "\\)", display: false},
-                    {left: "$", right: "$", display: false}
-                ]
-            });
-        });
-    </script>    
-
-</body>
-
-</html>
+$$</div><h3 id=references>References<a hidden class=anchor aria-hidden=true href=#references>#</a></h3><p>[1] Weng. <a href=https://lilianweng.github.io/posts/2018-02-19-rl-overview/ class=entityLink>“A (Long) Peek into Reinforcement Learning”</a> lilianweng.github.io (2018).</p><p>[2] Mocode. <a href=https://blog.csdn.net/Mocode/article/details/131160635 class=entityLink>“【强化学习理论】贝尔曼最优方程公式推导
+”</a> CSDN (2023).</p><p>[3] 蘑菇书EasyRL. <a href=https://datawhalechina.github.io/easy-rl/#/chapter2/chapter2 class=entityLink>“马尔可夫决策过程”</a> datawhalechina.github.io.</p><p>[4] 手动学强化学习 <a href=https://hrl.boyuai.com/chapter/1/%E6%97%B6%E5%BA%8F%E5%B7%AE%E5%88%86%E7%AE%97%E6%B3%95 class=entityLink>“时序差分算法”</a> hrl.boyuai.com</p><p>[5] 手动学强化学习 <a href=https://hrl.boyuai.com/chapter/2/dqn%E7%AE%97%E6%B3%95 class=entityLink>“DQN 算法”</a> hrl.boyuai.com</p><p>[6] 手动学强化学习 <a href=https://hrl.boyuai.com/chapter/2/%E7%AD%96%E7%95%A5%E6%A2%AF%E5%BA%A6%E7%AE%97%E6%B3%95 class=entityLink>“策略梯度算法”</a> hrl.boyuai.com</p><p>[7] 手动学强化学习 <a href=https://hrl.boyuai.com/chapter/2/trpo%E7%AE%97%E6%B3%95/ class=entityLink>“TRPO算法”</a> hrl.boyuai.com</p></div><footer class=post-footer><ul class=post-tags><li><a href=https://tqzhong.github.io/my-blog/tags/ai/>AI</a></li><li><a href=https://tqzhong.github.io/my-blog/tags/rl/>RL</a></li></ul><nav class=paginav><a class=prev href=https://tqzhong.github.io/my-blog/posts/2025-01-08-retrieval-augmented-generation/><span class=title>« Prev</span><br><span>RAG路线</span>
+</a><a class=next href=https://tqzhong.github.io/my-blog/posts/2024-10-30-deepspeed/><span class=title>Next »</span><br><span>Deepspeed多机多卡训练&代码细节</span></a></nav></footer></article><div class=social-icons><a href=https://github.com/tqzhong target=_blank rel="noopener noreferrer"><i class="fab fa-github"></i>
+</a><a href=https://x.com/rs1047g target=_blank rel="noopener noreferrer"><i class="fab fa-twitter"></i>
+</a><a href="https://scholar.google.com/citations?hl=en&amp;user=UNNLJX4AAAAJ" target=_blank rel="noopener noreferrer"><i class="fab fa-google"></i>
+</a><a href=https://tqzhong.github.io target=_blank rel="noopener noreferrer"><i class="fas fa-user"></i></a></div><script src=https://utteranc.es/client.js repo=tqzhong/my-blog issue-term=pathname label=hugo-comment theme=github-dark crossorigin=anonymous async></script></main><footer class=footer><span>&copy; 2025 <a href=https://tqzhong.github.io/my-blog/>Rs' Log</a></span>
+<span>Powered by
+<a href=https://gohugo.io/ rel="noopener noreferrer" target=_blank>Hugo</a> &
+        <a href=https://github.com/adityatelange/hugo-PaperMod/ rel=noopener target=_blank>PaperMod</a></span></footer><a href=#top aria-label="go to top" title="Go to Top (Alt + G)" class=top-link id=top-link accesskey=g><svg viewBox="0 0 12 6" fill="currentcolor"><path d="M12 6H0l6-6z"/></svg>
+</a><script>let menu=document.getElementById("menu");menu&&(menu.scrollLeft=localStorage.getItem("menu-scroll-position"),menu.onscroll=function(){localStorage.setItem("menu-scroll-position",menu.scrollLeft)}),document.querySelectorAll('a[href^="#"]').forEach(e=>{e.addEventListener("click",function(e){e.preventDefault();var t=this.getAttribute("href").substr(1);window.matchMedia("(prefers-reduced-motion: reduce)").matches?document.querySelector(`[id='${decodeURIComponent(t)}']`).scrollIntoView():document.querySelector(`[id='${decodeURIComponent(t)}']`).scrollIntoView({behavior:"smooth"}),t==="top"?history.replaceState(null,null," "):history.pushState(null,null,`#${t}`)})})</script><script>var mybutton=document.getElementById("top-link");window.onscroll=function(){document.body.scrollTop>800||document.documentElement.scrollTop>800?(mybutton.style.visibility="visible",mybutton.style.opacity="1"):(mybutton.style.visibility="hidden",mybutton.style.opacity="0")}</script><script>document.getElementById("theme-toggle").addEventListener("click",()=>{document.body.className.includes("dark")?(document.body.classList.remove("dark"),localStorage.setItem("pref-theme","light")):(document.body.classList.add("dark"),localStorage.setItem("pref-theme","dark"))})</script><script src=https://cdn.jsdelivr.net/npm/katex@0.13.0/dist/katex.min.js></script><script src=https://cdn.jsdelivr.net/npm/katex@0.13.0/dist/contrib/auto-render.min.js></script><script>document.addEventListener("DOMContentLoaded",function(){renderMathInElement(document.body,{delimiters:[{left:"$$",right:"$$",display:!0},{left:"\\(",right:"\\)",display:!1},{left:"$",right:"$",display:!1}]})})</script></body></html>
