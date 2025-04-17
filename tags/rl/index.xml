@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>RL on Rs' Log</title><link>https://tqzhong.github.io/my-blog/tags/rl/</link><description>Recent content in RL on Rs' Log</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Wed, 19 Mar 2025 00:00:00 +0000</lastBuildDate><atom:link href="https://tqzhong.github.io/my-blog/tags/rl/index.xml" rel="self" type="application/rss+xml"/><item><title>大模型post-training方法——强化学习篇</title><link>https://tqzhong.github.io/my-blog/posts/2025-03-19-llm-post-training-via-reinforcement-learning/</link><pubDate>Wed, 19 Mar 2025 00:00:00 +0000</pubDate><guid>https://tqzhong.github.io/my-blog/posts/2025-03-19-llm-post-training-via-reinforcement-learning/</guid><description>&lt;h3 id="ppo">PPO&lt;/h3>
+&lt;!-- #### Algorithm -->
+&lt;p>PPO（Proximal Policy Optimization）算法出自&lt;a href="https://arxiv.org/abs/1707.06347" class="entityLink">Schulman et al.&lt;/a>，在微调大模型中，该算法通过最大化以下目标函数来优化模型参数：&lt;/p>
+&lt;div class="scroll-container">
+$$
+\mathcal J_{PPO}(\theta)=\mathbb E_{[q\sim P(Q),o\sim \pi_{\theta_{old}}(O\vert q)]}\frac{1}{\vert o\vert}\sum_{t=1}^{\vert o\vert}\min\left[\frac{\pi_\theta(o_t\vert q,o_{&lt; t})}{\pi_{\theta_{old}}(o_t\vert q,o_{&lt; t})}A_t,\text{clip}\left(\frac{\pi_\theta(o_t\vert q,o_{&lt; t})}{\pi_{\theta_{old}}(o_t\vert q,o_{&lt; t})},1-\epsilon,1+\epsilon\right)A_t\right]
+$$
+&lt;/div>
+&lt;p>其中优势函数$A_t$通过使用GAE（Generalized Advantage Estimation）算法计算得到：&lt;/p>
+&lt;div class="scroll-container">
+$$
+r_t=r_\phi(q,o_{1:\vert o\vert}) - \beta \log\frac{\pi_\theta(o_t\vert q,o_{&lt; t})}{\pi_{ref}(o_t\vert q,o_{&lt; t})}
+$$
+&lt;/div>
+&lt;div class="scroll-container">
+$$
+A_t=\delta_t + (\gamma\lambda)\delta_{t+1} + (\gamma\lambda)^2\delta_{t+2}+\cdots=\sum_{l=0}^\infty (\gamma\lambda)^l\delta_{t+l}
+$$
+&lt;/div>
+&lt;div class="scroll-container">
+$$
+\delta_t=r_t+\gamma V(s_{t+1}) - V(s_t)
+$$
+&lt;/div>
+&lt;p>针对大模型微调的场景，$q$为问题（或者prompt），假设其最大长度为max_prompt_len，生成的$o_{1:\vert o\vert}$为答案（或者generation sentence），假设其最大长度为max_seq_len。上式中$r_t$为奖励，$r_\phi$为reward model（PPO优化中参数不更新），该模型输入$q$和$o_{1:\vert o\vert}$得到每个句子的最后一个有效token上的reward score，因此$r_\phi(q,o_{1:\vert o\vert})$的维度可以记作(bs,)（$bs$为ppo批量大小），KL惩罚项使用估计项$\log\frac{\pi_\theta(\cdot)}{\pi_{ref}(\cdot)}$，该项得到的维度为(bs, max_seq_len)，因此最终的奖励向量$r_t$维度为(bs, max_seq_len)。接着看一下DeepSpeed中对优势函数和回报实现的代码：&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
+&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-python" data-lang="python">&lt;span class="line">&lt;span class="cl">&lt;span class="k">def&lt;/span> &lt;span class="nf">get_advantages_and_returns&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="bp">self&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">values&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">rewards&lt;/span>&lt;span class="p">):&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">lastgaelam&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="mi">0&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">advantages_reversed&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="p">[]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">max_seq_len&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">rewards&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">shape&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">for&lt;/span> &lt;span class="n">t&lt;/span> &lt;span class="ow">in&lt;/span> &lt;span class="nb">reversed&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nb">range&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">max_seq_len&lt;/span>&lt;span class="p">)):&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">nextvalues&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">values&lt;/span>&lt;span class="p">[:,&lt;/span> &lt;span class="n">t&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="mi">1&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="k">if&lt;/span> &lt;span class="n">t&lt;/span> &lt;span class="o">&amp;lt;&lt;/span> &lt;span class="n">max_seq_len&lt;/span> &lt;span class="o">-&lt;/span> &lt;span class="mi">1&lt;/span> &lt;span class="k">else&lt;/span> &lt;span class="mf">0.0&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">delta&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">rewards&lt;/span>&lt;span class="p">[:,&lt;/span> &lt;span class="n">t&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="bp">self&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">gamma&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="n">nextvalues&lt;/span> &lt;span class="o">-&lt;/span> &lt;span class="n">values&lt;/span>&lt;span class="p">[:,&lt;/span> &lt;span class="n">t&lt;/span>&lt;span class="p">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">lastgaelam&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">delta&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="bp">self&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">gamma&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="bp">self&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">lam&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="n">lastgaelam&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">advantages_reversed&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">append&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">lastgaelam&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">advantages&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">torch&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">stack&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">advantages_reversed&lt;/span>&lt;span class="p">[::&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">],&lt;/span> &lt;span class="n">dim&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">returns&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">advantages&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="n">values&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">return&lt;/span> &lt;span class="n">advantages&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">returns&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>经过一次for循环得到的分别是（令max_seq_len为$\vert o\vert$）：&lt;/p></description></item><item><title>GRPO From Scratch</title><link>https://tqzhong.github.io/my-blog/posts/2025-03-05-grpo/</link><pubDate>Wed, 05 Mar 2025 00:00:00 +0000</pubDate><guid>https://tqzhong.github.io/my-blog/posts/2025-03-05-grpo/</guid><description>&lt;h3 id="简介">简介&lt;/h3>
+&lt;p>本篇博客基于Andriy Burkov的grpo开源代码，简单跑通GRPO的完整流程。使用的GPU资源为1张3090（24G）。原作者代码见：&lt;a href="https://github.com/aburkov/theLMbook/blob/main/GRPO_From_Scratch_Multi_GPU_DataParallel_Qwen_2_5_1_5B_Instruct.ipynb" class="entityLink">GRPO_From-Scratch&lt;/a>以及&lt;a href="https://github.com/aburkov/theLMbook/blob/main/GRPO_Qwen_0_5_Instruct.ipynb" class="entityLink">GRPO_Qwen-0_5_Instruct&lt;/a>。注：原作者使用8张80G A100完成实验。&lt;/p>
+&lt;h3 id="grpo">GRPO&lt;/h3>
+&lt;p>GRPO算法原理见&lt;a href="https://matrixai.online/my-blog/posts/2025-01-27-deepseek-r1/#311-reinforcement-learning-algorithm" class="entityLink">alg-grpo&lt;/a>，原作者在这块的实现基本遵从DeepSeek技术报告中的损失公式，后面代码处详细展开。&lt;/p>
+&lt;div class="scroll-container">
+$$
+\begin{align*}
+\mathcal{J}_{\text{GRPO}}(\theta) &amp;= \mathbb{E}\left[q \sim P(Q), \{o_i\}_{i=1}^G \sim \pi_{\theta_{\text{old}}}(O|q)\right]\\
+&amp;=\frac{1}{G} \sum_{i=1}^G \left\{
+\min \left[
+\frac{\pi_{\theta}(o_i | q)}{\pi_{\theta_{\text{old}}}(o_i | q)} A_i,
+\text{clip}\left( \frac{\pi_{\theta}(o_i | q)}{\pi_{\theta_{\text{old}}}(o_i | q)}, 1 - \epsilon, 1 + \epsilon \right) A_i
+\right]
+- \beta \mathbb D_{\text{KL}}[\pi_{\theta} \| \pi_{\text{ref}}]
+\right\}\\
+&amp;=\frac{1}{G} \sum_{i=1}^G\frac{1}{\vert o_i\vert}\sum_{t=1}^{\vert o_i\vert}\left\{\min\left[\frac{\pi_\theta(o_{i,t}\vert q,o_{i,&lt; t})}{\pi_{\theta_{old}}(o_{i,t}\vert q, o_{i,&lt; t})}\hat A_{i,t},\ \text{clip}\left(\frac{\pi_\theta(o_{i,t}\vert q,o_{i,&lt; t})}{\pi_{\theta_{old}}(o_{i,t}\vert q,o_{i, &lt; t})},1-\epsilon,1+\epsilon\right)\hat A_{i,t}\right] - \beta\mathbb D_{KL}[\pi_\theta\Vert\pi_{\text{ref}}]\right\}
+\end{align*}
+$$
+&lt;/div>
+&lt;div class="scroll-container">
+$$
+D_{\text{KL}}(\pi_{\theta} \| \pi_{\text{ref}}) =
+\frac{\pi_{\text{ref}}(o_{i, t} | q, o_{i, &lt; t})}{\pi_{\theta}(o_{i, t} | q, o_{i, &lt; t})}
+- \log \frac{\pi_{\text{ref}}(o_{i, t} | q, o_{i, &lt; t})}{\pi_{\theta}(o_{i, t} | q, o_{i, &lt; t})} - 1,
+$$
+&lt;/div>
+&lt;div class="scroll-container">
+$$
+\hat A_{i,t}=A_i = \frac{r_i - \text{mean}(\{r_1, r_2, \cdots, r_G\})}{\text{std}(\{r_1, r_2, \cdots, r_G\})}.
+$$
+&lt;/div>
+&lt;p>GRPO算法出自文章&lt;a href="https://arxiv.org/abs/2402.03300" class="entityLink">DeepSeekMath (2024)&lt;/a>，其中KL散度的计算采用了&lt;a href="http://joschu.net/blog/kl-approx.html" class="entityLink">Approximating KL Divergence&lt;/a>中的无偏估计方法，即$\mathbb D_{KL}(q\Vert p)=r-1-\log r$，其中$r=\log\frac{p(x)}{q(x)}$，该估计相比$-\log r$具有更小的方差，比$\frac{1}{2}(\log r)^2$具有更小的偏差（无偏）。&lt;/p></description></item><item><title>强化学习笔记</title><link>https://tqzhong.github.io/my-blog/posts/2024-11-21-reinforcement-learning/</link><pubDate>Thu, 21 Nov 2024 00:00:00 +0000</pubDate><guid>https://tqzhong.github.io/my-blog/posts/2024-11-21-reinforcement-learning/</guid><description>&lt;h3 id="1-基本概念公式">1. 基本概念，公式&lt;/h3>
+&lt;p>策略$\pi$，状态$s\in\mathcal S$，动作$a\in\mathcal A$，奖励$r\in\mathcal R$&lt;/p>
+&lt;p>转移函数$P$给出当采取行动$a$从状态$s$转移到$s^\prime$，同时获得奖励$r$的概率&lt;/p>
+&lt;div class="scroll-container">
+$$P(s^\prime,r\vert s,a)=\mathbb P[S_{t+1}=s^\prime,R_{t+1}=r\vert S_t=s,A_t=a]$$
+&lt;/div>
+&lt;p>状态转移函数$P^a_{ss^\prime}$&lt;/p>
+&lt;div class="scroll-container">
+$$P^a_{ss^\prime}=P(s^\prime\vert s,a)=\mathbb P[S_{t+1}=s^\prime|S_t=s,A_t=a]=\sum_{r\in\mathcal R}P(s^\prime,r\vert s,a)$$
+&lt;/div>
+&lt;p>奖励函数$R$预测给定状态和动作后的下一个奖励值&lt;/p>
+&lt;div class="scroll-container">
+$$R(s,a)=\mathbb E[R_{t+1}\vert S_t=s,A_t=a]=\sum_{r\in\mathcal R}r\sum_{s^\prime\in\mathcal S}P(s^\prime,r\vert s,a)$$
+&lt;/div>
+&lt;!-- $$R(s)=\mathbb E[R_{t+1}\vert S_t=s]$$ -->
+&lt;p>策略$\pi$给出在状态$s$下会采取何种行动，分为两种&lt;/p>
+&lt;ul>
+&lt;li>确定性：$\pi(s)=a$&lt;/li>
+&lt;li>随机性：$\pi(a\vert s)=\mathbb P_\pi[A=a\vert S=s]$&lt;/li>
+&lt;/ul>
+&lt;p>回报$G_t$，即未来的奖励之和，其中$\gamma\in[0,1]$为惩罚因子&lt;/p>
+&lt;div class="scroll-container">
+$$G_t=R_{t+1}+\gamma R_{t+2}+\dots=\sum_{k=0}^\infty \gamma^k R_{t+k+1}$$
+&lt;/div>
+&lt;p>状态价值函数$V_\pi(s)$给出在状态$s$下的期望回报&lt;/p>
+&lt;div class="scroll-container">
+$$V_\pi(s)=\mathbb E_\pi[G_t\vert S_t=s]$$
+&lt;/div>
+&lt;p>动作价值函数$Q_\pi(s,a)$给出在状态$s$下采取动作$a$的期望回报&lt;/p>
+&lt;div class="scroll-container">
+$$Q_\pi(s,a)=\mathbb E_\pi[G_t\vert S_t=s, A_t=a]$$
+&lt;/div>
+&lt;p>状态价值和动作价值的关系&lt;/p>
+&lt;div class="scroll-container">
+$$V_\pi(s)=\sum_{a\in\mathcal A}Q_\pi(s,a)\pi(a|s)=\mathbb E_{a\sim\pi}Q_\pi(s,a)$$
+&lt;/div>
+优势函数$A_\pi(s,a)$定义为动作价值与状态价值的差
+&lt;div class="scroll-container">
+$$A_\pi(s,a)=Q_\pi(s,a)-V_\pi(s)$$
+&lt;/div>
+最优价值函数定义为在最优策略下的价值函数，即能够产生最大回报
+&lt;div class="scroll-container">
+$$V_*(s)=\max_\pi V_\pi(s)\\
+Q_*(s,a)=\max_\pi Q_\pi(s,a)$$
+&lt;/div>
+&lt;p>最优策略定义为实现最优价值的策略，即对任意状态$s$都有$V_\pi(s)\ge V_{\pi^\prime}(s)$，最优策略可能有多个，都将其表示为$\pi_*(s)$&lt;/p>
+&lt;div class="scroll-container">
+$$\pi_*=\arg\max_\pi V_\pi(s)\\
+\pi_*=\arg\max_\pi Q_\pi(s,a)$$
+&lt;/div>
+&lt;p>因此，以下关系是成立的&lt;/p>
+&lt;div class="scroll-container">
+$$V_{\pi_*}(s)=V_*(s)\\
+Q_{\pi_*}(s,a)=Q_*(s,a)$$
+&lt;/div>
+&lt;h3 id="2-马尔可夫过程mdps">2. 马尔可夫过程（MDPs）&lt;/h3>
+&lt;p>几乎所有RL问题都可以划在马尔可夫过程内，马尔可夫过程内的所有状态都有同一个特性，即未来的状态只取决于当下的状态，与历史状态无关
+$$\mathbb P[S_{t+1}\vert S_t]=\mathbb P[S_{t+1}\vert S_1,\dots S_t]$$
+一个马尔可夫决策过程包含五个元素$\mathcal M=\langle \mathcal S,\mathcal A,\mathcal P,\mathcal R,\gamma\rangle$，对应的符号与基本符号含义相同&lt;/p></description></item></channel></rss>
