@@ -390,4 +390,4 @@ $$
 &lt;/div>
 &lt;h3 id="3-kto">3. KTO&lt;/h3>
 &lt;p>KTO loss (&lt;a href="https://arxiv.org/abs/2402.01306" class="entityLink">Ethayarajh et al. (2024)&lt;/a>)与DPO相比，不需要为每个prompt配对提供偏好回答和拒绝回答。它仅需要一个答案，并给出这个答案一个标签来指示该答案的质量是正面还是负面的。KTO不需要偏好回答的数量与拒绝回答的数量相同，简化数据的准备流程。&lt;/p></description></item><item><title>eDiary</title><link>https://tqzhong.github.io/my-blog/posts/ediary/</link><pubDate>Tue, 01 Oct 2024 00:00:00 +0000</pubDate><guid>https://tqzhong.github.io/my-blog/posts/ediary/</guid><description>&lt;h3 id="2024-10-01">2024-10-01&lt;/h3>
-&lt;p>这是笔者的第一篇电子日记，他在这篇日记里什么也没有写。。。&lt;/p></description></item></channel></rss>
+&lt;p>这是笔者的第一篇电子日记，他在这篇日记里什么也没有写&lt;/p></description></item></channel></rss>
