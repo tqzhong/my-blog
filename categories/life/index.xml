@@ -1,2 +1,46 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>Life on Rs' Log</title><link>https://tqzhong.github.io/my-blog/categories/life/</link><description>Recent content in Life on Rs' Log</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Tue, 01 Oct 2024 00:00:00 +0000</lastBuildDate><atom:link href="https://tqzhong.github.io/my-blog/categories/life/index.xml" rel="self" type="application/rss+xml"/><item><title>eDiary</title><link>https://tqzhong.github.io/my-blog/posts/ediary/</link><pubDate>Tue, 01 Oct 2024 00:00:00 +0000</pubDate><guid>https://tqzhong.github.io/my-blog/posts/ediary/</guid><description>&lt;h3 id="2024-10-01">2024-10-01&lt;/h3>
-&lt;p>这是笔者的第一篇电子日记，他在这篇日记里什么也没有写&lt;/p></description></item></channel></rss>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>Life on Rs&#39; Log</title>
+    <link>http://localhost:1313/my-blog/categories/life/</link>
+    <description>Recent content in Life on Rs&#39; Log</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Tue, 01 Oct 2024 00:00:00 +0000</lastBuildDate><atom:link href="http://localhost:1313/my-blog/categories/life/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>eDiary</title>
+      <link>http://localhost:1313/my-blog/posts/ediary/</link>
+      <pubDate>Tue, 01 Oct 2024 00:00:00 +0000</pubDate>
+      
+      <guid>http://localhost:1313/my-blog/posts/ediary/</guid>
+      <description>&lt;h3 id=&#34;2024-10-01&#34;&gt;2024-10-01&lt;/h3&gt;
+&lt;p&gt;这是笔者的第一篇电子日记，他在这篇日记里什么也没有写&lt;/p&gt;
+&lt;h3 id=&#34;2025-04-17&#34;&gt;2025-04-17&lt;/h3&gt;
+&lt;p&gt;今天什么也没有写，因为我不想写，什么也不想做，今天是当事业游民的最后一天，明天可以体验一下坐地铁上班的快乐了。&lt;/p&gt;
+&lt;h3 id=&#34;2025-04-18&#34;&gt;2025-04-18&lt;/h3&gt;
+&lt;p&gt;非常不幸又非常幸运的landing第一天，需要看很多文档，需要开通很多权限，但感觉这些东西花精力就能解决，只要你有足够多的精力。&lt;/p&gt;
+&lt;p&gt;回家的地铁上，对边坐着一位女生，靠在侧边。下一站上了几位工人（猜测），头发很多灰，裤子鞋子也是经历了工地的洗礼，左边一个年纪看上去大一点，右边一个年轻些，二人开始有说有笑坐在了女生的旁边，其中年纪大的靠着女生。女生没过一会就马上站起来，她走到门口，好想要下车的样子，然后又靠在一边，到了下一站，她真下车了，但是，马上又从同一个门上车，装作这一站上车的乘客，一进车门立马往与刚才座位相反的方向走了。这之后，我看着坐我对面的左边那位年纪大点的工人，他眼神望着女生刚才走过的方向，他好像什么都知道，就刚才几分钟前脸上的笑容瞬间消失，一股说不清的无奈甚至带有点委屈的神情凝滞在他的脸上，仿佛在述说着什么。&lt;/p&gt;
+&lt;h3 id=&#34;2025-04-19&#34;&gt;2025-04-19&lt;/h3&gt;
+&lt;p&gt;疯狂看文档配置开发机的一天，开发机终于配好了，文档看了RAG部分，对这块技术性没有特别了解，所以也是草草看过一遍。噢，还疯狂申请权限，感叹真的就算放假都得看消息，不然为啥周六都给我通过了呢。&lt;/p&gt;
+&lt;h3 id=&#34;2025-04-20&#34;&gt;2025-04-20&lt;/h3&gt;
+&lt;p&gt;可怜天下父母心，有什么事不能解决的呢？只要想，活着有什么难的。人总是被世俗所牵制，活得太累。&lt;/p&gt;
+&lt;h3 id=&#34;2025-04-22&#34;&gt;2025-04-22&lt;/h3&gt;
+&lt;p&gt;新的一周第二天班，昨天累的回来直接看手机躺了，今天写了下新人文档，理了几个方案，mentor也提了个方案，两者刚好能衔接，不得不说mentor的这个方案还是挺有意思，明天leader审核后开始执行，希望一切顺利。&lt;/p&gt;
+&lt;p&gt;字节上班是真的天天10点下班，我也是成工贼了，不过现在是正式入职，确实想努力干干，争取早日转正。虽然目前还是实习生。&lt;/p&gt;
+&lt;h3 id=&#34;2025-04-27&#34;&gt;2025-04-27&lt;/h3&gt;
+&lt;p&gt;调休上班的一天，今天终于搞明白怎么部署任务，调通了Llamafactory代码。&lt;/p&gt;
+&lt;h3 id=&#34;2025-04-29&#34;&gt;2025-04-29&lt;/h3&gt;
+&lt;p&gt;今晚早点儿回来了，但是好像也在发呆，手上还有很多事要做，但是拖延，拖延，还是拖延。&lt;/p&gt;
+&lt;p&gt;明天可以见面了，想你。&lt;/p&gt;
+&lt;h3 id=&#34;2025-07-04&#34;&gt;2025-07-04&lt;/h3&gt;
+&lt;p&gt;实际上，现在是7月4日的凌晨，刚刚看完黑镜第三季第一集，很有意思，微笑战神跌入谷底的故事，当然没这么简单，浓缩一下。&lt;/p&gt;
+&lt;p&gt;写一下从2025.06.14实习离职到现在2025.07.02这段时间的记忆&lt;/p&gt;
+&lt;p&gt;6月14日 我记得是周六 买了下午的机票飞合肥，那段时间有蝴蝶台风，所以预测会延误挺长时间的，只要能飞就行，最终延误了3h，买的延误险刚好能赔偿。大概到了晚上10点才到寝室整理好了行李，回学校实在太开心了，想到自己虽然没有多少假期，但是很开心，学校生活还有最后一周多一点，且过且珍惜。晚上收拾好就喊人喝酒，哎，最好的一天，我记得是日茶夜酒，在龙湖欢肆，之前回来去的一趟那边的日咖夜酒影响很好，这次去的这家差了一点。&lt;/p&gt;
+&lt;p&gt;6月15日 周末 和女朋友约会的日子，第一天回来太晚就没去找她，所以约了第二天，记得中区有个羽毛球院系杯，一起去瞅了一眼，还碰到一只地上疯狂打滚的梨花。晚上去吃了冰淇淋，然后吃了个韩餐，晚上看了部驯龙高手真人版，第一次看这个id的电影，还是给我留下了点印象的。&lt;/p&gt;
+&lt;p&gt;6月16日 周一 去西区找班主任签字毕业相关材料，约了mwc聊了新疆旅游的规划，吃了份烤鱼，受牙疼影响六点多回高新，上床睡了一觉，估摸着2h不到，醒来已经快十一点，精神好了一点，又约了zch，wyb和kbw去喝酒，弄到了半夜4.回寝室，拍到了趴在门禁上的小三花。&lt;/p&gt;
+&lt;p&gt;6月17日 周二 学院毕业典礼 前一天4.睡 但是6点多就醒了 而且无法入眠 失眠（或者说这种类似症状）会让人感到心烦 直接约了一家7.30就开门的诊所 一人骑电瓶车过去 一开门 坐着一位面带慈祥微笑的中年女性 问我有什么问题 我说我说不着觉 牙疼 牙疼导致的偏头疼 偏头疼导致睡不好觉 我说是一颗被拔掉的牙齿那部分的牙龈疼 她说这都是心理作用 我想或许是吧 于是我又骑车回到寝室 早上七八点的太阳已经很晒了。奇怪的是 回到寝室 我又想睡觉了 虽然睡的也很零碎 但终归睡到了中午12点。 那天之前就有人加我微信说国奖获得者在毕业典礼上有颁奖环节需要预先彩排 所以加我问我是否参加 前一天我说参加 那天中午12点直接放弃说不去了 直接在学校台球厅打台球 碰到一个本科毕业生。 毕业典礼结束后 带着学位服和wyb，wx拍了一会毕业照 那天晚上有没有喝酒 有点记不清了 记得把第二天的合肥市口腔医院的预约给取消了 因为那天后牙还真就不疼了。&lt;/p&gt;
+&lt;p&gt;6月18日 周三 微电子毕业典礼 导致羽毛球场还是被征用的状态 那天突然说去西区打球 kbw和zch，三个人一起去西区打球打到了下午5点 本来说直接西区晚饭 梦回本科 结果被kbw实验室同学中途截胡 让我们三和他们一起在高新银泰吃 吃的烤肉 一般吧 全程看kbw师妹和kbw的眼神交流 晚饭后kbw实验室的4个去ktv 我和zch回学校 晚上应该没喝 应该在写去新疆的路线规划&lt;/p&gt;</description>
+    </item>
+    
+  </channel>
+</rss>
