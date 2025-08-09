@@ -1,37 +1,56 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>Post-Training on Rs' Log</title><link>https://tqzhong.github.io/my-blog/tags/post-training/</link><description>Recent content in Post-Training on Rs' Log</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Wed, 09 Oct 2024 00:00:00 +0000</lastBuildDate><atom:link href="https://tqzhong.github.io/my-blog/tags/post-training/index.xml" rel="self" type="application/rss+xml"/><item><title>大模型post-training方法</title><link>https://tqzhong.github.io/my-blog/posts/llm-post-training/</link><pubDate>Wed, 09 Oct 2024 00:00:00 +0000</pubDate><guid>https://tqzhong.github.io/my-blog/posts/llm-post-training/</guid><description>&lt;!--tips:-->
-&lt;!--公式块里，如果加了class=scroll-container(滚轮滑块防止单行公式太长)，大小于号注意要与后面的字符隔开一个空格，否则无法正常编译-->
-&lt;!--常规公式块里，换行要用\\\\而不是\\否则无法正常编译，但是在{cases}环境里，换行用\\即可（目前发现这个，后续有其他再补充）-->
-&lt;h3 id="1-dpo">1. DPO&lt;/h3>
-&lt;p>&lt;a href="https://proceedings.neurips.cc/paper_files/paper/2023/hash/a85b405ed65c6477a4fe8302b5e06ce7-Abstract-Conference.html" class="entityLink">Rafailov et al. (2023)&lt;/a>基于RLHF中PPO的优化式推导出最优奖励函数表达式：$r(x, y)=\beta log\frac{\pi_\theta(y|x)}{\pi_{ref}(y|x)}+\beta logZ(x)$，将该奖励函数表达式带入BT-model得到DPO的损失函数表达式：&lt;/p>
-&lt;div class="scroll-container">
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>Post-Training on Rs&#39; Log</title>
+    <link>https://tqzhong.github.io/my-blog/tags/post-training/</link>
+    <description>Recent content in Post-Training on Rs&#39; Log</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Wed, 09 Oct 2024 00:00:00 +0000</lastBuildDate><atom:link href="https://tqzhong.github.io/my-blog/tags/post-training/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>大模型post-training方法</title>
+      <link>https://tqzhong.github.io/my-blog/posts/llm-post-training/</link>
+      <pubDate>Wed, 09 Oct 2024 00:00:00 +0000</pubDate>
+      
+      <guid>https://tqzhong.github.io/my-blog/posts/llm-post-training/</guid>
+      <description>&lt;!--tips:--&gt;
+&lt;!--公式块里，如果加了class=scroll-container(滚轮滑块防止单行公式太长)，大小于号注意要与后面的字符隔开一个空格，否则无法正常编译--&gt;
+&lt;!--常规公式块里，换行要用\\\\而不是\\否则无法正常编译，但是在{cases}环境里，换行用\\即可（目前发现这个，后续有其他再补充）--&gt;
+&lt;h3 id=&#34;1-dpo&#34;&gt;1. DPO&lt;/h3&gt;
+&lt;p&gt;&lt;a href=&#34;https://proceedings.neurips.cc/paper_files/paper/2023/hash/a85b405ed65c6477a4fe8302b5e06ce7-Abstract-Conference.html&#34; class=&#34;entityLink&#34;&gt;Rafailov et al. (2023)&lt;/a&gt;基于RLHF中PPO的优化式推导出最优奖励函数表达式：$r(x, y)=\beta log\frac{\pi_\theta(y|x)}{\pi_{ref}(y|x)}+\beta logZ(x)$，将该奖励函数表达式带入BT-model得到DPO的损失函数表达式：&lt;/p&gt;
+&lt;div class=&#34;scroll-container&#34;&gt;
 $$
 \mathcal L_{DPO}(\pi_\theta;\pi_{ref})=-\mathbb E_{(x, y_w, y_l)\sim\mathcal D}[log\ \sigma(\beta log\frac{\pi_\theta(y_w|x)}{\pi_{ref}(y_w|x)}-\beta log\frac{\pi_\theta(y_l|x)}{\pi_{ref}(y_l|x)})]
 $$
-&lt;/div>
-&lt;h3 id="2-simple-dpo">2. Simple-DPO&lt;/h3>
-&lt;p>&lt;a href="https://arxiv.org/abs/2405.14734" class="entityLink">Meng et al. (2024)&lt;/a>考虑到DPO的奖励函数有以下两个缺点：1）训练DPO时需要一个额外的reference 模型，增大训练开销；2）DPO的优化式和inference阶段存在差异。具体来讲，inference阶段时需要优化最大平均对数似然：&lt;/p>
-&lt;div class="scroll-container">
+&lt;/div&gt;
+&lt;h3 id=&#34;2-simple-dpo&#34;&gt;2. Simple-DPO&lt;/h3&gt;
+&lt;p&gt;&lt;a href=&#34;https://arxiv.org/abs/2405.14734&#34; class=&#34;entityLink&#34;&gt;Meng et al. (2024)&lt;/a&gt;考虑到DPO的奖励函数有以下两个缺点：1）训练DPO时需要一个额外的reference 模型，增大训练开销；2）DPO的优化式和inference阶段存在差异。具体来讲，inference阶段时需要优化最大平均对数似然：&lt;/p&gt;
+&lt;div class=&#34;scroll-container&#34;&gt;
 $$
 p_\theta(y|x)=\frac{1}{|y|}log\ \pi_\theta(y|x)=\frac{1}{|y|}\sum_{i=1}^{|y|}log\ \pi_\theta(y_i|x,y_{&lt; i})
 $$
-&lt;/div>
-&lt;p>因此Simple-DPO考虑将奖励函数表达式改为：&lt;/p>
-&lt;div class="scroll-container">
+&lt;/div&gt;
+&lt;p&gt;因此Simple-DPO考虑将奖励函数表达式改为：&lt;/p&gt;
+&lt;div class=&#34;scroll-container&#34;&gt;
 $$
 r_{SimPO}(x, y)=\frac{\beta}{|y|}log\ \pi_\theta(y|x)=\frac{\beta}{|y|}\sum_{i=1}^{|y|}log\ \pi_\theta(y_i|x,y_{&lt; i})
 $$
-&lt;/div>
-&lt;p>此外，为了进一步强化模型对winning response的拟合，弱化对losing response的拟合，作者在BT公式中引入超参数$\gamma \ (\gamma&amp;gt;0)$，表达式如下：&lt;/p>
-&lt;div class="scroll-container">
+&lt;/div&gt;
+&lt;p&gt;此外，为了进一步强化模型对winning response的拟合，弱化对losing response的拟合，作者在BT公式中引入超参数$\gamma \ (\gamma&amp;gt;0)$，表达式如下：&lt;/p&gt;
+&lt;div class=&#34;scroll-container&#34;&gt;
 $$
-p(y_w>y_l|x)=\sigma(r(x,y_w)-r(x,y_l)-\gamma)
+p(y_w&gt;y_l|x)=\sigma(r(x,y_w)-r(x,y_l)-\gamma)
 $$
-&lt;/div>
+&lt;/div&gt;
 从而，Simple-DPO的优化函数：
-&lt;div class="scroll-container">
+&lt;div class=&#34;scroll-container&#34;&gt;
 $$
 \mathcal L_{SimPO}(\pi_\theta)=-\mathbb E_{(x,y_w,y_l)\sim\mathcal D}[log\ \sigma(\frac{\beta}{|y_w|}log\ \pi_\theta(y_w|x)-\frac{\beta}{|y_l|}log\ \pi_\theta(y_l|x)-\gamma)]
 $$
-&lt;/div>
-&lt;h3 id="3-kto">3. KTO&lt;/h3>
-&lt;p>KTO loss (&lt;a href="https://arxiv.org/abs/2402.01306" class="entityLink">Ethayarajh et al. (2024)&lt;/a>)与DPO相比，不需要为每个prompt配对提供偏好回答和拒绝回答。它仅需要一个答案，并给出这个答案一个标签来指示该答案的质量是正面还是负面的。KTO不需要偏好回答的数量与拒绝回答的数量相同，简化数据的准备流程。&lt;/p></description></item></channel></rss>
+&lt;/div&gt;
+&lt;h3 id=&#34;3-kto&#34;&gt;3. KTO&lt;/h3&gt;
+&lt;p&gt;KTO loss (&lt;a href=&#34;https://arxiv.org/abs/2402.01306&#34; class=&#34;entityLink&#34;&gt;Ethayarajh et al. (2024)&lt;/a&gt;)与DPO相比，不需要为每个prompt配对提供偏好回答和拒绝回答。它仅需要一个答案，并给出这个答案一个标签来指示该答案的质量是正面还是负面的。KTO不需要偏好回答的数量与拒绝回答的数量相同，简化数据的准备流程。&lt;/p&gt;</description>
+    </item>
+    
+  </channel>
+</rss>
